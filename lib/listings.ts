@@ -277,19 +277,110 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
   },
 ];
 
-function parseBudgetVnd(text: string): number | undefined {
-  const millionMatch = text.match(/(?:budget(?:\s+is)?|under|below|max(?:imum)?|up to)?\s*(\d+(?:[.,]\d+)?)\s*(?:million|mil|m)\s*(?:vnd|dong)?/i);
-  if (millionMatch) {
-    return Number(millionMatch[1].replace(',', '.')) * 1_000_000;
+const SMALL_NUMBER_WORDS: Record<string, number> = {
+  zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5,
+  six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15,
+  sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19,
+  twenty: 20, thirty: 30, forty: 40, fifty: 50,
+  sixty: 60, seventy: 70, eighty: 80, ninety: 90,
+};
+
+const NUMBER_WORD_PATTERN =
+  '(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|and|a|half|point)';
+
+function parseIntegerWords(phrase: string): number | undefined {
+  const tokens = phrase.toLowerCase().replace(/-/g, ' ').split(/\s+/).filter(Boolean);
+  let total = 0;
+  let current = 0;
+  let sawNumber = false;
+
+  for (const token of tokens) {
+    if (token === 'and' || token === 'a') continue;
+    if (token in SMALL_NUMBER_WORDS) {
+      current += SMALL_NUMBER_WORDS[token];
+      sawNumber = true;
+    } else if (token === 'hundred') {
+      current = Math.max(current, 1) * 100;
+      sawNumber = true;
+    } else if (token === 'thousand') {
+      total += Math.max(current, 1) * 1_000;
+      current = 0;
+      sawNumber = true;
+    }
   }
-  const vndMatch = text.match(/(\d[\d.,]{5,})\s*(?:vnd|dong)/i);
-  if (!vndMatch) return undefined;
-  return Number(vndMatch[1].replace(/[.,]/g, ''));
+
+  return sawNumber ? total + current : undefined;
+}
+
+function parseSpokenNumber(phrase: string): number | undefined {
+  const normalized = phrase.toLowerCase().replace(/-/g, ' ').trim();
+  const hasHalf = /\b(?:and\s+)?a?\s*half\b/.test(normalized);
+  const withoutHalf = normalized.replace(/\b(?:and\s+)?a?\s*half\b/g, '').trim();
+  const [integerPart, decimalPart] = withoutHalf.split(/\s+point\s+/, 2);
+  const integer = parseIntegerWords(integerPart) ?? (hasHalf ? 0 : undefined);
+  if (integer === undefined) return undefined;
+
+  let decimal = 0;
+  if (decimalPart) {
+    const digits = decimalPart
+      .split(/\s+/)
+      .map((word) => SMALL_NUMBER_WORDS[word])
+      .filter((value) => value !== undefined && value < 10)
+      .join('');
+    if (digits) decimal = Number(`0.${digits}`);
+  }
+
+  return integer + decimal + (hasHalf ? 0.5 : 0);
+}
+
+function parseBudgetVnd(text: string): number | undefined {
+  const candidates: Array<{ index: number; value: number }> = [];
+  const numericMillionPattern = /(?:budget(?:\s+is)?|under|below|max(?:imum)?|up to)?\s*(\d+(?:[.,]\d+)?)\s*(?:million|mil|m)\s*(?:vnd|dong)?/gi;
+  for (const match of text.matchAll(numericMillionPattern)) {
+    candidates.push({ index: match.index, value: Number(match[1].replace(',', '.')) * 1_000_000 });
+  }
+
+  const numericVndPattern = /(\d[\d.,]{5,})\s*(?:vnd|dong)/gi;
+  for (const match of text.matchAll(numericVndPattern)) {
+    candidates.push({ index: match.index, value: Number(match[1].replace(/[.,]/g, '')) });
+  }
+
+  const spokenMillionPattern = new RegExp(
+    `\\b(${NUMBER_WORD_PATTERN}(?:[\\s-]+${NUMBER_WORD_PATTERN})*)\\s+(?:million|mil)\\b`,
+    'gi',
+  );
+  for (const match of text.matchAll(spokenMillionPattern)) {
+    const millions = parseSpokenNumber(match[1]);
+    if (millions !== undefined) candidates.push({ index: match.index, value: millions * 1_000_000 });
+  }
+
+  const spokenThousandPattern = new RegExp(
+    `\\b(${NUMBER_WORD_PATTERN}(?:[\\s-]+${NUMBER_WORD_PATTERN})*)\\s+thousand\\s*(?:vnd|dong)?\\b`,
+    'gi',
+  );
+  for (const match of text.matchAll(spokenThousandPattern)) {
+    const thousands = parseSpokenNumber(match[1]);
+    if (thousands !== undefined) candidates.push({ index: match.index, value: thousands * 1_000 });
+  }
+
+  return candidates.sort((a, b) => b.index - a.index)[0]?.value;
 }
 
 function parseRadiusKm(text: string): number | undefined {
-  const match = text.match(/(?:within|inside|radius(?:\s+of)?)\s*(\d+(?:[.,]\d+)?)\s*(?:kilometers?|kilometres?|km)/i);
-  return match ? Number(match[1].replace(',', '.')) : undefined;
+  const candidates: Array<{ index: number; value: number }> = [];
+  for (const match of text.matchAll(/(?:within|inside|radius(?:\s+of)?)\s*(\d+(?:[.,]\d+)?)\s*(?:kilometers?|kilometres?|km)/gi)) {
+    candidates.push({ index: match.index, value: Number(match[1].replace(',', '.')) });
+  }
+  const spokenRadiusPattern = new RegExp(
+    `(?:within|inside|radius(?:\\s+of)?)\\s+(${NUMBER_WORD_PATTERN}(?:[\\s-]+${NUMBER_WORD_PATTERN})*)\\s+(?:kilometers?|kilometres?|km)`,
+    'gi',
+  );
+  for (const match of text.matchAll(spokenRadiusPattern)) {
+    const value = parseSpokenNumber(match[1]);
+    if (value !== undefined) candidates.push({ index: match.index, value });
+  }
+  return candidates.sort((a, b) => b.index - a.index)[0]?.value;
 }
 
 function parseMoveIn(text: string): string | undefined {
@@ -297,9 +388,10 @@ function parseMoveIn(text: string): string | undefined {
     'january', 'february', 'march', 'april', 'may', 'june',
     'july', 'august', 'september', 'october', 'november', 'december',
   ];
-  const match = text.toLowerCase().match(
-    new RegExp(`(${monthNames.join('|')})\\s+(20\\d{2})`),
-  );
+  const matches = [...text.toLowerCase().matchAll(
+    new RegExp(`(${monthNames.join('|')})\\s+(20\\d{2})`, 'g'),
+  )];
+  const match = matches.at(-1);
   if (!match) return undefined;
   const month = String(monthNames.indexOf(match[1]) + 1).padStart(2, '0');
   return `${match[2]}-${month}-01`;
@@ -307,11 +399,25 @@ function parseMoveIn(text: string): string | undefined {
 
 export function extractListingFilters(query: string): ListingSearchFilters {
   const normalized = query.trim();
-  const location = /greenwich|fpt|university/i.test(normalized)
-    ? 'Greenwich Vietnam – Da Nang'
-    : /da\s*nang|danang/i.test(normalized)
-      ? 'Da Nang'
-      : 'Greenwich Vietnam – Da Nang';
+  const locationRules: Array<[string, RegExp]> = [
+    ['Greenwich Vietnam – Da Nang', /greenwich|fpt\s+(?:city|university)|greenwich\s+university/i],
+    ['My Khe', /my\s+khe/i],
+    ['An Thuong', /an\s+thuong/i],
+    ['Son Tra', /son\s+tra/i],
+    ['Hai Chau', /hai\s+chau/i],
+    ['Hoa Hai', /hoa\s+hai/i],
+    ['Ngu Hanh Son', /ngu\s+hanh\s+son|marble\s+mountains?/i],
+    ['Lien Chieu', /lien\s+chieu|hoa\s+khanh/i],
+    ['Thanh Khe', /thanh\s+khe/i],
+    ['Cam Le', /cam\s+le/i],
+    ['Hoa Cuong', /hoa\s+cuong/i],
+    ['Tho Quang', /tho\s+quang/i],
+  ];
+  const locationMatches = locationRules
+    .map(([location, pattern]) => ({ location, index: normalized.search(pattern) }))
+    .filter((match) => match.index >= 0)
+    .sort((a, b) => b.index - a.index);
+  const location = locationMatches[0]?.location ?? 'Da Nang';
 
   return {
     query: normalized,
@@ -322,12 +428,25 @@ export function extractListingFilters(query: string): ListingSearchFilters {
   };
 }
 
+export function isListingSearchRequest(text: string): boolean {
+  const normalized = text.trim().toLowerCase();
+  if (!normalized) return false;
+  const mentionsHousing = /\b(apartments?|flats?|homes?|rooms?|studios?|listings?|places? to (?:live|rent|stay))\b/.test(normalized);
+  const asksToSearch = /\b(find|search|show|recommend|suggest|looking for|look for|need|want|rent)\b/.test(normalized);
+  return mentionsHousing && asksToSearch;
+}
+
 export function searchApartmentListings(query: string): ListingSearchResponse {
   const filters = extractListingFilters(query);
   const listings = APARTMENT_LISTINGS.filter((listing) => {
     if (filters.maxBudgetVnd && listing.monthlyRentVnd > filters.maxBudgetVnd) return false;
     if (filters.radiusKm && listing.distanceKm > filters.radiusKm) return false;
     if (filters.moveIn && listing.availableFrom > filters.moveIn) return false;
+    if (filters.location === 'Greenwich Vietnam – Da Nang' && listing.distanceKm > 3) return false;
+    if (filters.location !== 'Da Nang' && filters.location !== 'Greenwich Vietnam – Da Nang') {
+      const locationText = `${listing.title} ${listing.neighborhood} ${listing.address}`.toLowerCase();
+      if (!locationText.includes(filters.location.toLowerCase())) return false;
+    }
     return true;
   }).sort((a, b) => a.distanceKm - b.distanceKm || a.monthlyRentVnd - b.monthlyRentVnd);
 

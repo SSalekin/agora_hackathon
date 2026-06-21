@@ -53,12 +53,14 @@ Optional SSE proxy path (not default runtime path). Requires `NEXT_LLM_API_KEY` 
 
 Returns `{ filters, listings, total }` from the fictional catalog. Blank queries return `400`.
 
+Budget and radius parsing accept numeric and spoken forms. Transcript fragments are debounced, retained filters are serialized between turns, and the last stated budget, radius, date, or location overrides earlier values.
+
 ## Event/Data Interfaces
 
 - RTM transcript/state/metrics/errors consumed through `AgoraVoiceAI` event emitter.
 - Raw RTM `message` event parsed as fallback for `message.error` and `message.sal_status` payloads.
 - `AGENT_METRICS` payloads displayed by `QuickstartPipelineMetrics`.
-- Completed user transcript turns trigger one listing search per turn id.
+- Results remain hidden until combined user transcript turns contain explicit apartment-search intent; later turns refine the search once started.
 
 ## Environment Contract
 

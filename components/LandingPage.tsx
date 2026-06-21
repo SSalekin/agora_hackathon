@@ -13,8 +13,26 @@ import type {
 import { ErrorBoundary } from './ErrorBoundary';
 import { LoadingSkeleton } from './LoadingSkeleton';
 import { ApartmentHome } from './apartment/ApartmentHome';
-import { APARTMENT_LISTINGS } from '@/lib/listings';
-import type { ApartmentListing, ListingSearchResponse, SearchHistoryItem } from '@/types/listing';
+import type { ApartmentListing, ListingSearchFilters, ListingSearchResponse, SearchHistoryItem } from '@/types/listing';
+
+function serializeSearchFilters(filters: ListingSearchFilters): string {
+  const moveIn = filters.moveIn
+    ? (() => {
+        const [year, month] = filters.moveIn.split('-');
+        const monthName = [
+          'January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December',
+        ][Number(month) - 1];
+        return monthName ? `move in ${monthName} ${year}` : null;
+      })()
+    : null;
+  return [
+    `location ${filters.location}`,
+    filters.maxBudgetVnd ? `maximum budget ${filters.maxBudgetVnd} VND` : null,
+    filters.radiusKm ? `within ${filters.radiusKm} km` : null,
+    moveIn,
+  ].filter(Boolean).join(', ');
+}
 
 // Dynamically import the ConversationComponent with ssr disabled
 const ConversationComponent = dynamic(() => import('./ConversationComponent'), {
@@ -59,9 +77,11 @@ const AgoraProvider = dynamic(
 export default function LandingPage() {
   const [showConversation, setShowConversation] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
-  const [listings, setListings] = useState<ApartmentListing[]>(APARTMENT_LISTINGS);
+  const [listings, setListings] = useState<ApartmentListing[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [history, setHistory] = useState<SearchHistoryItem[]>([]);
+  const searchContextRef = useRef('');
 
   // Preload heavy modules on mount so they're already cached when the user
   // clicks "Try it Now" — eliminates the ~1.8s dynamic-import delay.
@@ -83,21 +103,28 @@ export default function LandingPage() {
   const [rtmClient, setRtmClient] = useState<RTMClient | null>(null);
   const [agentJoinError, setAgentJoinError] = useState(false);
 
-  const handleListingSearch = useCallback(async (query: string) => {
+  const performListingSearch = useCallback(async (query: string, refine: boolean) => {
     const normalizedQuery = query.trim();
     if (!normalizedQuery) return;
+    const contextualQuery = refine && searchContextRef.current
+      ? `${searchContextRef.current}. ${normalizedQuery}`
+      : normalizedQuery;
     try {
-      const response = await fetch(`/api/listings?query=${encodeURIComponent(normalizedQuery)}`);
+      const response = await fetch(`/api/listings?query=${encodeURIComponent(contextualQuery)}`);
       const data = (await response.json()) as ListingSearchResponse | { error: string };
       if (!response.ok || !('listings' in data)) throw new Error('Could not search listings');
+      searchContextRef.current = serializeSearchFilters(data.filters);
       setListings(data.listings);
+      setHasSearched(true);
       setHistory((current) => {
-        const next: SearchHistoryItem[] = [{ id: `${Date.now()}-${normalizedQuery.slice(0, 12)}`, query: normalizedQuery, createdAt: Date.now(), resultCount: data.total, filters: data.filters }, ...current.filter((item) => item.query.toLowerCase() !== normalizedQuery.toLowerCase())].slice(0, 12);
+        const next: SearchHistoryItem[] = [{ id: `${Date.now()}-${contextualQuery.slice(0, 12)}`, query: contextualQuery, createdAt: Date.now(), resultCount: data.total, filters: data.filters }, ...current.filter((item) => item.query.toLowerCase() !== contextualQuery.toLowerCase())].slice(0, 12);
         localStorage.setItem('nestfind:history', JSON.stringify(next));
         return next;
       });
     } catch (searchError) { console.error('Listing search failed:', searchError); }
   }, []);
+  const handleVoiceListingSearch = useCallback((query: string) => performListingSearch(query, true), [performListingSearch]);
+  const handleTextListingSearch = useCallback((query: string) => performListingSearch(query, false), [performListingSearch]);
 
   const handleToggleFavorite = useCallback((id: string) => {
     setFavoriteIds((current) => {
@@ -110,6 +137,9 @@ export default function LandingPage() {
   const handleSignOut = useCallback(() => { localStorage.removeItem('nestfind:user'); setUserName(null); }, []);
 
   const handleStartConversation = async () => {
+    searchContextRef.current = '';
+    setListings([]);
+    setHasSearched(false);
     setIsLoading(true);
     setError(null);
     setAgentJoinError(false);
@@ -264,10 +294,11 @@ export default function LandingPage() {
               error={error}
               userName={userName}
               listings={listings}
+              hasSearched={hasSearched}
               favoriteIds={favoriteIds}
               history={history}
               onStartConversation={handleStartConversation}
-              onTextSearch={handleListingSearch}
+              onTextSearch={handleTextListingSearch}
               onToggleFavorite={handleToggleFavorite}
               onSignIn={handleSignIn}
               onSignOut={handleSignOut}
@@ -291,9 +322,10 @@ export default function LandingPage() {
                       onTokenWillExpire={handleTokenWillExpire}
                       onEndConversation={handleEndConversation}
                       listings={listings}
+                      hasSearched={hasSearched}
                       favoriteIds={favoriteIds}
                       onToggleFavorite={handleToggleFavorite}
-                      onUserTranscript={handleListingSearch}
+                      onUserTranscript={handleVoiceListingSearch}
                     />
                   </AgoraProvider>
                 </ErrorBoundary>

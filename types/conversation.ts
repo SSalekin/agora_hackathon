@@ -34,6 +34,7 @@ export interface ConversationComponentProps {
   onTokenWillExpire: (uid: string) => Promise<AgoraRenewalTokens>;
   onEndConversation: () => void;
   listings: ApartmentListing[];
+  hasSearched: boolean;
   favoriteIds: string[];
   onToggleFavorite: (id: string) => void;
   onUserTranscript: (text: string) => void;

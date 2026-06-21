@@ -1,5 +1,5 @@
 {
-  "generated": 1782029346136,
+  "generated": 1782030580488,
   "fileCount": 88,
   "files": [
     {
@@ -88,9 +88,9 @@
     },
     {
       "path": "README.md",
-      "size": 10654,
-      "mtime": 1782013317151.343,
-      "sha256": "0ab3ae0e89dcfa528be5541a8bc2ab6bfe47c4720569f549c98c7234f848e193",
+      "size": 10780,
+      "mtime": 1782030573811.4924,
+      "sha256": "90c447249c7ad1636fe91bf875b3bf860e4e79acffd46d6de2719d5978437112",
       "exports": []
     },
     {
@@ -193,9 +193,9 @@
     },
     {
       "path": "components/ConversationComponent.tsx",
-      "size": 19390,
-      "mtime": 1782013227115.5398,
-      "sha256": "0ba75d973f82d9240d3d20a6afe43ca18583a50df3ea6f81926fbedecb8cc351",
+      "size": 19963,
+      "mtime": 1782030484286.1968,
+      "sha256": "ebbd6e792455c54e9350585fe6178c4a769ae79074b8db1a86f52b5fca4fde5d",
       "exports": [
         "ConversationComponent"
       ]
@@ -223,9 +223,9 @@
     },
     {
       "path": "components/LandingPage.tsx",
-      "size": 13310,
-      "mtime": 1782013200520.3662,
-      "sha256": "baca11d75ae76e31103a016cf50f6ca16ecb3c1c2458f9a28854defdd5ac65b8",
+      "size": 14757,
+      "mtime": 1782030508955.7332,
+      "sha256": "e83b31d649009a290696460386681c3ff892cd2d0aabc3bd61560df7fd2d8eca",
       "exports": [
         "LandingPage"
       ]
@@ -287,9 +287,9 @@
     },
     {
       "path": "components/apartment/ApartmentHome.tsx",
-      "size": 10292,
-      "mtime": 1782013174139.8003,
-      "sha256": "df39db3fa631fcefc87e1085fa0ab8752b1ca9cd40cbb23bf216973d267016d7",
+      "size": 10268,
+      "mtime": 1782029518024.3691,
+      "sha256": "7637a1db7a04bfb98cf11b8c8d54570149680254b768e068cd2291a5b040465a",
       "exports": [
         "ApartmentHome"
       ]
@@ -390,9 +390,9 @@
     },
     {
       "path": "docs/ai/L1/06_interfaces.md",
-      "size": 3494,
-      "mtime": 1782013317967.6882,
-      "sha256": "d8a6be37b264810a1a8222654dcd9d91ca8edc67fd2452bd1d6db3584dd9d987",
+      "size": 3790,
+      "mtime": 1782030573990.671,
+      "sha256": "774e1177085d8d61a79a2ce4d74044ca6cf0726b706115657bb75ffc2f3b67d0",
       "exports": []
     },
     {
@@ -521,13 +521,14 @@
     },
     {
       "path": "lib/listings.ts",
-      "size": 10506,
-      "mtime": 1782029335221.9595,
-      "sha256": "4cf0088b2616f16facf0ea4cdf7eaa3c49f36732c837a4a42b6ea66849201453",
+      "size": 15717,
+      "mtime": 1782030527633.8018,
+      "sha256": "20394b5eb69e8f7c86cb9f5058b6d9476c85b6200d190bb7f1c9e9b9e30d9c9b",
       "exports": [
         "APARTMENT_LISTINGS",
         "extractListingFilters",
         "formatVnd",
+        "isListingSearchRequest",
         "searchApartmentListings"
       ]
     },
@@ -626,9 +627,9 @@
     },
     {
       "path": "scripts/verify-apartment.ts",
-      "size": 1302,
-      "mtime": 1782029335420.6794,
-      "sha256": "d2b1467d3ffe4864aa2d7758fd1afbdb15444699e6c7671e1d8f9d070a2141ed",
+      "size": 3302,
+      "mtime": 1782030527805.8967,
+      "sha256": "cc4f134f416fe7db45b5d7ececf82fc305dc880d8941bd40d6bf700f2c00ce8f",
       "exports": []
     },
     {
@@ -675,9 +676,9 @@
     },
     {
       "path": "types/conversation.ts",
-      "size": 878,
-      "mtime": 1782013200360.6729,
-      "sha256": "f17384a6a3c72918902417e288e83bc14cdab48a029e8828969f50dd50563bec",
+      "size": 902,
+      "mtime": 1782029517618.3223,
+      "sha256": "25f5d93d170cc7157d1ba7e07c08d63069ba0757906a0ebc828db9ce2d66f465",
       "exports": [
         "AgentResponse",
         "AgoraRenewalTokens",
