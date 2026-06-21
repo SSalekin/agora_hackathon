@@ -42,6 +42,9 @@
 ## Known Limits
 
 - This quickstart is a sample app; it does not implement user auth/tenant isolation.
+- NestFind profile, favorites, and history use local storage and are not secure account data.
+- Listing alerts are local notifications; remote Web Push requires a production backend.
+- Dummy listing records are fictional and must not be represented as verified availability.
 - If productionizing, add authenticated route access and per-user authorization checks.
 
 ## Security Review Checklist

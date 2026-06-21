@@ -3,9 +3,11 @@ recipe_version: 0.1.0
 recipe_status: stable
 extension_points:
   - api.routes
+  - api.listings
   - prompts.system
   - pipeline.providers
   - ui.conversation
+  - ui.apartment-discovery
 invariants:
   - baseline.official-sample
   - tokens.rtc-rtm
@@ -36,6 +38,7 @@ This base recipe provides a copyable browser voice-agent starter with:
 - server-side token, invite, stop, and optional custom LLM routes
 - managed default STT, LLM, and TTS provider configuration
 - pre-call, in-call, transcript, metrics, and connection-status UI
+- NestFind apartment discovery with dummy listings and device-local PWA state
 
 ## Baseline Implementation Guidance
 
@@ -49,6 +52,8 @@ Do not recreate Agora ConvoAI integration from memory. Provider schemas, SDK bui
 - `prompts.system`: edit `ADA_PROMPT` and `GREETING` in `app/api/invite-agent/route.ts`.
 - `pipeline.providers`: adjust the `DeepgramSTT`, `OpenAI`, and `MiniMaxTTS` builder chain, or enable the commented BYOK blocks.
 - `ui.conversation`: customize `QuickstartPreCallCard`, `QuickstartConversationLayout`, `QuickstartTranscriptPanel`, and `QuickstartPipelineMetrics`.
+- `api.listings`: replace `lib/listings.ts` behind `GET /api/listings?query=`.
+- `ui.apartment-discovery`: customize `components/apartment` without changing Agora hook ownership.
 
 ## Invariants
 

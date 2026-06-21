@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AgoraRTC, {
   useRTCClient,
   useLocalMicrophoneTrack,
@@ -44,6 +44,8 @@ import {
 } from './QuickstartPipelineMetrics';
 import { QuickstartTranscriptPanel } from './QuickstartTranscriptPanel';
 import type { ConversationComponentProps } from '@/types/conversation';
+import { ListingGrid } from './apartment/ListingGrid';
+import { isListingSearchRequest } from '@/lib/listings';
 
 // Cap the displayed issues list to avoid overwhelming the UI during a cascade of errors.
 const MAX_CONNECTION_ISSUES = 6;
@@ -95,6 +97,11 @@ export default function ConversationComponent({
   rtmClient,
   onTokenWillExpire,
   onEndConversation,
+  listings,
+  hasSearched,
+  favoriteIds,
+  onToggleFavorite,
+  onUserTranscript,
 }: ConversationComponentProps) {
   const client = useRTCClient();
   const remoteUsers = useRemoteUsers();
@@ -376,6 +383,26 @@ export default function ConversationComponent({
     return getCurrentInProgressMessage(transcript);
   }, [transcript]);
 
+  const lastSearchSignature = useRef('');
+  useEffect(() => {
+    const recentUserMessages = messageList
+      .filter((message) => String(message.uid) !== agentUID && message.text?.trim())
+      .slice(-8);
+    const latestUserMessage = recentUserMessages.at(-1);
+    if (!latestUserMessage?.text) return;
+    const combinedRequest = recentUserMessages
+      .map((message) => message.text?.trim())
+      .filter(Boolean)
+      .join(' ');
+    if (!hasSearched && !isListingSearchRequest(combinedRequest)) return;
+    if (lastSearchSignature.current === combinedRequest) return;
+    const timeout = window.setTimeout(() => {
+      lastSearchSignature.current = combinedRequest;
+      onUserTranscript(combinedRequest);
+    }, 1_000);
+    return () => window.clearTimeout(timeout);
+  }, [messageList, agentUID, hasSearched, onUserTranscript]);
+
   // Publish local mic once the track exists; usePublish waits for RTC connection.
   usePublish([localMicrophoneTrack]);
 
@@ -488,9 +515,10 @@ export default function ConversationComponent({
           agentUID={agentUID}
         />
       }
+      listingPanel={hasSearched ? <ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} emptyMessage="No exact matches yet. Tell the concierge to widen your budget or search radius." /> : <div className="rounded-3xl border border-dashed border-stone-300 bg-white/60 px-6 py-14 text-center text-sm text-stone-500">Tell Mai what you need. Matching apartments will appear after your request.</div>}
       visualizer={
         <div
-          className="relative flex h-full min-h-[20rem] w-full max-w-4xl items-center justify-center"
+          className="relative flex h-full min-h-[10rem] w-full max-w-4xl items-center justify-center"
           role="region"
           aria-label="AI agent status visualization"
         >

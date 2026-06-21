@@ -5,31 +5,18 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
+  themeColor: '#123f32',
 };
 
 export const metadata: Metadata = {
-  title: 'Talk to your voice agent | Agora',
-  description:
-    "Next.js quickstart: real-time voice agent with live transcript, streaming audio, and low latency from Agora's Conversational AI Engine—API routes in one repo.",
+  title: 'NestFind | Voice apartment search in Da Nang',
+  description: 'Talk naturally and discover Da Nang apartments matched to your budget, location, and move-in date.',
+  manifest: '/site.webmanifest',
+  applicationName: 'NestFind',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'NestFind' },
   icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-    ],
-    apple: [{ url: '/apple-touch-icon.png' }],
-    other: [
-      {
-        url: '/android-chrome-192x192.png',
-        sizes: '192x192',
-        type: 'image/png',
-      },
-      {
-        url: '/android-chrome-512x512.png',
-        sizes: '512x512',
-        type: 'image/png',
-      },
-    ],
+    icon: [{ url: '/nestfind-mark.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/nestfind-mark.svg' }],
   },
 };
 

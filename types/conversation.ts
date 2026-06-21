@@ -1,4 +1,5 @@
 import type { RTMClient } from 'agora-rtm';
+import type { ApartmentListing } from './listing';
 
 export interface AgoraTokenData {
   token: string;
@@ -32,4 +33,9 @@ export interface ConversationComponentProps {
   rtmClient: RTMClient;
   onTokenWillExpire: (uid: string) => Promise<AgoraRenewalTokens>;
   onEndConversation: () => void;
+  listings: ApartmentListing[];
+  hasSearched: boolean;
+  favoriteIds: string[];
+  onToggleFavorite: (id: string) => void;
+  onUserTranscript: (text: string) => void;
 }

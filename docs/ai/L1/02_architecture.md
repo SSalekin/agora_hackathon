@@ -18,6 +18,7 @@ Browser UI (LandingPage + ConversationComponent)
   -> RTC join/publish mic
   -> RTM subscribe + AgoraVoiceAI events
   -> POST /api/stop-conversation
+  -> GET /api/listings after completed user transcript turns
 
 Next.js API routes
   -> agora-token (RtcTokenBuilder.buildTokenWithRtm)
@@ -49,6 +50,7 @@ Agora Cloud
 - RTC transport and mic: `ConversationComponent` + `agora-rtc-react` hooks.
 - Transcript + agent state: `AgoraVoiceAI` events mapped through `lib/conversation.ts`.
 - Metrics and connection issues: `AGENT_METRICS`, `MESSAGE_ERROR`, `SAL_STATUS`, RTM fallback parsing.
+- Apartment search and device-local state: `LandingPage`, `lib/listings.ts`, and `components/apartment`.
 
 ## External Dependencies
 

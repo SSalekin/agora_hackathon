@@ -21,6 +21,7 @@ types/               Shared TypeScript route/component contracts
 - `invite-agent/route.ts`: validates input/env, configures and starts agent session.
 - `stop-conversation/route.ts`: stops agent and handles idempotent already-stopping cases.
 - `chat/completions/route.ts`: optional OpenAI-compatible SSE proxy for custom LLM path.
+- `listings/route.ts`: deterministic dummy apartment results from natural language.
 
 ## Client Ownership (`components`)
 
@@ -30,11 +31,13 @@ types/               Shared TypeScript route/component contracts
 - `QuickstartTranscriptPanel.tsx`: live transcript panel.
 - `QuickstartPipelineMetrics.tsx`: latency chips from metrics stream.
 - `ConnectionStatusPanel.tsx` + `ConversationErrorCard.tsx`: issue rendering/severity.
+- `apartment/`: discovery, saved listings, history, PWA installation, and alerts.
 
 ## Shared Logic (`lib`)
 
 - `agora.ts`: default constants (`DEFAULT_AGENT_UID`).
 - `conversation.ts`: transcript normalization, spacing cleanup, timestamp normalization, visualizer state mapping.
+- `listings.ts`: fictional apartment catalog and pure search functions.
 
 ## Validation and Tooling
 
