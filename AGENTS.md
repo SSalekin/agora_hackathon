@@ -32,6 +32,7 @@ The sections below (Start Here, Patterns, Anti-Patterns, etc.) remain the canoni
 - Server SDK: `agora-agents` for managed agent session startup
 - API routes: token generation, agent invite, chat, and stop routes live in `app/api`
 - Default agent config: Agora-managed STT, LLM, and TTS; no third-party vendor keys are required for the base quickstart
+- Product layer: NestFind dummy apartment search, local favorites/history/profile, and installable offline shell
 
 ## Supported Modes
 
@@ -60,13 +61,18 @@ The sections below (Start Here, Patterns, Anti-Patterns, etc.) remain the canoni
 - `app/api/invite-agent/route.ts`: starts the managed agent session; edit here for system prompt, VAD, model, or voice changes.
 - `app/api/stop-conversation/route.ts`: stops the agent session.
 - `app/api/chat/completions/route.ts`: optional OpenAI-compatible SSE proxy for a custom LLM (not wired by default).
+- `app/api/listings/route.ts`: typed dummy apartment search endpoint.
 - `components/LandingPage.tsx`: session bootstrap, RTM setup, provider wiring, and conversation lifecycle.
 - `components/ConversationComponent.tsx`: RTC join, mic publication, `AgoraVoiceAI` init, transcript state, and renewals.
 - `components/QuickstartConversationLayout.tsx`: in-call header, transcript rail, and controls dock.
 - `components/QuickstartPipelineMetrics.tsx`: per-stage latency chips from `AGENT_METRICS`.
 - `components/QuickstartTranscriptPanel.tsx`: live transcript rail.
+- `components/apartment/ApartmentHome.tsx`: discovery, demo profile, favorites, and history.
+- `components/apartment/ListingGrid.tsx`: apartment result cards.
+- `components/apartment/PwaControls.tsx`: PWA install, connectivity, and local alerts.
 - `lib/agora.ts`: shared agent UID defaults.
 - `lib/conversation.ts`: transcript normalization and visualizer state mapping.
+- `lib/listings.ts`: fictional catalog and deterministic filter/search functions.
 - `env.local.example`: local environment template.
 - `scripts/verify-api-contracts.ts`: route contract verification.
 

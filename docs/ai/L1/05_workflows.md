@@ -19,7 +19,7 @@ Target file: `app/api/invite-agent/route.ts`.
 
 Typical edits:
 
-- System prompt (`ADA_PROMPT`).
+- System prompt (`NESTFIND_PROMPT`).
 - Greeting default (`NEXT_AGENT_GREETING`).
 - VAD (`turnDetection.config.*`).
 - STT/LLM/TTS model/provider blocks.

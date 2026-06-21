@@ -12,9 +12,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "reindex": "node scripts/reindex.mjs",
+    "verify:apartment": "node --import tsx scripts/verify-apartment.ts",
     "verify:api": "node --import tsx scripts/verify-api-contracts.ts",
     "typecheck": "tsc --noEmit",
-    "verify": "pnpm run doctor && pnpm run lint && pnpm run typecheck && pnpm run verify:api && pnpm run build"
+    "verify": "pnpm run doctor && pnpm run lint && pnpm run typecheck && pnpm run verify:api && pnpm run verify:apartment && pnpm run build"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.39",

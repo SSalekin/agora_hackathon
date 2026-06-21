@@ -12,7 +12,9 @@ import type {
 } from '../types/conversation';
 import { ErrorBoundary } from './ErrorBoundary';
 import { LoadingSkeleton } from './LoadingSkeleton';
-import { QuickstartPreCallCard } from './QuickstartPreCallCard';
+import { ApartmentHome } from './apartment/ApartmentHome';
+import { APARTMENT_LISTINGS } from '@/lib/listings';
+import type { ApartmentListing, ListingSearchResponse, SearchHistoryItem } from '@/types/listing';
 
 // Dynamically import the ConversationComponent with ssr disabled
 const ConversationComponent = dynamic(() => import('./ConversationComponent'), {
@@ -56,18 +58,56 @@ const AgoraProvider = dynamic(
 
 export default function LandingPage() {
   const [showConversation, setShowConversation] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [listings, setListings] = useState<ApartmentListing[]>(APARTMENT_LISTINGS);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [history, setHistory] = useState<SearchHistoryItem[]>([]);
 
   // Preload heavy modules on mount so they're already cached when the user
   // clicks "Try it Now" — eliminates the ~1.8s dynamic-import delay.
   useEffect(() => {
     import('agora-rtc-react').catch(() => {});
     import('agora-rtm').catch(() => {});
+    setUserName(localStorage.getItem('nestfind:user'));
+    try {
+      setFavoriteIds(JSON.parse(localStorage.getItem('nestfind:favorites') ?? '[]'));
+      setHistory(JSON.parse(localStorage.getItem('nestfind:history') ?? '[]'));
+    } catch {
+      localStorage.removeItem('nestfind:favorites');
+      localStorage.removeItem('nestfind:history');
+    }
   }, []);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [agoraData, setAgoraData] = useState<AgoraTokenData | null>(null);
   const [rtmClient, setRtmClient] = useState<RTMClient | null>(null);
   const [agentJoinError, setAgentJoinError] = useState(false);
+
+  const handleListingSearch = useCallback(async (query: string) => {
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) return;
+    try {
+      const response = await fetch(`/api/listings?query=${encodeURIComponent(normalizedQuery)}`);
+      const data = (await response.json()) as ListingSearchResponse | { error: string };
+      if (!response.ok || !('listings' in data)) throw new Error('Could not search listings');
+      setListings(data.listings);
+      setHistory((current) => {
+        const next: SearchHistoryItem[] = [{ id: `${Date.now()}-${normalizedQuery.slice(0, 12)}`, query: normalizedQuery, createdAt: Date.now(), resultCount: data.total, filters: data.filters }, ...current.filter((item) => item.query.toLowerCase() !== normalizedQuery.toLowerCase())].slice(0, 12);
+        localStorage.setItem('nestfind:history', JSON.stringify(next));
+        return next;
+      });
+    } catch (searchError) { console.error('Listing search failed:', searchError); }
+  }, []);
+
+  const handleToggleFavorite = useCallback((id: string) => {
+    setFavoriteIds((current) => {
+      const next = current.includes(id) ? current.filter((favoriteId) => favoriteId !== id) : [...current, id];
+      localStorage.setItem('nestfind:favorites', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+  const handleSignIn = useCallback((name: string) => { localStorage.setItem('nestfind:user', name); setUserName(name); }, []);
+  const handleSignOut = useCallback(() => { localStorage.removeItem('nestfind:user'); setUserName(null); }, []);
 
   const handleStartConversation = async () => {
     setIsLoading(true);
@@ -202,7 +242,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative flex h-dvh min-h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="relative flex min-h-dvh flex-col bg-background text-foreground">
       {/* Hero shell: either shows the pre-call CTA or swaps in the live conversation experience. */}
       <div
         className={`flex min-h-0 flex-1 flex-col ${
@@ -215,14 +255,22 @@ export default function LandingPage() {
           className={`z-10 flex min-h-0 flex-1 flex-col ${
             showConversation
               ? 'h-full w-full max-w-none items-stretch gap-0 px-0 text-left'
-              : 'w-full max-w-none items-center justify-center px-4 text-center'
+              : 'w-full max-w-none items-stretch justify-start text-left'
           }`}
         >
           {!showConversation ? (
-            <QuickstartPreCallCard
+            <ApartmentHome
               isLoading={isLoading}
               error={error}
+              userName={userName}
+              listings={listings}
+              favoriteIds={favoriteIds}
+              history={history}
               onStartConversation={handleStartConversation}
+              onTextSearch={handleListingSearch}
+              onToggleFavorite={handleToggleFavorite}
+              onSignIn={handleSignIn}
+              onSignOut={handleSignOut}
             />
           ) : agoraData && rtmClient ? (
             <>
@@ -242,6 +290,10 @@ export default function LandingPage() {
                       rtmClient={rtmClient}
                       onTokenWillExpire={handleTokenWillExpire}
                       onEndConversation={handleEndConversation}
+                      listings={listings}
+                      favoriteIds={favoriteIds}
+                      onToggleFavorite={handleToggleFavorite}
+                      onUserTranscript={handleListingSearch}
                     />
                   </AgoraProvider>
                 </ErrorBoundary>
@@ -257,7 +309,7 @@ export default function LandingPage() {
       </div>
 
       {/* Persistent attribution footer for the pre-call and in-call views. */}
-      <footer className="fixed bottom-0 right-0 z-40 py-4 pr-4 md:py-6 md:pr-6">
+      {showConversation && <footer className="fixed bottom-0 right-0 z-40 py-4 pr-4 md:py-6 md:pr-6">
         <div className="flex items-center justify-end gap-2 text-muted-foreground">
           <span className="text-xs font-medium tracking-wide uppercase">
             Powered by
@@ -280,7 +332,7 @@ export default function LandingPage() {
             <span className="sr-only">Agora</span>
           </a>
         </div>
-      </footer>
+      </footer>}
     </div>
   );
 }

@@ -49,11 +49,16 @@ Responses:
 
 Optional SSE proxy path (not default runtime path). Requires `NEXT_LLM_API_KEY` and `NEXT_LLM_URL` when used.
 
+### `GET /api/listings?query=<natural-language-request>`
+
+Returns `{ filters, listings, total }` from the fictional catalog. Blank queries return `400`.
+
 ## Event/Data Interfaces
 
 - RTM transcript/state/metrics/errors consumed through `AgoraVoiceAI` event emitter.
 - Raw RTM `message` event parsed as fallback for `message.error` and `message.sal_status` payloads.
 - `AGENT_METRICS` payloads displayed by `QuickstartPipelineMetrics`.
+- Completed user transcript turns trigger one listing search per turn id.
 
 ## Environment Contract
 

@@ -1,85 +1,167 @@
 {
-  "generated": 1782010544250,
+  "generated": 1782013359990,
+  "fileCount": 88,
   "files": [
     {
+      "path": ".dockerignore",
+      "size": 62,
+      "mtime": 1781982081053.339,
+      "sha256": "200d57230161f9754b1c0762fd1950860779e0e6ac831dc35e16cc61d3e36631",
+      "exports": []
+    },
+    {
+      "path": ".gitattributes",
+      "size": 63,
+      "mtime": 1781982081053.339,
+      "sha256": "6bd11c7d2814b11390b6f6c39f1a4fcdd2380ec11600c04bf3dfdc906afeddff",
+      "exports": []
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "size": 849,
+      "mtime": 1781982081054.7588,
+      "sha256": "214e104256e6c80b9999fcc73a5d81588089ce1cec7971ca1ae853ca67139eb3",
+      "exports": []
+    },
+    {
+      "path": ".github/workflows/docker.yml",
+      "size": 2112,
+      "mtime": 1781982081056.5898,
+      "sha256": "6a7add80ca25a50b897c21e951985474d08fb0b02f87900a1882c6516bfb2b89",
+      "exports": []
+    },
+    {
+      "path": ".gitignore",
+      "size": 2061,
+      "mtime": 1782011356233.158,
+      "sha256": "550ece07921d6a313d43ff748a4e3802951fd54196e2b8dba87eeaf6cda87954",
+      "exports": []
+    },
+    {
+      "path": ".npmrc",
+      "size": 77,
+      "mtime": 1781982081056.5898,
+      "sha256": "b4e984ab270e2478e61e01a7e3adbf32e44eaef5ef92df7c40448c906123f882",
+      "exports": []
+    },
+    {
+      "path": ".nvmrc",
+      "size": 3,
+      "mtime": 1781982081056.5898,
+      "sha256": "68ca3fba3b7e864770cb61aeb306d4bd4354b68ab4dd38450860c5d823e42a53",
+      "exports": []
+    },
+    {
       "path": "AGENTS.md",
-      "size": 11385,
-      "mtime": 1781983907262.1646,
+      "size": 11393,
+      "mtime": 1782013330172.919,
+      "sha256": "e0c500af238f0cf746fd7718d50008c0160a11ffeec68d2963ce39eeeb02def1",
       "exports": []
     },
     {
       "path": "CLAUDE.md",
       "size": 168,
       "mtime": 1781982081056.5898,
+      "sha256": "9b2abdad3e810a8d84c536a6bf8ef843e2d556eca6f105ac5d50c90d9e1554d3",
       "exports": []
     },
     {
       "path": "CONTRIBUTING.md",
       "size": 4685,
       "mtime": 1781982081056.5898,
+      "sha256": "e8f12f6b7b0e224ef73fa3ed4ecf09d84c1de249f624fe1877cafa862fccd2d8",
+      "exports": []
+    },
+    {
+      "path": "Dockerfile",
+      "size": 1402,
+      "mtime": 1781982081056.5898,
+      "sha256": "6153796ff0babdf47b4fec8ee1e08e31b7c15011e9644df732fea7117ab8213d",
+      "exports": []
+    },
+    {
+      "path": "LICENSE",
+      "size": 1072,
+      "mtime": 1781982081056.5898,
+      "sha256": "655dd51aec884b6744a2905a7a24ca9712a5edb42a38acddb4ab1f11982c3fab",
       "exports": []
     },
     {
       "path": "README.md",
-      "size": 11126,
-      "mtime": 1781983907038.3042,
+      "size": 10654,
+      "mtime": 1782013317151.343,
+      "sha256": "0ab3ae0e89dcfa528be5541a8bc2ab6bfe47c4720569f549c98c7234f848e193",
       "exports": []
     },
     {
       "path": "app/api/chat/completions/route.ts",
       "size": 3793,
       "mtime": 1781982081057.187,
+      "sha256": "5b15ee6a5251d4c035661bdb8cce2b26975300b0b71d7d32bc33314d62bb79cc",
       "exports": [
-        "createChatCompletionsHandler",
-        "POST"
+        "POST",
+        "createChatCompletionsHandler"
       ]
     },
     {
       "path": "app/api/generate-agora-token/route.ts",
       "size": 1916,
       "mtime": 1781982081057.187,
+      "sha256": "2e9de8ed2fe177b8e486d116aa8d05c257feb960dff1447ead5d6413d9ffc495",
       "exports": [
-        "async"
+        "GET"
       ]
     },
     {
       "path": "app/api/invite-agent/route.ts",
-      "size": 7597,
-      "mtime": 1781983457863.2761,
+      "size": 6964,
+      "mtime": 1782013280353.662,
+      "sha256": "86d673d6376d96f4feed967e93b713e4c9d44c0d0a95058767515822c54c1696",
       "exports": [
-        "async"
+        "POST"
       ]
     },
     {
       "path": "app/api/listings/route.ts",
-      "size": 414,
-      "mtime": 1781983249850.995,
+      "size": 394,
+      "mtime": 1782013073049.9993,
+      "sha256": "325edd3da4ad87f5d2e77121a1584c1208234edf4e5e1260619c127b98b9c3ee",
       "exports": [
-        "async"
+        "GET"
       ]
     },
     {
       "path": "app/api/stop-conversation/route.ts",
       "size": 2204,
-      "mtime": 1781982081057.187,
+      "mtime": 1782013284753.0928,
+      "sha256": "200b2ab667fb31f1fc19ee8569de14f36dcb42e9d047cf9f8986785f6c258c5c",
       "exports": [
-        "async"
+        "POST"
       ]
     },
     {
+      "path": "app/globals.css",
+      "size": 5124,
+      "mtime": 1782013261770.911,
+      "sha256": "0cc4ace5bfe9e5dcd0b11a901ab2c02ca3a1a777b8ea430ca102bde19d8a1b0b",
+      "exports": []
+    },
+    {
       "path": "app/layout.tsx",
-      "size": 930,
-      "mtime": 1781983499082.409,
+      "size": 915,
+      "mtime": 1782013261600.7458,
+      "sha256": "f0b81f95a082bcd427fc32129d717483c1baf931bec93f5353663276477fa68e",
       "exports": [
-        "viewport",
+        "RootLayout",
         "metadata",
-        "RootLayout"
+        "viewport"
       ]
     },
     {
       "path": "app/offline/page.tsx",
-      "size": 835,
-      "mtime": 1781983498628.1887,
+      "size": 770,
+      "mtime": 1782013261256.6343,
+      "sha256": "03e69361df2d00476bac78dd2e4f8ad951fc923fe33834dfcaa658fb425d1957",
       "exports": [
         "OfflinePage"
       ]
@@ -88,22 +170,32 @@
       "path": "app/page.tsx",
       "size": 113,
       "mtime": 1781982081057.187,
+      "sha256": "5cee9e08424c1f3e95a61e63ac2051a28ef51b74f02e96e597a65d68abdeea5a",
       "exports": [
         "Home"
       ]
     },
     {
+      "path": "components.json",
+      "size": 443,
+      "mtime": 1781982081057.187,
+      "sha256": "1fe240f38a947a22d79d8b8afd880a3e1938eb34b905ccba2602aa269f16d388",
+      "exports": []
+    },
+    {
       "path": "components/ConnectionStatusPanel.tsx",
       "size": 3820,
       "mtime": 1781982081057.187,
+      "sha256": "ff7cb27060431aabc8980ea9d4ac575151dae463b4be9213c0f47e180408a379",
       "exports": [
         "ConnectionStatusPanel"
       ]
     },
     {
       "path": "components/ConversationComponent.tsx",
-      "size": 19489,
-      "mtime": 1781983437135.259,
+      "size": 19390,
+      "mtime": 1782013227115.5398,
+      "sha256": "0ba75d973f82d9240d3d20a6afe43ca18583a50df3ea6f81926fbedecb8cc351",
       "exports": [
         "ConversationComponent"
       ]
@@ -112,25 +204,28 @@
       "path": "components/ConversationErrorCard.tsx",
       "size": 5318,
       "mtime": 1781982081057.8062,
+      "sha256": "e0f0ac8b869e58fa05106afda58c07997eeb3ba8943308691da7d01b0bcb0c80",
       "exports": [
         "ConnectionIssue",
         "ConnectionIssueSeverity",
-        "getConversationIssueSeverity",
-        "ConversationErrorCard"
+        "ConversationErrorCard",
+        "getConversationIssueSeverity"
       ]
     },
     {
       "path": "components/ErrorBoundary.tsx",
       "size": 1628,
       "mtime": 1781982081057.8062,
+      "sha256": "a05781c6581b19e5a955b9318af9f78bafb165f09e21248349d771cbbf8ebbfd",
       "exports": [
         "ErrorBoundary"
       ]
     },
     {
       "path": "components/LandingPage.tsx",
-      "size": 13463,
-      "mtime": 1781983405375.615,
+      "size": 13310,
+      "mtime": 1782013200520.3662,
+      "sha256": "baca11d75ae76e31103a016cf50f6ca16ecb3c1c2458f9a28854defdd5ac65b8",
       "exports": [
         "LandingPage"
       ]
@@ -139,6 +234,7 @@
       "path": "components/LoadingSkeleton.tsx",
       "size": 2134,
       "mtime": 1781982081057.8062,
+      "sha256": "e8e4a3f372bbdebe443ad793ef6c0f6f812e30950ff9e46da85e280998f3a71c",
       "exports": [
         "LoadingSkeleton"
       ]
@@ -147,14 +243,16 @@
       "path": "components/MicrophoneSelector.tsx",
       "size": 5733,
       "mtime": 1781982081057.8062,
+      "sha256": "82f66a23f5c00f0ac71f5252068f58adae71f5f5385a4d4686658535a4465f41",
       "exports": [
         "MicrophoneSelector"
       ]
     },
     {
       "path": "components/QuickstartConversationLayout.tsx",
-      "size": 3327,
-      "mtime": 1781983553487.898,
+      "size": 3090,
+      "mtime": 1782013227274.453,
+      "sha256": "b1a2b85a2504bf449768f6e9a6f04b98d5543d7e6eef05b7d254392efb87f3bf",
       "exports": [
         "QuickstartConversationLayout"
       ]
@@ -163,6 +261,7 @@
       "path": "components/QuickstartPipelineMetrics.tsx",
       "size": 1923,
       "mtime": 1781982081057.8062,
+      "sha256": "3e1b76b357a5197beb1ab28963f7d9b6ad21c4d379514cb6a1dfb9fd5dc52000",
       "exports": [
         "QuickstartAgentMetric",
         "QuickstartPipelineMetrics"
@@ -172,6 +271,7 @@
       "path": "components/QuickstartPreCallCard.tsx",
       "size": 1876,
       "mtime": 1781982081057.8062,
+      "sha256": "9fefd9c3b9470ca168c52bef1e5b810fd49c2cf3ffb36eb9ddd8add6a7b632a0",
       "exports": [
         "QuickstartPreCallCard"
       ]
@@ -179,31 +279,35 @@
     {
       "path": "components/QuickstartTranscriptPanel.tsx",
       "size": 3130,
-      "mtime": 1781983553720.4106,
+      "mtime": 1782013227437.1497,
+      "sha256": "96396d2dc2640c881aeebd73103066b99c0f85561977bb27b606619c994979b1",
       "exports": [
         "QuickstartTranscriptPanel"
       ]
     },
     {
       "path": "components/apartment/ApartmentHome.tsx",
-      "size": 12702,
-      "mtime": 1781983553263.0088,
+      "size": 10292,
+      "mtime": 1782013174139.8003,
+      "sha256": "df39db3fa631fcefc87e1085fa0ab8752b1ca9cd40cbb23bf216973d267016d7",
       "exports": [
         "ApartmentHome"
       ]
     },
     {
       "path": "components/apartment/ListingGrid.tsx",
-      "size": 3988,
-      "mtime": 1781983374172.6091,
+      "size": 3534,
+      "mtime": 1782013113536.3806,
+      "sha256": "cff9c95261b68c68a6c1a5c27fefc8b7433435e048f2634e7ea4afe5224ac02d",
       "exports": [
         "ListingGrid"
       ]
     },
     {
       "path": "components/apartment/PwaControls.tsx",
-      "size": 3527,
-      "mtime": 1781983553041.9312,
+      "size": 3248,
+      "mtime": 1782013113695.7925,
+      "sha256": "ccc00c58b52439d9ba81ec140545e62d497eadbeaec665be32186085a245e10f",
       "exports": [
         "PwaControls"
       ]
@@ -212,10 +316,10 @@
       "path": "components/ui/button.tsx",
       "size": 1901,
       "mtime": 1781982081057.8062,
+      "sha256": "415ccc47cf69a2a87db699cc6da7f1fdcb799a1f40dab3a6220d91ac8da8abbe",
       "exports": [
-        "interface",
-        "default",
         "Button",
+        "ButtonProps",
         "buttonVariants"
       ]
     },
@@ -223,122 +327,170 @@
       "path": "components/ui/dropdown-menu.tsx",
       "size": 7433,
       "mtime": 1781982081058.1985,
+      "sha256": "ca0802c2e73d06aaca91242e6c2edb5451168c37770d2675bf98245d6f7f2517",
       "exports": [
-        "default"
+        "DropdownMenu",
+        "DropdownMenuCheckboxItem",
+        "DropdownMenuContent",
+        "DropdownMenuGroup",
+        "DropdownMenuItem",
+        "DropdownMenuLabel",
+        "DropdownMenuPortal",
+        "DropdownMenuRadioGroup",
+        "DropdownMenuRadioItem",
+        "DropdownMenuSeparator",
+        "DropdownMenuShortcut",
+        "DropdownMenuSub",
+        "DropdownMenuSubContent",
+        "DropdownMenuSubTrigger",
+        "DropdownMenuTrigger"
       ]
     },
     {
       "path": "docs/ai/L0_repo_card.md",
       "size": 1611,
-      "mtime": 1781983907486.6736,
+      "mtime": 1782013317480.1487,
+      "sha256": "85b3b1bbb51777cfd0ef8beb7c76c3d35a033f79bd7b2431928b35423689b413",
       "exports": []
     },
     {
       "path": "docs/ai/L1/01_setup.md",
-      "size": 3292,
-      "mtime": 1781982081058.4736,
+      "size": 3306,
+      "mtime": 1782013330015.29,
+      "sha256": "d126f6fa125c77d4ca74f1e12360c5fe94ccd805ad54df89a615ba0710c11124",
       "exports": []
     },
     {
       "path": "docs/ai/L1/02_architecture.md",
-      "size": 3862,
-      "mtime": 1781982081058.507,
+      "size": 4028,
+      "mtime": 1782013329675.0066,
+      "sha256": "009a19fd585e1396ff190646b470f0f95bc06452477b751ec33151ef99ac5d05",
       "exports": []
     },
     {
       "path": "docs/ai/L1/03_code_map.md",
-      "size": 4255,
-      "mtime": 1781983907949.184,
+      "size": 4225,
+      "mtime": 1782013317797.6162,
+      "sha256": "b7c7c706d9762092906a877286335358b499b5b89f213e5c02f6ad827f67a3ec",
       "exports": []
     },
     {
       "path": "docs/ai/L1/04_conventions.md",
       "size": 3505,
       "mtime": 1781982081058.507,
+      "sha256": "5c86541c4f6529ab5fced63b0bbe14631b538f5f16a3e956f5b8a1e0ffd283a6",
       "exports": []
     },
     {
       "path": "docs/ai/L1/05_workflows.md",
-      "size": 3781,
-      "mtime": 1781982081058.507,
+      "size": 3786,
+      "mtime": 1782013329857.751,
+      "sha256": "6c424571c4369cd837aa3c029d6e87ee8a3f2fcd93a4191daa432f9d5537dfeb",
       "exports": []
     },
     {
       "path": "docs/ai/L1/06_interfaces.md",
-      "size": 3699,
-      "mtime": 1781983908173.0444,
+      "size": 3494,
+      "mtime": 1782013317967.6882,
+      "sha256": "d8a6be37b264810a1a8222654dcd9d91ca8edc67fd2452bd1d6db3584dd9d987",
       "exports": []
     },
     {
       "path": "docs/ai/L1/07_gotchas.md",
       "size": 4077,
       "mtime": 1781982081058.507,
+      "sha256": "7d3a76ab344726dffe10b56a93ca58febd65867757279539b8deccc03c48d1a4",
       "exports": []
     },
     {
       "path": "docs/ai/L1/08_security.md",
-      "size": 4066,
-      "mtime": 1781983908402.7607,
+      "size": 4046,
+      "mtime": 1782013318096.187,
+      "sha256": "8ea53e1384e6da08a5ff2ea550db4fe25f40afdd9de5f20bbe77a5bd4f22df8f",
       "exports": []
     },
     {
       "path": "docs/ai/L1/L2/_index.md",
       "size": 1223,
       "mtime": 1781982081058.507,
+      "sha256": "09a9e765c73b80a339d7421651ad4a31e7c793bd235b0f4e15eb543ce251e47f",
       "exports": []
     },
     {
       "path": "docs/ai/L1/L2/conversation_lifecycle.md",
       "size": 2877,
       "mtime": 1781982081058.7969,
+      "sha256": "a9c1305b9ce6f09b204bd2560d6dff9fc506c824efa97d12e36b1c13a96dcaef",
       "exports": []
     },
     {
       "path": "docs/ai/L1/L2/from_scratch_bootstrap.md",
       "size": 4691,
       "mtime": 1781982081058.7969,
+      "sha256": "b1fc379eadc1c6b3a56a2da1a1fa07151cb532beb9fb17e5b49c2d6d86c4489b",
       "exports": []
     },
     {
       "path": "docs/ai/L1/L2/invite_agent_config.md",
       "size": 6489,
       "mtime": 1781982081058.7969,
+      "sha256": "f19b724ea56ac684d2639005e846453701c8edb4307e3510cdf21247e4686bea",
       "exports": []
     },
     {
       "path": "docs/ai/L1/L2/strict_mode_lifecycle.md",
       "size": 4960,
       "mtime": 1781982081058.7969,
+      "sha256": "a24908a1b94e60083fc3df9caa1f98123e7e93c8e5ebb7ccb3c3a6c1c63ac0a5",
       "exports": []
     },
     {
       "path": "docs/ai/L1/L2/token_model.md",
       "size": 4530,
       "mtime": 1781982081058.7969,
+      "sha256": "f32e2fc0c6e53cc3830c5a9a3bd9109e4dc4dc3fae4dab94d33e13e4b017bacd",
       "exports": []
     },
     {
       "path": "docs/ai/L1/L2/transcript_pipeline.md",
       "size": 2383,
       "mtime": 1781982081058.7969,
+      "sha256": "4ee3d3ced37e397f9dbb2f6033bb4153d6dabcf1575be41c6573b2e8eb348337",
       "exports": []
     },
     {
       "path": "docs/ai/RECIPE.md",
-      "size": 3996,
-      "mtime": 1781983907709.8853,
+      "size": 3961,
+      "mtime": 1782013317638.8826,
+      "sha256": "1b5c561a30df123f2b2d0e4777c42ef974b76ec2663b24ba1792f364176c2332",
       "exports": []
     },
     {
       "path": "docs/ai/test-results.md",
       "size": 4404,
       "mtime": 1781982081058.7969,
+      "sha256": "51aab87565da22b7d00a64ea0284d856ed1396651251c9dd2db03b3f47b95834",
+      "exports": []
+    },
+    {
+      "path": "env.local.example",
+      "size": 1354,
+      "mtime": 1781982081058.7969,
+      "sha256": "f9419d1d8b4c331a944a99a34e024690132da76a7f25c7c806626331c065c14e",
+      "exports": []
+    },
+    {
+      "path": "eslint.config.mjs",
+      "size": 997,
+      "mtime": 1781982081058.7969,
+      "sha256": "485c6cc98c79ec6c6329f1b57a5fad2ecbfbab7e1a84d03d809ee060004bf7ad",
       "exports": []
     },
     {
       "path": "hooks/use-mobile.tsx",
       "size": 565,
       "mtime": 1781982081058.7969,
+      "sha256": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b",
       "exports": [
         "useIsMobile"
       ]
@@ -347,6 +499,7 @@
       "path": "lib/agora.ts",
       "size": 41,
       "mtime": 1781982081058.7969,
+      "sha256": "8109b89e5c6aa3b702b9d327a595ec2b3ea354bba36567a8d374ffc4f8002f48",
       "exports": [
         "DEFAULT_AGENT_UID"
       ]
@@ -355,109 +508,217 @@
       "path": "lib/conversation.ts",
       "size": 4485,
       "mtime": 1781982081059.2468,
+      "sha256": "b9c09b0ee8fe48ddea7deef20c572caf6a72b7ed4369551524cbb6ba500367a2",
       "exports": [
-        "normalizeTranscriptSpacing",
-        "normalizeTimestampMs",
-        "mapAgentVisualizerState",
-        "toMessageListItem",
-        "normalizeTranscript",
+        "getCurrentInProgressMessage",
         "getMessageList",
-        "getCurrentInProgressMessage"
+        "mapAgentVisualizerState",
+        "normalizeTimestampMs",
+        "normalizeTranscript",
+        "normalizeTranscriptSpacing",
+        "toMessageListItem"
       ]
     },
     {
       "path": "lib/listings.ts",
       "size": 5190,
-      "mtime": 1781983249437.7268,
+      "mtime": 1782013072791.7954,
+      "sha256": "f3182fee6dc31b8fb587b02e28223a635f9b79f6de0ef06129ea40ad9ab90bec",
       "exports": [
         "APARTMENT_LISTINGS",
         "extractListingFilters",
-        "searchApartmentListings",
-        "formatVnd"
+        "formatVnd",
+        "searchApartmentListings"
       ]
     },
     {
       "path": "lib/utils.ts",
       "size": 170,
       "mtime": 1781982081059.2468,
+      "sha256": "d4f2acad50ab5a9dc97e0c075bea97906a9a3cb937e65387edc635897127a15f",
       "exports": [
         "cn"
       ]
     },
     {
-      "path": "next-env.d.ts",
-      "size": 251,
-      "mtime": 1781984079199.2107,
+      "path": "next.config.mjs",
+      "size": 458,
+      "mtime": 1781982081059.2468,
+      "sha256": "5aae43315f34b6c96bbd5d948a4540aa2b926090c14d3ee4a61a4eedf50c7958",
+      "exports": []
+    },
+    {
+      "path": "package.json",
+      "size": 1774,
+      "mtime": 1782013073378.2874,
+      "sha256": "46ee2b66bd2fc182ccb4c7c0e01a31d52773f763ca2b7fe1f7639307e97c48f5",
+      "exports": []
+    },
+    {
+      "path": "postcss.config.mjs",
+      "size": 135,
+      "mtime": 1781982081059.2468,
+      "sha256": "ac31e2a95ef64fe27ceb4124e101675273107aae2e33bc490b01d919e7f03646",
+      "exports": []
+    },
+    {
+      "path": "public/agora-logo-mark.svg",
+      "size": 1409,
+      "mtime": 1781982081060.0984,
+      "sha256": "16d9a163f478679e142e673e013789c46b62821093e7d05cb39b33d6095f1507",
+      "exports": []
+    },
+    {
+      "path": "public/agora-logo-rgb-blue.svg",
+      "size": 1972,
+      "mtime": 1781982081060.0984,
+      "sha256": "4e3a3e2849088a93a0c7e0861e7aaf3523233722c1c44406570b59202ab9b7cb",
+      "exports": []
+    },
+    {
+      "path": "public/nestfind-mark.svg",
+      "size": 357,
+      "mtime": 1782013260821.775,
+      "sha256": "3588ef77d5a0be13d66e50f009eceff1d99eb768870f018a5c6be9d99f630485",
+      "exports": []
+    },
+    {
+      "path": "public/ready-to-talk-heading.svg",
+      "size": 5841,
+      "mtime": 1781982081060.0984,
+      "sha256": "032592e7c83ba98b7b2028c9a24929e4145c66b3404de960be0e7dfc62c45170",
       "exports": []
     },
     {
       "path": "public/sw.js",
-      "size": 1201,
-      "mtime": 1781983498249.6719,
+      "size": 1110,
+      "mtime": 1782013260988.1516,
+      "sha256": "6bd6ae26b5db4619d2eedcf2fdaacde60fd37f9d7f2c7aa7ee0cb7aad5effafa",
+      "exports": []
+    },
+    {
+      "path": "public/talk-to-me-heading.svg",
+      "size": 3791,
+      "mtime": 1781982081060.0984,
+      "sha256": "618fd2164f266ba545d256a7a3bebb436769e50a734e5a624ced86527a14099a",
       "exports": []
     },
     {
       "path": "react-jsx.d.ts",
       "size": 32,
       "mtime": 1781982081060.0984,
+      "sha256": "fb65c47062170fae4c88ae8da8d9fc5d3780b15f7464a6bb633c7c81193a6d17",
       "exports": []
     },
     {
-      "path": "scripts/reindex.js",
-      "size": 1863,
-      "mtime": 1782010525412.2483,
+      "path": "scripts/doctor.mjs",
+      "size": 1221,
+      "mtime": 1781982081060.0984,
+      "sha256": "22ac746164020391a351d433797a924bf103e33bf5e7d4ecc77610d370f63301",
+      "exports": []
+    },
+    {
+      "path": "scripts/reindex.mjs",
+      "size": 3215,
+      "mtime": 1782012870731.7227,
+      "sha256": "ad78840226aca39bedf9459ff06ce1134c13287a790290300e59c1a4c13626cd",
       "exports": []
     },
     {
       "path": "scripts/verify-apartment.ts",
       "size": 1014,
-      "mtime": 1781983250083.7092,
+      "mtime": 1782013073223.365,
+      "sha256": "5e182f56de1d9eda40fbfce3897a3e64bd1acf6b02d35bc84d88124056383492",
       "exports": []
     },
     {
       "path": "scripts/verify-api-contracts.ts",
       "size": 14328,
       "mtime": 1781982081060.7756,
+      "sha256": "9dbb32fecdb4096930081acde541ebb1ec64b20db9bcf840df2ada9f6ce7ac69",
+      "exports": []
+    },
+    {
+      "path": "styles/globals.css",
+      "size": 2369,
+      "mtime": 1781982081060.7756,
+      "sha256": "70cf04e41b01f54f7d429fe2ea9dda6f9b66995fc06085c7fd4eb2cebebe5710",
+      "exports": []
+    },
+    {
+      "path": "system-architecture-dark.svg",
+      "size": 3989,
+      "mtime": 1781982081060.7756,
+      "sha256": "0d6d7b034cc0a97000c7131e1a9f8588fba978132b9e2f308b7a4a8ce6e81d41",
+      "exports": []
+    },
+    {
+      "path": "system-architecture.svg",
+      "size": 3985,
+      "mtime": 1781982081060.7756,
+      "sha256": "60a5eeabf97733c130264c89763eaf5f19ac875de21602425ff59b8475d237d2",
       "exports": []
     },
     {
       "path": "tailwind.config.ts",
       "size": 3513,
-      "mtime": 1781983997499.0269,
-      "exports": [
-        "config"
-      ]
+      "mtime": 1782013261933.513,
+      "sha256": "9699016b2cd40b43d6123f70350645cf6cc05be71cc92fdc94cb9256a0739505",
+      "exports": []
+    },
+    {
+      "path": "tsconfig.json",
+      "size": 920,
+      "mtime": 1781982081060.7756,
+      "sha256": "8f0b7a4c0c50c61316cd086f6deb49d500ad06e9478964cda04e0cc273e343c7",
+      "exports": []
     },
     {
       "path": "types/conversation.ts",
       "size": 878,
-      "mtime": 1781983405605.0193,
+      "mtime": 1782013200360.6729,
+      "sha256": "f17384a6a3c72918902417e288e83bc14cdab48a029e8828969f50dd50563bec",
       "exports": [
-        "interface"
+        "AgentResponse",
+        "AgoraRenewalTokens",
+        "AgoraTokenData",
+        "ClientStartRequest",
+        "ConversationComponentProps",
+        "StopConversationRequest"
       ]
     },
     {
       "path": "types/env.d.ts",
       "size": 137,
       "mtime": 1781982081061.1062,
+      "sha256": "ae8ec251e689984ed3bf7ea6b94a16e659b36f1ef2ef5bd2968923074ed15f95",
       "exports": []
     },
     {
       "path": "types/jsx.d.ts",
       "size": 145,
       "mtime": 1781982081061.1062,
+      "sha256": "e0c4446351ba743c6f64545e2b83545fb9c04cd2f060fe03fe09fe7c0e71c1b9",
       "exports": []
     },
     {
       "path": "types/listing.ts",
       "size": 719,
-      "mtime": 1781983249192.9756,
+      "mtime": 1782013072625.8071,
+      "sha256": "404a63ab39457192b43ba879e78d150e7f10754225212f46de8675db2965a166",
       "exports": [
         "ApartmentListing",
         "ListingSearchFilters",
         "ListingSearchResponse",
         "SearchHistoryItem"
       ]
+    },
+    {
+      "path": "vercel.json",
+      "size": 293,
+      "mtime": 1781982081061.1062,
+      "sha256": "4e889545c2fadd4090326c3bcdf51d629edbfbb5fcc5e67dfd3e7edb6250822f",
+      "exports": []
     }
   ]
 }

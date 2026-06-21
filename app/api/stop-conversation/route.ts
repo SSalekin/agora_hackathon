@@ -44,7 +44,7 @@ export async function POST(request: Request) {
 
     // area: change to Area.EU or Area.AP for European or Asia-Pacific deployments.
     const client = new AgoraClient({
-      area: Area.US,
+      area: Area.AP,
       appId,
       appCertificate,
     });

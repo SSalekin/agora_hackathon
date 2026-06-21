@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AgoraRTC, {
   useRTCClient,
   useLocalMicrophoneTrack,
@@ -44,6 +44,7 @@ import {
 } from './QuickstartPipelineMetrics';
 import { QuickstartTranscriptPanel } from './QuickstartTranscriptPanel';
 import type { ConversationComponentProps } from '@/types/conversation';
+import { ListingGrid } from './apartment/ListingGrid';
 
 // Cap the displayed issues list to avoid overwhelming the UI during a cascade of errors.
 const MAX_CONNECTION_ISSUES = 6;
@@ -95,6 +96,10 @@ export default function ConversationComponent({
   rtmClient,
   onTokenWillExpire,
   onEndConversation,
+  listings,
+  favoriteIds,
+  onToggleFavorite,
+  onUserTranscript,
 }: ConversationComponentProps) {
   const client = useRTCClient();
   const remoteUsers = useRemoteUsers();
@@ -376,6 +381,16 @@ export default function ConversationComponent({
     return getCurrentInProgressMessage(transcript);
   }, [transcript]);
 
+  const handledSearchTurns = useRef(new Set<string>());
+  useEffect(() => {
+    const latestUserMessage = [...messageList].reverse().find((message) => String(message.uid) !== agentUID && message.text?.trim());
+    if (!latestUserMessage?.text) return;
+    const turnKey = String(latestUserMessage.turn_id ?? `${latestUserMessage.createdAt}-${latestUserMessage.text}`);
+    if (handledSearchTurns.current.has(turnKey)) return;
+    handledSearchTurns.current.add(turnKey);
+    onUserTranscript(latestUserMessage.text);
+  }, [messageList, agentUID, onUserTranscript]);
+
   // Publish local mic once the track exists; usePublish waits for RTC connection.
   usePublish([localMicrophoneTrack]);
 
@@ -488,9 +503,10 @@ export default function ConversationComponent({
           agentUID={agentUID}
         />
       }
+      listingPanel={<ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} emptyMessage="No exact matches yet. Tell the concierge to widen your budget or search radius." />}
       visualizer={
         <div
-          className="relative flex h-full min-h-[20rem] w-full max-w-4xl items-center justify-center"
+          className="relative flex h-full min-h-[10rem] w-full max-w-4xl items-center justify-center"
           role="region"
           aria-label="AI agent status visualization"
         >

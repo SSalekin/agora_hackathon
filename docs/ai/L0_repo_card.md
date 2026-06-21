@@ -1,4 +1,4 @@
-# Agora Conversational AI Next.js Quickstart — Repo Card
+# NestFind Voice Apartment Search — Repo Card
 
 > Official Next.js quickstart for building browser-based voice AI agents with Agora Conversational AI Engine.
 
@@ -6,7 +6,7 @@
 
 | Field | Value |
 | --- | --- |
-| Repo | `AgoraIO-Conversational-AI/agent-quickstart-nextjs` |
+| Repo | `NestFind derivative of AgoraIO-Conversational-AI/agent-quickstart-nextjs` |
 | Type | `frontend-app` |
 | Language | TypeScript, Next.js 16 App Router, React 19 |
 | Deploy Target | Local Node.js dev server, Vercel |
@@ -14,7 +14,7 @@
 | Recipe Role | base |
 | Recipe Version | 0.1.0 |
 | Recipe Status | stable |
-| Last Reviewed | 2026-05-28 |
+| Last Reviewed | 2026-06-21 |
 
 ## L1 — Summaries
 

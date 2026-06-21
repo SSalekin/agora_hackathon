@@ -1,10 +1,12 @@
-# Agora Conversational AI Next.js Quickstart
+# NestFind — Voice Apartment Search PWA
 
 [![Build](https://github.com/AgoraIO-Conversational-AI/agent-quickstart-nextjs/actions/workflows/build-check.yml/badge.svg)](https://github.com/AgoraIO-Conversational-AI/agent-quickstart-nextjs/actions/workflows/build-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22-brightgreen)](https://nodejs.org/)
 
-Build a production-style voice agent in minutes with Next.js and the Agora Conversational AI Engine, including voice agent visualizer ([Agent UIKit](https://agoraio-conversational-ai.github.io/agent-uikit/)), live transcript, and real-time pipeline latency via `AGENT_METRICS` ([Agent Toolkit](https://github.com/AgoraIO-Conversational-AI/agent-client-toolkit-ts)).
+NestFind is a mobile-first Next.js PWA for finding apartments in Da Nang through a natural voice conversation. It preserves the official Agora quickstart's RTC, RTM, token, transcript, and agent lifecycle architecture.
+
+The prototype includes a typed dummy listing API, voice-to-filter extraction, live result cards, favorites, local search history, a device-local demo profile, installation support, an offline shell, and local listing-alert notifications.
 
 ## Prerequisites
 
@@ -34,7 +36,7 @@ Getting started is quick and easy: install the CLI _(skip if you already have it
    pnpm dev
    ```
 
-3. Open [http://localhost:3000](http://localhost:3000) and click **Start conversation**.
+3. Open [http://localhost:3000](http://localhost:3000), create a local demo profile, and click **Talk to your apartment concierge**.
 
 If the agent does not join or transcripts do not appear, run **`agora project doctor --deep`** to check credentials, feature enablement, network reachability, and local env binding.
 
@@ -112,6 +114,10 @@ The browser fetches a combined RTC + RTM token (`buildTokenWithRtm`) from this a
 
 ## What You Get
 
+- apartment search from completed voice turns via `GET /api/listings`
+- budget, radius, landmark, and move-in date extraction
+- device-local favorites, history, and demo identity
+- installable manifest, offline shell, and service-worker notifications
 - browser voice client built with Next.js App Router
 - RTC audio plus RTM transcript and state events
 - server routes for token generation, invite, and stop
@@ -126,6 +132,14 @@ The browser fetches a combined RTC + RTM token (`buildTokenWithRtm`) from this a
 3. The browser joins the channel and publishes mic audio.
 4. The client receives transcript, agent state, and `AGENT_METRICS` (per-stage latency) events over RTM.
 5. On end, the client calls `/api/stop-conversation`, logs out RTM, and unmounts the call view so Agora React hooks clean up RTC publish/join and the local microphone track.
+6. Each completed user transcript calls the dummy listings route and updates the visible cards and local history.
+
+## Prototype boundaries
+
+- The profile is device-local, not production authentication.
+- Alerts are local notifications; remote Web Push requires a subscription backend and VAPID keys.
+- Listings in `lib/listings.ts` are fictional demo records.
+- Voice and fresh searches require connectivity; cached UI, favorites, and history remain available offline.
 
 ## Optional BYOK
 
@@ -149,6 +163,7 @@ NEXT_ELEVENLABS_VOICE_ID=...
 - `app/api/generate-agora-token/route.ts` — issues RTC + RTM tokens
 - `app/api/invite-agent/route.ts` — starts the agent session and configures the pipeline
 - `app/api/stop-conversation/route.ts` — stops the agent session
+- `app/api/listings/route.ts` — dummy apartment search endpoint
 - `components/LandingPage.tsx` — entry point: token fetch, RTM login, conversation lifecycle
 - `components/ConversationComponent.tsx` — RTC client, transcript state, `AGENT_METRICS`, mic release
 - `components/QuickstartConversationLayout.tsx` — in-call header, transcript rail, controls dock
@@ -156,6 +171,9 @@ NEXT_ELEVENLABS_VOICE_ID=...
 - `components/QuickstartTranscriptPanel.tsx` — live transcript rail
 - `components/QuickstartPreCallCard.tsx` — pre-call hero card
 - `lib/conversation.ts` — transcript normalization and visualizer state mapping
+- `lib/listings.ts` — dummy data, filter extraction, and search rules
+- `components/apartment/*` — discovery, favorites, history, install, and notifications
+- `public/sw.js` — offline shell and notification behavior
 - `AGENTS.md` — primary agent-facing guide
 
 ## Troubleshooting
