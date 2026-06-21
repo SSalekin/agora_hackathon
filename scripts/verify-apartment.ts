@@ -17,6 +17,9 @@ assert.ok(results.listings.every((listing) => listing.distanceKm <= 2));
 assert.ok(results.listings.every((listing) => listing.availableFrom <= '2027-07-01'));
 
 const noFilters = searchApartmentListings('Show me apartments in Da Nang');
-assert.equal(noFilters.total, 6);
+assert.equal(noFilters.total, 18);
+assert.ok(Math.min(...noFilters.listings.map((listing) => listing.monthlyRentVnd)) <= 2_400_000);
+assert.ok(Math.max(...noFilters.listings.map((listing) => listing.monthlyRentVnd)) >= 18_500_000);
+assert.ok(new Set(noFilters.listings.map((listing) => listing.neighborhood)).size >= 10);
 
 console.log('Apartment search checks passed.');
