@@ -482,6 +482,38 @@ function parsePetPreference(text: string): boolean | undefined {
   return !/not allowed|no pets?|without/.test(match);
 }
 
+const AMENITY_ALIASES: Record<string, string[]> = {
+  Pool: ['pool', 'swimming pool', 'swim'],
+  Gym: ['gym', 'fitness', 'workout', 'exercise room'],
+  Balcony: ['balcony', 'balconies'],
+  'Fast Wi-Fi': ['wifi', 'wi-fi', 'internet', 'fast internet', 'broadband'],
+  Parking: ['parking', 'car park', 'parking space', 'garage'],
+  'Pet friendly': ['pet friendly', 'pet', 'pets allowed', 'dog friendly', 'cat friendly'],
+  'Air conditioning': ['air conditioning', 'a/c', 'ac', 'aircon', 'central air', 'cooling'],
+  Elevator: ['elevator', 'lift'],
+  Laundry: ['laundry', 'washer', 'dryer', 'washing machine', 'laundry room'],
+  Kitchen: ['kitchen', 'full kitchen'],
+  'Study desk': ['study desk', 'desk', 'workspace', 'work from home'],
+  'Beach access': ['beach access', 'beach', 'near beach', 'close to beach'],
+  'River view': ['river view', 'river', 'riverfront'],
+  'Ocean view': ['ocean view', 'sea view', 'ocean', 'sea view'],
+  Garden: ['garden', 'yard', 'outdoor space'],
+  Rooftop: ['rooftop', 'roof terrace', 'roof deck'],
+  Security: ['security', '24/7 security', 'security guard', 'secure'],
+  Concierge: ['concierge', 'doorman'],
+  Playground: ['playground', 'kids play area', 'children play area'],
+};
+
+function parseAmenities(text: string): string[] | undefined {
+  const normalized = text.toLowerCase();
+  const matched: string[] = [];
+  for (const [amenity, aliases] of Object.entries(AMENITY_ALIASES)) {
+    const pattern = new RegExp(`\\b(?:${aliases.join('|').replace(/[.\s]/g, (c) => c === ' ' ? '[\\s-]' : '\\' + c)})\\b`, 'i');
+    if (pattern.test(normalized)) matched.push(amenity);
+  }
+  return matched.length > 0 ? [...new Set(matched)] : undefined;
+}
+
 function parseMoveIn(text: string): string | undefined {
   const monthNames = [
     'january', 'february', 'march', 'april', 'may', 'june',
@@ -530,6 +562,7 @@ export function extractListingFilters(query: string): ListingSearchFilters {
     furnished: parseFurnishedPreference(normalized),
     parking: parseParkingPreference(normalized),
     petsAllowed: parsePetPreference(normalized),
+    amenities: parseAmenities(normalized),
   };
 }
 
@@ -563,6 +596,7 @@ export function searchApartmentListings(query: string): ListingSearchResponse {
     if (filters.furnished !== undefined && listing.furnished !== filters.furnished) return false;
     const hasParking = listing.amenities.some((amenity) => /parking/i.test(amenity));
     if (filters.parking !== undefined && hasParking !== filters.parking) return false;
+    if (filters.amenities && !filters.amenities.every((amenity) => listing.amenities.includes(amenity))) return false;
     const allowsPets = listing.amenities.some((amenity) => /pet[- ]friendly|pets? allowed/i.test(amenity));
     if (filters.petsAllowed !== undefined && allowsPets !== filters.petsAllowed) return false;
     if (filters.location === 'Greenwich Vietnam – Da Nang' && listing.distanceKm > 3) return false;

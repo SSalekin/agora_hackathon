@@ -28,6 +28,7 @@ export type ListingSearchFilters = {
   furnished?: boolean;
   parking?: boolean;
   petsAllowed?: boolean;
+  amenities?: string[];
 };
 
 export type ListingSearchResponse = {
