@@ -32,6 +32,7 @@ types/               Shared TypeScript route/component contracts
 - `QuickstartPipelineMetrics.tsx`: latency chips from metrics stream.
 - `ConnectionStatusPanel.tsx` + `ConversationErrorCard.tsx`: issue rendering/severity.
 - `apartment/`: discovery, saved listings, history, PWA installation, and alerts.
+- `apartment/SearchFilterChips.tsx`: visible summary of parsed voice-search constraints.
 
 ## Shared Logic (`lib`)
 

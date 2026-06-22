@@ -334,16 +334,32 @@ function parseSpokenNumber(phrase: string): number | undefined {
   return integer + decimal + (hasHalf ? 0.5 : 0);
 }
 
-function parseBudgetVnd(text: string): number | undefined {
-  const candidates: Array<{ index: number; value: number }> = [];
-  const numericMillionPattern = /(?:budget(?:\s+is)?|under|below|max(?:imum)?|up to)?\s*(\d+(?:[.,]\d+)?)\s*(?:million|mil|m)\s*(?:vnd|dong)?/gi;
+type BudgetConstraint = Pick<ListingSearchFilters, 'minBudgetVnd' | 'maxBudgetVnd'>;
+
+function getBudgetDirection(text: string, index: number, matchLength: number): 'min' | 'max' {
+  const nearbyText = text.slice(Math.max(0, index - 60), index + matchLength);
+  const directionMatches = [...nearbyText.matchAll(
+    /\b(above|over|more than|greater than|at least|minimum|min|starting from|under|below|less than|up to|at most|maximum|max|budget)\b/gi,
+  )];
+  const latestDirection = directionMatches.at(-1)?.[1].toLowerCase();
+  return latestDirection && /^(above|over|more than|greater than|at least|minimum|min|starting from)$/.test(latestDirection)
+    ? 'min'
+    : 'max';
+}
+
+function parseBudgetVnd(text: string): BudgetConstraint {
+  const candidates: Array<{ index: number; value: number; direction: 'min' | 'max' }> = [];
+  const addCandidate = (index: number, matchLength: number, value: number) => {
+    candidates.push({ index, value, direction: getBudgetDirection(text, index, matchLength) });
+  };
+  const numericMillionPattern = /(?:budget(?:\s+is)?|under|below|above|over|max(?:imum)?|min(?:imum)?|up to|at least)?\s*(\d+(?:[.,]\d+)?)\s*(?:million|mil|m)\s*(?:vnd|dong)?/gi;
   for (const match of text.matchAll(numericMillionPattern)) {
-    candidates.push({ index: match.index, value: Number(match[1].replace(',', '.')) * 1_000_000 });
+    addCandidate(match.index, match[0].length, Number(match[1].replace(',', '.')) * 1_000_000);
   }
 
   const numericVndPattern = /(\d[\d.,]{5,})\s*(?:vnd|dong)/gi;
   for (const match of text.matchAll(numericVndPattern)) {
-    candidates.push({ index: match.index, value: Number(match[1].replace(/[.,]/g, '')) });
+    addCandidate(match.index, match[0].length, Number(match[1].replace(/[.,]/g, '')));
   }
 
   const spokenMillionPattern = new RegExp(
@@ -352,7 +368,7 @@ function parseBudgetVnd(text: string): number | undefined {
   );
   for (const match of text.matchAll(spokenMillionPattern)) {
     const millions = parseSpokenNumber(match[1]);
-    if (millions !== undefined) candidates.push({ index: match.index, value: millions * 1_000_000 });
+    if (millions !== undefined) addCandidate(match.index, match[0].length, millions * 1_000_000);
   }
 
   const spokenThousandPattern = new RegExp(
@@ -361,10 +377,54 @@ function parseBudgetVnd(text: string): number | undefined {
   );
   for (const match of text.matchAll(spokenThousandPattern)) {
     const thousands = parseSpokenNumber(match[1]);
-    if (thousands !== undefined) candidates.push({ index: match.index, value: thousands * 1_000 });
+    if (thousands !== undefined) addCandidate(match.index, match[0].length, thousands * 1_000);
   }
 
-  return candidates.sort((a, b) => b.index - a.index)[0]?.value;
+  const latest = candidates.sort((a, b) => b.index - a.index)[0];
+  if (!latest) return {};
+  return latest.direction === 'min'
+    ? { minBudgetVnd: latest.value }
+    : { maxBudgetVnd: latest.value };
+}
+
+type AreaConstraint = Pick<ListingSearchFilters, 'minAreaSqm' | 'maxAreaSqm'>;
+
+function getAreaDirection(text: string, index: number): 'min' | 'max' {
+  const nearbyText = text.slice(Math.max(0, index - 60), index);
+  const directionMatches = [...nearbyText.matchAll(
+    /\b(larger than|bigger than|more than|greater than|above|over|at least|minimum|min|starting from|smaller than|less than|below|under|at most|maximum|max|up to)\b/gi,
+  )];
+  const latestDirection = directionMatches.at(-1)?.[1].toLowerCase();
+  return latestDirection && /^(smaller than|less than|below|under|at most|maximum|max|up to)$/.test(latestDirection)
+    ? 'max'
+    : 'min';
+}
+
+function parseAreaSqm(text: string): AreaConstraint {
+  const candidates: Array<{ index: number; value: number; direction: 'min' | 'max' }> = [];
+  const addCandidate = (index: number, value: number) => {
+    candidates.push({ index, value, direction: getAreaDirection(text, index) });
+  };
+
+  const numericAreaPattern = /(\d+(?:[.,]\d+)?)\s*(?:square\s*(?:meters?|metres?)|sq\.?\s*m(?:eters?|etres?)?|sqm|m[²2])(?=\s|[.,;!?]|$)/gi;
+  for (const match of text.matchAll(numericAreaPattern)) {
+    addCandidate(match.index, Number(match[1].replace(',', '.')));
+  }
+
+  const spokenAreaPattern = new RegExp(
+    `\\b(${NUMBER_WORD_PATTERN}(?:[\\s-]+${NUMBER_WORD_PATTERN})*)\\s+(?:square\\s+(?:meters?|metres?)|sq\\.?\\s*m(?:eters?|etres?)?|sqm)\\b`,
+    'gi',
+  );
+  for (const match of text.matchAll(spokenAreaPattern)) {
+    const value = parseSpokenNumber(match[1]);
+    if (value !== undefined) addCandidate(match.index, value);
+  }
+
+  const latest = candidates.sort((a, b) => b.index - a.index)[0];
+  if (!latest) return {};
+  return latest.direction === 'max'
+    ? { maxAreaSqm: latest.value }
+    : { minAreaSqm: latest.value };
 }
 
 function parseRadiusKm(text: string): number | undefined {
@@ -381,6 +441,77 @@ function parseRadiusKm(text: string): number | undefined {
     if (value !== undefined) candidates.push({ index: match.index, value });
   }
   return candidates.sort((a, b) => b.index - a.index)[0]?.value;
+}
+
+function parseMinimumCount(text: string, nounPattern: string): number | undefined {
+  const candidates: Array<{ index: number; value: number }> = [];
+  const numericPattern = new RegExp(`\\b(\\d+)\\s*(?:-|\\s)?(?:${nounPattern})\\b`, 'gi');
+  for (const match of text.matchAll(numericPattern)) {
+    candidates.push({ index: match.index, value: Number(match[1]) });
+  }
+  const spokenPattern = new RegExp(
+    `\\b(${NUMBER_WORD_PATTERN}(?:[\\s-]+${NUMBER_WORD_PATTERN})*)[\\s-]+(?:${nounPattern})\\b`,
+    'gi',
+  );
+  for (const match of text.matchAll(spokenPattern)) {
+    const value = parseSpokenNumber(match[1]);
+    if (value !== undefined) candidates.push({ index: match.index, value: Math.floor(value) });
+  }
+  const value = candidates.sort((a, b) => b.index - a.index)[0]?.value;
+  return value && value > 0 && value <= 10 ? value : undefined;
+}
+
+function parseFurnishedPreference(text: string): boolean | undefined {
+  const matches = [...text.matchAll(/\b(not\s+(?:fully\s+)?furnished|unfurnished|fully\s+furnished|furnished)\b/gi)];
+  const match = matches.at(-1)?.[0].toLowerCase();
+  if (!match) return undefined;
+  return !match.startsWith('not') && match !== 'unfurnished';
+}
+
+function parseParkingPreference(text: string): boolean | undefined {
+  const matches = [...text.matchAll(/\b(parking not required|no parking|without parking|do not need parking|don't need parking|need parking|want parking|with parking|car park(?:ing)?|motorbike parking|parking)\b/gi)];
+  const match = matches.at(-1)?.[0].toLowerCase();
+  if (!match) return undefined;
+  return !/not required|no parking|without|do not|don't/.test(match);
+}
+
+function parsePetPreference(text: string): boolean | undefined {
+  const matches = [...text.matchAll(/\b(pets? (?:are )?not allowed|no pets?|without pets?|pet[- ]friendly|pets? allowed|allows? pets?|with pets?|have (?:a )?pet)\b/gi)];
+  const match = matches.at(-1)?.[0].toLowerCase();
+  if (!match) return undefined;
+  return !/not allowed|no pets?|without/.test(match);
+}
+
+const AMENITY_ALIASES: Record<string, string[]> = {
+  Pool: ['pool', 'swimming pool', 'swim'],
+  Gym: ['gym', 'fitness', 'workout', 'exercise room'],
+  Balcony: ['balcony', 'balconies'],
+  'Fast Wi-Fi': ['wifi', 'wi-fi', 'internet', 'fast internet', 'broadband'],
+  Parking: ['parking', 'car park', 'parking space', 'garage'],
+  'Pet friendly': ['pet friendly', 'pet', 'pets allowed', 'dog friendly', 'cat friendly'],
+  'Air conditioning': ['air conditioning', 'a/c', 'ac', 'aircon', 'central air', 'cooling'],
+  Elevator: ['elevator', 'lift'],
+  Laundry: ['laundry', 'washer', 'dryer', 'washing machine', 'laundry room'],
+  Kitchen: ['kitchen', 'full kitchen'],
+  'Study desk': ['study desk', 'desk', 'workspace', 'work from home'],
+  'Beach access': ['beach access', 'beach', 'near beach', 'close to beach'],
+  'River view': ['river view', 'river', 'riverfront'],
+  'Ocean view': ['ocean view', 'sea view', 'ocean', 'sea view'],
+  Garden: ['garden', 'yard', 'outdoor space'],
+  Rooftop: ['rooftop', 'roof terrace', 'roof deck'],
+  Security: ['security', '24/7 security', 'security guard', 'secure'],
+  Concierge: ['concierge', 'doorman'],
+  Playground: ['playground', 'kids play area', 'children play area'],
+};
+
+function parseAmenities(text: string): string[] | undefined {
+  const normalized = text.toLowerCase();
+  const matched: string[] = [];
+  for (const [amenity, aliases] of Object.entries(AMENITY_ALIASES)) {
+    const pattern = new RegExp(`\\b(?:${aliases.join('|').replace(/[.\s]/g, (c) => c === ' ' ? '[\\s-]' : '\\' + c)})\\b`, 'i');
+    if (pattern.test(normalized)) matched.push(amenity);
+  }
+  return matched.length > 0 ? [...new Set(matched)] : undefined;
 }
 
 function parseMoveIn(text: string): string | undefined {
@@ -422,26 +553,52 @@ export function extractListingFilters(query: string): ListingSearchFilters {
   return {
     query: normalized,
     location,
-    maxBudgetVnd: parseBudgetVnd(normalized),
+    ...parseBudgetVnd(normalized),
+    ...parseAreaSqm(normalized),
     radiusKm: parseRadiusKm(normalized),
     moveIn: parseMoveIn(normalized),
+    minBedrooms: parseMinimumCount(normalized, 'bedrooms?|beds?'),
+    minBathrooms: parseMinimumCount(normalized, 'bathrooms?|baths?'),
+    furnished: parseFurnishedPreference(normalized),
+    parking: parseParkingPreference(normalized),
+    petsAllowed: parsePetPreference(normalized),
+    amenities: parseAmenities(normalized),
   };
 }
 
 export function isListingSearchRequest(text: string): boolean {
   const normalized = text.trim().toLowerCase();
   if (!normalized) return false;
-  const mentionsHousing = /\b(apartments?|flats?|homes?|rooms?|studios?|listings?|places? to (?:live|rent|stay))\b/.test(normalized);
-  const asksToSearch = /\b(find|search|show|recommend|suggest|looking for|look for|need|want|rent)\b/.test(normalized);
+  const mentionsHousing = /\b(apartments?|flats?|homes?|rooms?|studios?|listings?|rentals?|properties|property|accommodation|somewhere|places?)\b/.test(normalized);
+  const asksToSearch = /\b(find|search|show|recommend|suggest|looking for|look for|need|want|rent|moving|move|help me|would like)\b/.test(normalized);
   return mentionsHousing && asksToSearch;
+}
+
+export function agentSignalsListingResults(text: string): boolean {
+  const normalized = text.trim().toLowerCase();
+  if (!normalized) return false;
+  const mentionsResults = /\b(matching|matches|listings?|results?|options?|apartments?|places?)\b/.test(normalized);
+  const presentsResults = /\b(here (?:are|is)|i found|i've found|found|showing|displayed|on (?:the )?screen|take a look)\b/.test(normalized);
+  return mentionsResults && presentsResults;
 }
 
 export function searchApartmentListings(query: string): ListingSearchResponse {
   const filters = extractListingFilters(query);
   const listings = APARTMENT_LISTINGS.filter((listing) => {
+    if (filters.minBudgetVnd && listing.monthlyRentVnd <= filters.minBudgetVnd) return false;
     if (filters.maxBudgetVnd && listing.monthlyRentVnd > filters.maxBudgetVnd) return false;
+    if (filters.minAreaSqm && listing.areaSqm <= filters.minAreaSqm) return false;
+    if (filters.maxAreaSqm && listing.areaSqm >= filters.maxAreaSqm) return false;
     if (filters.radiusKm && listing.distanceKm > filters.radiusKm) return false;
     if (filters.moveIn && listing.availableFrom > filters.moveIn) return false;
+    if (filters.minBedrooms && listing.bedrooms < filters.minBedrooms) return false;
+    if (filters.minBathrooms && listing.bathrooms < filters.minBathrooms) return false;
+    if (filters.furnished !== undefined && listing.furnished !== filters.furnished) return false;
+    const hasParking = listing.amenities.some((amenity) => /parking/i.test(amenity));
+    if (filters.parking !== undefined && hasParking !== filters.parking) return false;
+    if (filters.amenities && !filters.amenities.every((amenity) => listing.amenities.includes(amenity))) return false;
+    const allowsPets = listing.amenities.some((amenity) => /pet[- ]friendly|pets? allowed/i.test(amenity));
+    if (filters.petsAllowed !== undefined && allowsPets !== filters.petsAllowed) return false;
     if (filters.location === 'Greenwich Vietnam – Da Nang' && listing.distanceKm > 3) return false;
     if (filters.location !== 'Da Nang' && filters.location !== 'Greenwich Vietnam – Da Nang') {
       const locationText = `${listing.title} ${listing.neighborhood} ${listing.address}`.toLowerCase();
