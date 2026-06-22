@@ -17,9 +17,17 @@ export type ApartmentListing = {
 export type ListingSearchFilters = {
   query: string;
   location: string;
+  minBudgetVnd?: number;
   maxBudgetVnd?: number;
+  minAreaSqm?: number;
+  maxAreaSqm?: number;
   radiusKm?: number;
   moveIn?: string;
+  minBedrooms?: number;
+  minBathrooms?: number;
+  furnished?: boolean;
+  parking?: boolean;
+  petsAllowed?: boolean;
 };
 
 export type ListingSearchResponse = {

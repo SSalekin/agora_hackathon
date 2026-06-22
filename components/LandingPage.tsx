@@ -28,9 +28,20 @@ function serializeSearchFilters(filters: ListingSearchFilters): string {
     : null;
   return [
     `location ${filters.location}`,
+    filters.minBudgetVnd ? `monthly rent above ${filters.minBudgetVnd} VND` : null,
     filters.maxBudgetVnd ? `maximum budget ${filters.maxBudgetVnd} VND` : null,
+    filters.minAreaSqm ? `floor area above ${filters.minAreaSqm} square meters` : null,
+    filters.maxAreaSqm ? `floor area below ${filters.maxAreaSqm} square meters` : null,
     filters.radiusKm ? `within ${filters.radiusKm} km` : null,
     moveIn,
+    filters.minBedrooms ? `at least ${filters.minBedrooms} bedrooms` : null,
+    filters.minBathrooms ? `at least ${filters.minBathrooms} bathrooms` : null,
+    filters.furnished === true ? 'fully furnished' : null,
+    filters.furnished === false ? 'unfurnished' : null,
+    filters.parking === true ? 'with parking' : null,
+    filters.parking === false ? 'no parking' : null,
+    filters.petsAllowed === true ? 'pet friendly' : null,
+    filters.petsAllowed === false ? 'no pets' : null,
   ].filter(Boolean).join(', ');
 }
 
@@ -79,9 +90,11 @@ export default function LandingPage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [listings, setListings] = useState<ApartmentListing[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<ListingSearchFilters | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [history, setHistory] = useState<SearchHistoryItem[]>([]);
   const searchContextRef = useRef('');
+  const listingSearchRequestRef = useRef(0);
 
   // Preload heavy modules on mount so they're already cached when the user
   // clicks "Try it Now" — eliminates the ~1.8s dynamic-import delay.
@@ -106,15 +119,19 @@ export default function LandingPage() {
   const performListingSearch = useCallback(async (query: string, refine: boolean) => {
     const normalizedQuery = query.trim();
     if (!normalizedQuery) return;
+    const requestId = ++listingSearchRequestRef.current;
     const contextualQuery = refine && searchContextRef.current
       ? `${searchContextRef.current}. ${normalizedQuery}`
       : normalizedQuery;
+    setListings([]);
     try {
       const response = await fetch(`/api/listings?query=${encodeURIComponent(contextualQuery)}`);
       const data = (await response.json()) as ListingSearchResponse | { error: string };
       if (!response.ok || !('listings' in data)) throw new Error('Could not search listings');
+      if (requestId !== listingSearchRequestRef.current) return;
       searchContextRef.current = serializeSearchFilters(data.filters);
       setListings(data.listings);
+      setActiveFilters(data.filters);
       setHasSearched(true);
       setHistory((current) => {
         const next: SearchHistoryItem[] = [{ id: `${Date.now()}-${contextualQuery.slice(0, 12)}`, query: contextualQuery, createdAt: Date.now(), resultCount: data.total, filters: data.filters }, ...current.filter((item) => item.query.toLowerCase() !== contextualQuery.toLowerCase())].slice(0, 12);
@@ -137,9 +154,11 @@ export default function LandingPage() {
   const handleSignOut = useCallback(() => { localStorage.removeItem('nestfind:user'); setUserName(null); }, []);
 
   const handleStartConversation = async () => {
+    listingSearchRequestRef.current += 1;
     searchContextRef.current = '';
     setListings([]);
     setHasSearched(false);
+    setActiveFilters(null);
     setIsLoading(true);
     setError(null);
     setAgentJoinError(false);
@@ -295,6 +314,7 @@ export default function LandingPage() {
               userName={userName}
               listings={listings}
               hasSearched={hasSearched}
+              activeFilters={activeFilters}
               favoriteIds={favoriteIds}
               history={history}
               onStartConversation={handleStartConversation}
@@ -323,6 +343,7 @@ export default function LandingPage() {
                       onEndConversation={handleEndConversation}
                       listings={listings}
                       hasSearched={hasSearched}
+                      activeFilters={activeFilters}
                       favoriteIds={favoriteIds}
                       onToggleFavorite={handleToggleFavorite}
                       onUserTranscript={handleVoiceListingSearch}

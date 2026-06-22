@@ -3,21 +3,22 @@
 import { FormEvent, useState } from 'react';
 import { ArrowRight, Clock3, Heart, Home, LogOut, Mic, Search, Sparkles, UserRound } from 'lucide-react';
 import { APARTMENT_LISTINGS } from '@/lib/listings';
-import type { ApartmentListing, SearchHistoryItem } from '@/types/listing';
+import type { ApartmentListing, ListingSearchFilters, SearchHistoryItem } from '@/types/listing';
 import { ListingGrid } from './ListingGrid';
 import { PwaControls } from './PwaControls';
+import { SearchFilterChips } from './SearchFilterChips';
 
 type AppTab = 'discover' | 'saved' | 'history';
 type Props = {
   isLoading: boolean; error: string | null; userName: string | null;
-  listings: ApartmentListing[]; hasSearched: boolean; favoriteIds: string[]; history: SearchHistoryItem[];
+  listings: ApartmentListing[]; hasSearched: boolean; activeFilters: ListingSearchFilters | null; favoriteIds: string[]; history: SearchHistoryItem[];
   onStartConversation: () => void; onTextSearch: (query: string) => void;
   onToggleFavorite: (id: string) => void; onSignIn: (name: string) => void; onSignOut: () => void;
 };
 
 const EXAMPLE_QUERY = 'Find apartments within 2 kilometers of Greenwich Da Nang under 5 million VND in July 2027';
 
-export function ApartmentHome({ isLoading, error, userName, listings, hasSearched, favoriteIds, history, onStartConversation, onTextSearch, onToggleFavorite, onSignIn, onSignOut }: Props) {
+export function ApartmentHome({ isLoading, error, userName, listings, hasSearched, activeFilters, favoriteIds, history, onStartConversation, onTextSearch, onToggleFavorite, onSignIn, onSignOut }: Props) {
   const [tab, setTab] = useState<AppTab>('discover');
   const [query, setQuery] = useState('');
   const [name, setName] = useState('');
@@ -49,7 +50,7 @@ export function ApartmentHome({ isLoading, error, userName, listings, hasSearche
           </div>
           <div className="flex items-center"><div className="w-full rounded-[2rem] border border-white/80 bg-white/75 p-5 shadow-[0_28px_80px_rgba(64,53,38,.14)] backdrop-blur"><p className="text-xs font-bold uppercase tracking-[.18em] text-emerald-800">Try saying</p><blockquote className="mt-4 font-serif text-2xl leading-9">“I’m moving to Da Nang in July 2027. Find me a place near Greenwich University for under 5 million.”</blockquote><div className="mt-6 flex items-center gap-3 border-t border-stone-200 pt-5"><span className="grid h-11 w-11 place-items-center rounded-full bg-emerald-900 text-white"><Mic className="h-5 w-5" /></span><div><p className="text-sm font-semibold">Natural voice search</p><p className="text-xs text-stone-500">Budget, distance and dates understood</p></div></div></div></div>
         </div></section>
-        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6"><form onSubmit={submitSearch} className="flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-2 shadow-sm sm:flex-row"><div className="flex flex-1 items-center gap-3 px-3"><Search className="h-5 w-5 text-stone-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} className="h-11 w-full bg-transparent text-sm outline-none" placeholder="Or type your apartment request…" /></div><button type="submit" className="h-11 rounded-xl bg-stone-900 px-6 text-sm font-semibold text-white">Search</button></form><button type="button" onClick={() => { setQuery(EXAMPLE_QUERY); onTextSearch(EXAMPLE_QUERY); }} className="mt-3 text-xs text-stone-500 underline underline-offset-4">Use the Greenwich University example</button>{hasSearched && <><div className="mb-6 mt-10"><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">Search results</p><h2 className="mt-2 font-serif text-3xl font-bold">{`${listings.length} matched homes`}</h2></div><ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} /></>}</section>
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6"><form onSubmit={submitSearch} className="flex flex-col gap-3 rounded-2xl border border-stone-200 bg-white p-2 shadow-sm sm:flex-row"><div className="flex flex-1 items-center gap-3 px-3"><Search className="h-5 w-5 text-stone-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} className="h-11 w-full bg-transparent text-sm outline-none" placeholder="Or type your apartment request…" /></div><button type="submit" className="h-11 rounded-xl bg-stone-900 px-6 text-sm font-semibold text-white">Search</button></form><button type="button" onClick={() => { setQuery(EXAMPLE_QUERY); onTextSearch(EXAMPLE_QUERY); }} className="mt-3 text-xs text-stone-500 underline underline-offset-4">Use the Greenwich University example</button>{hasSearched && <><div className="mb-6 mt-10"><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">Search results</p><h2 className="mt-2 font-serif text-3xl font-bold">{`${listings.length} matched homes`}</h2><SearchFilterChips filters={activeFilters} /></div><ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} /></>}</section>
       </main>}
 
       {tab === 'saved' && <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6"><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">Your shortlist</p><h1 className="mt-2 font-serif text-4xl font-bold">Saved apartments</h1><div className="mt-8"><ListingGrid listings={savedListings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} emptyMessage="Save a listing and it will appear here, even after you close the app." /></div></main>}
