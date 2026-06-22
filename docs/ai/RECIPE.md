@@ -52,7 +52,7 @@ Do not recreate Agora ConvoAI integration from memory. Provider schemas, SDK bui
 - `prompts.system`: edit `ADA_PROMPT` and `GREETING` in `app/api/invite-agent/route.ts`.
 - `pipeline.providers`: adjust the `DeepgramSTT`, `OpenAI`, and `MiniMaxTTS` builder chain, or enable the commented BYOK blocks.
 - `ui.conversation`: customize `QuickstartPreCallCard`, `QuickstartConversationLayout`, `QuickstartTranscriptPanel`, and `QuickstartPipelineMetrics`.
-- `api.listings`: replace `lib/listings.ts` behind `GET /api/listings?query=`.
+- `api.listings`: use the Couchbase-backed catalog selector behind `GET /api/listings`, with the local fixture retained for unconfigured development.
 - `ui.apartment-discovery`: customize `components/apartment` without changing Agora hook ownership.
 
 ## Invariants

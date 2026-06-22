@@ -34,6 +34,7 @@ Optional:
 - `NEXT_PUBLIC_AGENT_UID` (defaults to `123456`).
 - `NEXT_AGENT_GREETING`.
 - BYOK keys (`NEXT_DEEPGRAM_API_KEY`, `NEXT_LLM_URL`, `NEXT_LLM_API_KEY`, `NEXT_ELEVENLABS_API_KEY`, `NEXT_ELEVENLABS_VOICE_ID`).
+- Couchbase listing catalog (`COUCHBASE_CONN_STR`, `COUCHBASE_USERNAME`, `COUCHBASE_PASSWORD`, `COUCHBASE_BUCKET`, and optional scope/collection overrides).
 
 ## Primary Commands
 

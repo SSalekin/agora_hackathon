@@ -50,7 +50,8 @@ Agora Cloud
 - RTC transport and mic: `ConversationComponent` + `agora-rtc-react` hooks.
 - Transcript + agent state: `AgoraVoiceAI` events mapped through `lib/conversation.ts`.
 - Metrics and connection issues: `AGENT_METRICS`, `MESSAGE_ERROR`, `SAL_STATUS`, RTM fallback parsing.
-- Apartment search and device-local state: `LandingPage`, `lib/listings.ts`, and `components/apartment`.
+- Apartment search: `LandingPage`, `lib/listings.ts`, and `lib/apartment-catalog.ts`; the catalog comes from Couchbase when configured and otherwise from the local fixture.
+- Device-local profile, favorites, and history: `LandingPage` and `components/apartment`.
 
 ## External Dependencies
 

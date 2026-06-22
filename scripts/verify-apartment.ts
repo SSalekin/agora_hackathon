@@ -135,4 +135,9 @@ assert.ok(Math.min(...noFilters.listings.map((listing) => listing.monthlyRentVnd
 assert.ok(Math.max(...noFilters.listings.map((listing) => listing.monthlyRentVnd)) >= 18_500_000);
 assert.ok(new Set(noFilters.listings.map((listing) => listing.neighborhood)).size >= 10);
 
+const customCatalog = [noFilters.listings[0]];
+const customCatalogResults = searchApartmentListings('Show me apartments in Da Nang', customCatalog);
+assert.equal(customCatalogResults.total, 1);
+assert.equal(customCatalogResults.listings[0].id, customCatalog[0].id);
+
 console.log('Apartment search checks passed.');
