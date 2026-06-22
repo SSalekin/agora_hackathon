@@ -39,11 +39,15 @@ types/               Shared TypeScript route/component contracts
 - `agora.ts`: default constants (`DEFAULT_AGENT_UID`).
 - `conversation.ts`: transcript normalization, spacing cleanup, timestamp normalization, visualizer state mapping.
 - `listings.ts`: fictional apartment catalog and pure search functions.
+- `apartment-catalog.ts`: selects the Couchbase catalog or unconfigured local fallback.
+- `db/apartment-listings.ts`: reads and seeds the Couchbase catalog document.
+- `db/couchbase.ts`: shared Couchbase connection, bucket, scope, and collection access.
 
 ## Validation and Tooling
 
 - `scripts/verify-api-contracts.ts`: imports route handlers and validates contract behavior.
 - `scripts/doctor.mjs`: local setup checks consumed by `pnpm run doctor`.
+- `scripts/seed-couchbase-listings.ts`: idempotently upserts the demo catalog into Couchbase.
 - `tailwind.config.ts`: includes `agora-agent-uikit` dist classes in content scan.
 
 ## Fast File Lookup

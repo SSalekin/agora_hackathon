@@ -1,6 +1,6 @@
 {
-  "generated": 1782103665260,
-  "fileCount": 90,
+  "generated": 1782141862794,
+  "fileCount": 97,
   "files": [
     {
       "path": ".dockerignore",
@@ -53,9 +53,9 @@
     },
     {
       "path": "AGENTS.md",
-      "size": 11393,
-      "mtime": 1782088776685.3796,
-      "sha256": "e0c500af238f0cf746fd7718d50008c0160a11ffeec68d2963ce39eeeb02def1",
+      "size": 11681,
+      "mtime": 1782141738237.9673,
+      "sha256": "5f08424327632875d08dd02c2e9bb0b7c3fe843d69fdc4806834c61d85020174",
       "exports": []
     },
     {
@@ -81,9 +81,9 @@
     },
     {
       "path": "README.md",
-      "size": 2916,
-      "mtime": 1782099936008.1492,
-      "sha256": "5d24686dc902c2c843ca0af20daf7d464f4fbc9985910f578413f52e263939e9",
+      "size": 3306,
+      "mtime": 1782141738074.4802,
+      "sha256": "f4143283234e6a9d823a4fd809972f85f5eb07a8a6803da175de91a63203441c",
       "exports": []
     },
     {
@@ -115,7 +115,7 @@
     {
       "path": "app/api/invite-agent/route.ts",
       "size": 7132,
-      "mtime": 1782103653253.2373,
+      "mtime": 1782138519693.3914,
       "sha256": "51d188aa6109769d67812346d8a4c89159cbc4ec133832238c869197df5746cc",
       "exports": [
         "POST"
@@ -123,9 +123,9 @@
     },
     {
       "path": "app/api/listings/route.ts",
-      "size": 394,
-      "mtime": 1782088776688.5112,
-      "sha256": "325edd3da4ad87f5d2e77121a1584c1208234edf4e5e1260619c127b98b9c3ee",
+      "size": 1077,
+      "mtime": 1782141619136.894,
+      "sha256": "a07224704f4cfa968baa284c725b390f1fa73925f157505c7186cbf1a45aa1f3",
       "exports": [
         "GET"
       ]
@@ -194,7 +194,7 @@
     {
       "path": "components/ConversationComponent.tsx",
       "size": 20459,
-      "mtime": 1782102886418.0037,
+      "mtime": 1782138519693.3914,
       "sha256": "586b27a45fcbe18b69b8b387d142cdd7c8e1ba8ec51e28780e89cca786a56535",
       "exports": [
         "ConversationComponent"
@@ -223,9 +223,9 @@
     },
     {
       "path": "components/LandingPage.tsx",
-      "size": 15989,
-      "mtime": 1782103652996.579,
-      "sha256": "e34747951de97197843970c789a1b0f322d7eacd17e8734633f546d5e7c9dfb5",
+      "size": 16521,
+      "mtime": 1782141619304.9915,
+      "sha256": "147f896b7d57d52691fcb42da194e8a22d37c1aa2db15ecb39a569405bf5450a",
       "exports": [
         "LandingPage"
       ]
@@ -287,9 +287,9 @@
     },
     {
       "path": "components/apartment/ApartmentHome.tsx",
-      "size": 10451,
-      "mtime": 1782102886257.059,
-      "sha256": "837c149af4735d537c607600c6040644ed36434522e5672397d6743f3b21bb01",
+      "size": 10446,
+      "mtime": 1782141619511.2927,
+      "sha256": "a1ae07f7c4785e5cc23a5fa621617c8cfe737540373b4a6e129a8c73e1ad14be",
       "exports": [
         "ApartmentHome"
       ]
@@ -314,9 +314,9 @@
     },
     {
       "path": "components/apartment/SearchFilterChips.tsx",
-      "size": 1492,
-      "mtime": 1782103653132.7493,
-      "sha256": "fd011e76d23bd0f80e7c610c1fb49497c700452dba150068e5284883098b3b41",
+      "size": 1552,
+      "mtime": 1782138519693.3914,
+      "sha256": "97bfb5ebf44c61587f79b17ef60cdf8d1ecf60fc565ac1156240b0db67670562",
       "exports": [
         "SearchFilterChips"
       ]
@@ -356,31 +356,38 @@
       ]
     },
     {
+      "path": "docs/COUCHBASE.md",
+      "size": 2566,
+      "mtime": 1782141687769.439,
+      "sha256": "54c0a243ff3e70ea684087a1185cd3e788fc81274e36114a031398ec7681b15f",
+      "exports": []
+    },
+    {
       "path": "docs/ai/L0_repo_card.md",
       "size": 1611,
-      "mtime": 1782088776695.7031,
-      "sha256": "85b3b1bbb51777cfd0ef8beb7c76c3d35a033f79bd7b2431928b35423689b413",
+      "mtime": 1782141738393.8503,
+      "sha256": "a92f9dee2fcf16c032c58466305d60cc4b0ef4903e3520f4eff1d136485bb9b8",
       "exports": []
     },
     {
       "path": "docs/ai/L1/01_setup.md",
-      "size": 3306,
-      "mtime": 1782088776696.008,
-      "sha256": "d126f6fa125c77d4ca74f1e12360c5fe94ccd805ad54df89a615ba0710c11124",
+      "size": 3463,
+      "mtime": 1782141738675.2002,
+      "sha256": "3a4641ec5b04de4fe8fb174e4ce58cbd8c1e44319e38def4f412ca4f89bc558b",
       "exports": []
     },
     {
       "path": "docs/ai/L1/02_architecture.md",
-      "size": 4028,
-      "mtime": 1782088776696.2224,
-      "sha256": "009a19fd585e1396ff190646b470f0f95bc06452477b751ec33151ef99ac5d05",
+      "size": 4186,
+      "mtime": 1782141687968.242,
+      "sha256": "3bf7aea9927361120d9d810cafffd8a137d2d95c2c2be83f142ba30ad404c381",
       "exports": []
     },
     {
       "path": "docs/ai/L1/03_code_map.md",
-      "size": 4314,
-      "mtime": 1782102960442.3035,
-      "sha256": "6724a4f11505c983cf4254bcfa4fcf644ca964a00ca8cb129f51ec70441a452e",
+      "size": 4662,
+      "mtime": 1782141688174.6912,
+      "sha256": "beb7420c91f8281682952cd6dd6c5ea1ff501735e99a501e45d89d0f1600d572",
       "exports": []
     },
     {
@@ -399,9 +406,9 @@
     },
     {
       "path": "docs/ai/L1/06_interfaces.md",
-      "size": 4623,
-      "mtime": 1782103653536.7102,
-      "sha256": "2d68f5a2c40851486656ed69d8c129939b42dafcbe39dd91029ab40005dd3ab7",
+      "size": 4873,
+      "mtime": 1782141688373.4941,
+      "sha256": "3ed24bac2b5fc1fdc820a2b931da79809c2e7519d87f69c3d6d308498c03e39f",
       "exports": []
     },
     {
@@ -469,9 +476,9 @@
     },
     {
       "path": "docs/ai/RECIPE.md",
-      "size": 3961,
-      "mtime": 1782088776697.4165,
-      "sha256": "1b5c561a30df123f2b2d0e4777c42ef974b76ec2663b24ba1792f364176c2332",
+      "size": 4032,
+      "mtime": 1782141738523.1191,
+      "sha256": "6af49ae2f919b4295ced49a78ee74ed518cc8cee868c2a8e14079e102d3f5349",
       "exports": []
     },
     {
@@ -483,9 +490,9 @@
     },
     {
       "path": "env.local.example",
-      "size": 1354,
-      "mtime": 1782099936008.1492,
-      "sha256": "f9419d1d8b4c331a944a99a34e024690132da76a7f25c7c806626331c065c14e",
+      "size": 1831,
+      "mtime": 1782141687566.8127,
+      "sha256": "bac8d7db91872f9ac283c4055b767e0356912fb26e18a965ef1c9439f0d960eb",
       "exports": []
     },
     {
@@ -507,7 +514,7 @@
     {
       "path": "implement_escrow.md",
       "size": 31,
-      "mtime": 1782100175979.054,
+      "mtime": 1782138519693.3914,
       "sha256": "634672a96ef3a6b0aeb8792f7f611d3ae7cae0c45a1527babb7808f8d2aac733",
       "exports": []
     },
@@ -518,6 +525,16 @@
       "sha256": "8109b89e5c6aa3b702b9d327a595ec2b3ea354bba36567a8d374ffc4f8002f48",
       "exports": [
         "DEFAULT_AGENT_UID"
+      ]
+    },
+    {
+      "path": "lib/apartment-catalog.ts",
+      "size": 650,
+      "mtime": 1782141584510.851,
+      "sha256": "0b2ce001cea915e41580dd476297fc7b6e019de5d78d2c8c60bd286f76b59508",
+      "exports": [
+        "ApartmentCatalogSource",
+        "getApartmentCatalog"
       ]
     },
     {
@@ -536,10 +553,35 @@
       ]
     },
     {
+      "path": "lib/db/apartment-listings.ts",
+      "size": 2074,
+      "mtime": 1782141584350.8403,
+      "sha256": "f0fe479442d0519c442a170d9ee5897e75ce7a1eb31290f5cefc068c6f3f3725",
+      "exports": [
+        "APARTMENT_CATALOG_DOCUMENT_ID",
+        "readApartmentListingsFromCouchbase",
+        "writeApartmentListingsToCouchbase"
+      ]
+    },
+    {
+      "path": "lib/db/couchbase.ts",
+      "size": 1993,
+      "mtime": 1782141819030.6184,
+      "sha256": "9de1a0a0389d9a61d74f400e3b850e17d5ac1e2a796ee5d9eb6bb67ad47ed76b",
+      "exports": [
+        "closeCouchbase",
+        "getCouchbaseBucket",
+        "getCouchbaseCluster",
+        "getCouchbaseCollection",
+        "getCouchbaseKeyspace",
+        "isCouchbaseConfigured"
+      ]
+    },
+    {
       "path": "lib/listings.ts",
-      "size": 22302,
-      "mtime": 1782103652873.9963,
-      "sha256": "db810c750fe3b7d7b9d64777c540d09f538ba6a0d08de30f9883d205bdb65b46",
+      "size": 24188,
+      "mtime": 1782141618972.617,
+      "sha256": "939b8316b7472b8bb14797798261371b884ee6193f45a27e81a9a17f97d475d1",
       "exports": [
         "APARTMENT_LISTINGS",
         "agentSignalsListingResults",
@@ -560,16 +602,23 @@
     },
     {
       "path": "next.config.mjs",
-      "size": 458,
-      "mtime": 1781982081059.2468,
-      "sha256": "5aae43315f34b6c96bbd5d948a4540aa2b926090c14d3ee4a61a4eedf50c7958",
+      "size": 499,
+      "mtime": 1782141619832.2058,
+      "sha256": "50e07bb25e46d0baa254c3fd4ff7ec9cd5dd8dc8f872bab88bf17036a9a79c6d",
       "exports": []
     },
     {
       "path": "package.json",
-      "size": 1774,
-      "mtime": 1782099936008.1492,
-      "sha256": "46ee2b66bd2fc182ccb4c7c0e01a31d52773f763ca2b7fe1f7639307e97c48f5",
+      "size": 2005,
+      "mtime": 1782141619675.5698,
+      "sha256": "3063531e0605733a488920ff1d2ad3c574a4fdf825a6e2c3fd5c8ff33a953552",
+      "exports": []
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "size": 83,
+      "mtime": 1782138603471.5461,
+      "sha256": "78c317b13184387357038a93c1c8147fac03a0f7e035d7aa941ad57ed8de9d2f",
       "exports": []
     },
     {
@@ -629,6 +678,13 @@
       "exports": []
     },
     {
+      "path": "scripts/check-couchbase-connection.ts",
+      "size": 2100,
+      "mtime": 1782141078943.1118,
+      "sha256": "f4837cb46a492a8889f2d1258a8caeba6d1e64e768ed0aad75580feb85afb91c",
+      "exports": []
+    },
+    {
       "path": "scripts/doctor.mjs",
       "size": 1221,
       "mtime": 1781982081060.0984,
@@ -643,17 +699,24 @@
       "exports": []
     },
     {
+      "path": "scripts/seed-couchbase-listings.ts",
+      "size": 915,
+      "mtime": 1782141584667.052,
+      "sha256": "7c29914149cb7fbf391dc23d707eac2245f3095f5d1f09b3691e06e7f789536a",
+      "exports": []
+    },
+    {
       "path": "scripts/verify-apartment.ts",
-      "size": 6691,
-      "mtime": 1782103653383.4814,
-      "sha256": "e610e4a5bd179051908495538c7e2d2143ca3659aed33fd5663edc0aa49a0e9f",
+      "size": 6958,
+      "mtime": 1782141688560.8276,
+      "sha256": "fee34bcf93dbb4f274fae3b74c25628c194bc2f98b401518928f552a3341e259",
       "exports": []
     },
     {
       "path": "scripts/verify-api-contracts.ts",
-      "size": 14328,
-      "mtime": 1781982081060.7756,
-      "sha256": "9dbb32fecdb4096930081acde541ebb1ec64b20db9bcf840df2ada9f6ce7ac69",
+      "size": 15493,
+      "mtime": 1782141688748.1611,
+      "sha256": "ab9b2ac17139eb92645d20cfa29fa72b3ea1226761f12353c9d21ae063692feb",
       "exports": []
     },
     {
@@ -694,7 +757,7 @@
     {
       "path": "types/conversation.ts",
       "size": 970,
-      "mtime": 1782102885923.6736,
+      "mtime": 1782138519696.4102,
       "sha256": "6018a6f11e73b3b4a7f1a285afe9f22b80158c59d84e37291badb3d97ea58058",
       "exports": [
         "AgentResponse",
@@ -721,11 +784,12 @@
     },
     {
       "path": "types/listing.ts",
-      "size": 908,
-      "mtime": 1782103652705.4446,
-      "sha256": "bd67172af45d074ffb986c730408c758ca70345a731313972542def4d6f48e96",
+      "size": 1091,
+      "mtime": 1782141618815.9807,
+      "sha256": "2c9f0d57d5958ef0cf5b92d4ea8475bd47a8688be6bbc0c9892d773c86beaea4",
       "exports": [
         "ApartmentListing",
+        "ListingCatalogResponse",
         "ListingSearchFilters",
         "ListingSearchResponse",
         "SearchHistoryItem"

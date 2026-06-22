@@ -311,6 +311,37 @@ async function verifyInviteAgentValidation() {
   );
 }
 
+async function verifyListingsLocalCatalog() {
+  const couchbaseEnvNames = [
+    'COUCHBASE_CONN_STR',
+    'COUCHBASE_USERNAME',
+    'COUCHBASE_PASSWORD',
+    'COUCHBASE_BUCKET',
+  ] as const;
+  const originalValues = Object.fromEntries(
+    couchbaseEnvNames.map((name) => [name, process.env[name]]),
+  );
+  couchbaseEnvNames.forEach((name) => delete process.env[name]);
+
+  try {
+    const { GET: getListings } = await import('../app/api/listings/route');
+    const response = await getListings(
+      new NextRequest('http://localhost:3000/api/listings?catalog=true'),
+    );
+    const body = await getJson(response);
+
+    assert(response.status === 200, 'GET /api/listings?catalog=true should return 200');
+    assert(body.source === 'local', 'Unconfigured listing catalog should use local source');
+    assert(Array.isArray(body.listings) && body.listings.length === 18, 'Local catalog should contain 18 listings');
+  } finally {
+    for (const name of couchbaseEnvNames) {
+      const value = originalValues[name];
+      if (value === undefined) delete process.env[name];
+      else process.env[name] = value;
+    }
+  }
+}
+
 async function verifyInviteAgentSuccess() {
   const { POST: inviteAgent } = await import('../app/api/invite-agent/route');
   const originalCreateSession = Agent.prototype.createSession;
@@ -452,6 +483,7 @@ async function main() {
   await verifyChatCompletionsMissingEnv();
   await verifyChatCompletionsInvalidJson();
   await verifyChatCompletionsSseDone();
+  await verifyListingsLocalCatalog();
   await verifyInviteAgentValidation();
   await verifyInviteAgentSuccess();
   await verifyStopConversationValidation();

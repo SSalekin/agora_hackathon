@@ -53,6 +53,8 @@ Optional SSE proxy path (not default runtime path). Requires `NEXT_LLM_API_KEY` 
 
 Returns `{ filters, listings, total }` from the fictional catalog. Blank queries return `400`.
 
+`GET /api/listings?catalog=true` returns `{ listings, total, source }` for saved-listing hydration. Search responses also include `source`, either `couchbase` or `local`. Couchbase is used when configured; configured database failures return `503`.
+
 Budget and radius parsing accept numeric and spoken forms. Budget filters support both upper bounds (for example, “below 5 million”) and lower bounds (for example, “above 5 million”). Transcript fragments are debounced, retained filters are serialized between turns, and the last stated budget, radius, date, or location overrides earlier values. A new upper or lower budget replaces the previous budget constraint instead of combining result sets.
 
 Additional voice filters are minimum/maximum floor area in square meters, minimum bedrooms, minimum bathrooms, furnished/unfurnished, parking required/not required, and pets allowed/not allowed. Area constraints accept numeric or spoken values, and the latest lower or upper bound replaces the previous area constraint. These constraints persist across turns and appear as active-filter chips in the UI.

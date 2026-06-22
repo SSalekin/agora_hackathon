@@ -13,7 +13,7 @@ import type {
 import { ErrorBoundary } from './ErrorBoundary';
 import { LoadingSkeleton } from './LoadingSkeleton';
 import { ApartmentHome } from './apartment/ApartmentHome';
-import type { ApartmentListing, ListingSearchFilters, ListingSearchResponse, SearchHistoryItem } from '@/types/listing';
+import type { ApartmentListing, ListingCatalogResponse, ListingSearchFilters, ListingSearchResponse, SearchHistoryItem } from '@/types/listing';
 
 function serializeSearchFilters(filters: ListingSearchFilters): string {
   const moveIn = filters.moveIn
@@ -89,6 +89,7 @@ export default function LandingPage() {
   const [showConversation, setShowConversation] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [listings, setListings] = useState<ApartmentListing[]>([]);
+  const [listingCatalog, setListingCatalog] = useState<ApartmentListing[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeFilters, setActiveFilters] = useState<ListingSearchFilters | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -101,6 +102,13 @@ export default function LandingPage() {
   useEffect(() => {
     import('agora-rtc-react').catch(() => {});
     import('agora-rtm').catch(() => {});
+    fetch('/api/listings?catalog=true')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Could not load listing catalog');
+        return response.json() as Promise<ListingCatalogResponse>;
+      })
+      .then((catalog) => setListingCatalog(catalog.listings))
+      .catch((catalogError) => console.error('Listing catalog load failed:', catalogError));
     setUserName(localStorage.getItem('nestfind:user'));
     try {
       setFavoriteIds(JSON.parse(localStorage.getItem('nestfind:favorites') ?? '[]'));
@@ -313,6 +321,7 @@ export default function LandingPage() {
               error={error}
               userName={userName}
               listings={listings}
+              listingCatalog={listingCatalog}
               hasSearched={hasSearched}
               activeFilters={activeFilters}
               favoriteIds={favoriteIds}

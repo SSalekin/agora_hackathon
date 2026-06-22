@@ -35,6 +35,13 @@ export type ListingSearchResponse = {
   filters: ListingSearchFilters;
   listings: ApartmentListing[];
   total: number;
+  source?: 'couchbase' | 'local';
+};
+
+export type ListingCatalogResponse = {
+  listings: ApartmentListing[];
+  total: number;
+  source: 'couchbase' | 'local';
 };
 
 export type SearchHistoryItem = {

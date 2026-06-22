@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from 'react';
 import { ArrowRight, Clock3, Heart, Home, LogOut, Mic, Search, Sparkles, UserRound } from 'lucide-react';
-import { APARTMENT_LISTINGS } from '@/lib/listings';
 import type { ApartmentListing, ListingSearchFilters, SearchHistoryItem } from '@/types/listing';
 import { ListingGrid } from './ListingGrid';
 import { PwaControls } from './PwaControls';
@@ -11,18 +10,18 @@ import { SearchFilterChips } from './SearchFilterChips';
 type AppTab = 'discover' | 'saved' | 'history';
 type Props = {
   isLoading: boolean; error: string | null; userName: string | null;
-  listings: ApartmentListing[]; hasSearched: boolean; activeFilters: ListingSearchFilters | null; favoriteIds: string[]; history: SearchHistoryItem[];
+  listings: ApartmentListing[]; listingCatalog: ApartmentListing[]; hasSearched: boolean; activeFilters: ListingSearchFilters | null; favoriteIds: string[]; history: SearchHistoryItem[];
   onStartConversation: () => void; onTextSearch: (query: string) => void;
   onToggleFavorite: (id: string) => void; onSignIn: (name: string) => void; onSignOut: () => void;
 };
 
 const EXAMPLE_QUERY = 'Find apartments within 2 kilometers of Greenwich Da Nang under 5 million VND in July 2027';
 
-export function ApartmentHome({ isLoading, error, userName, listings, hasSearched, activeFilters, favoriteIds, history, onStartConversation, onTextSearch, onToggleFavorite, onSignIn, onSignOut }: Props) {
+export function ApartmentHome({ isLoading, error, userName, listings, listingCatalog, hasSearched, activeFilters, favoriteIds, history, onStartConversation, onTextSearch, onToggleFavorite, onSignIn, onSignOut }: Props) {
   const [tab, setTab] = useState<AppTab>('discover');
   const [query, setQuery] = useState('');
   const [name, setName] = useState('');
-  const savedListings = APARTMENT_LISTINGS.filter((listing) => favoriteIds.includes(listing.id));
+  const savedListings = listingCatalog.filter((listing) => favoriteIds.includes(listing.id));
   const submitSearch = (event: FormEvent) => { event.preventDefault(); if (query.trim()) { onTextSearch(query); setTab('discover'); } };
   const openSignIn = () => document.getElementById('demo-auth')?.showPopover?.();
 

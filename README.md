@@ -1,6 +1,6 @@
 # Team GRRC (Greenwich Recon & Research Club)
 
-## Proect Name: NestFind 
+## Proect Name: NestFind
 ### Smart Apartment Allocator
 
 
@@ -12,10 +12,10 @@ Even after the user finds an apartment listing, the details are often vague, and
 This often raises quite a few problems:
 
 #### Problem 1:
-People have to search through listings in zalo. If the person is an expat and can not speak or read Vietnamese language, that is another extra layer of difficulty 
+People have to search through listings in zalo. If the person is an expat and can not speak or read Vietnamese language, that is another extra layer of difficulty
 
 #### Problem 2:
-No good way to verify the reputation of the Landlord. People have to go through the deal solely relying on their gut feeling. 
+No good way to verify the reputation of the Landlord. People have to go through the deal solely relying on their gut feeling.
 
 #### Problem 3:
 No safe way to deposit the money to the Landlord
@@ -121,4 +121,14 @@ Need to involve Banks, Police and Lawyers
 ### Conclusion
 Moving apartments are already a hassle by itself, The goal of our project is to  lower the stress caused by it and make the finding and renting apartments easier than current solutions.
 
+## Couchbase listing catalog
 
+NestFind uses the local demo catalog when Couchbase is not configured. To move the demo listings into Couchbase Capella, configure the `COUCHBASE_*` variables, create the configured collection, then run:
+
+```bash
+pnpm run check:couchbase
+pnpm run seed:couchbase
+pnpm run dev
+```
+
+See [docs/COUCHBASE.md](docs/COUCHBASE.md) for the complete setup and safety notes.

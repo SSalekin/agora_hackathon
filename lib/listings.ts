@@ -582,9 +582,12 @@ export function agentSignalsListingResults(text: string): boolean {
   return mentionsResults && presentsResults;
 }
 
-export function searchApartmentListings(query: string): ListingSearchResponse {
+export function searchApartmentListings(
+  query: string,
+  catalog: ApartmentListing[] = APARTMENT_LISTINGS,
+): ListingSearchResponse {
   const filters = extractListingFilters(query);
-  const listings = APARTMENT_LISTINGS.filter((listing) => {
+  const listings = catalog.filter((listing) => {
     if (filters.minBudgetVnd && listing.monthlyRentVnd <= filters.minBudgetVnd) return false;
     if (filters.maxBudgetVnd && listing.monthlyRentVnd > filters.maxBudgetVnd) return false;
     if (filters.minAreaSqm && listing.areaSqm <= filters.minAreaSqm) return false;
