@@ -30,8 +30,8 @@ export function QuickstartPipelineMetrics({
   }
 
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-2">
-      <span className="text-sm font-medium leading-6 text-muted-foreground">
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
+      <span className="text-xs font-medium leading-5 text-muted-foreground sm:text-sm sm:leading-6">
         Pipeline
       </span>
       {PIPELINE.map((step, index) => {
@@ -46,7 +46,7 @@ export function QuickstartPipelineMetrics({
                 /
               </span>
             )}
-            <span className="rounded-md border border-border bg-transparent px-2 py-0.5 text-xs font-semibold leading-4 text-foreground shadow-sm">
+            <span className="rounded-md border border-border bg-transparent px-2 py-0.5 text-[11px] font-semibold leading-4 text-foreground shadow-sm sm:text-xs">
               {step.label}
               {metric && (
                 <span

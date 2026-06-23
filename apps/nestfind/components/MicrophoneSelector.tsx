@@ -131,7 +131,7 @@ export function MicrophoneSelector({
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full w-10 h-10 bg-secondary hover:bg-accent/10 border border-border"
+          className="h-11 w-11 rounded-2xl border border-stone-200 bg-white/80 hover:bg-amber-50"
           title="Select microphone"
         >
           <Settings className="h-4 w-4 text-foreground" />
@@ -140,7 +140,7 @@ export function MicrophoneSelector({
       {/* Device menu: current selection plus all discovered microphones. */}
       <DropdownMenuContent
         align="center"
-        className="w-56 bg-popover border-border"
+        className="surface-panel w-56 border-white/70"
       >
         <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
           Microphone

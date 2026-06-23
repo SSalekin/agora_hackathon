@@ -45,10 +45,10 @@ export function QuickstartTranscriptPanel({
 
   return (
     <section
-      className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-border bg-card/20"
+      className="surface-panel flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[1.75rem] border border-white/70"
       aria-label="Transcription panel"
     >
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border px-4">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-stone-200/80 px-4">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Transcript</h2>
           <p className="text-xs text-muted-foreground">Live voice turns</p>
@@ -75,15 +75,15 @@ export function QuickstartTranscriptPanel({
                 key={`${message.turn_id ?? message.uid}-${index}`}
                 className={`flex flex-col ${isAgent ? 'items-start' : 'items-end'}`}
               >
-                <div className="mb-1 flex items-center gap-2 px-1 text-xs font-semibold text-muted-foreground">
+                <div className="mb-1 flex items-center gap-2 px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   <span>{label}</span>
                   {time && <span className="font-normal">{time}</span>}
                 </div>
                 <div
-                  className={`max-w-full whitespace-pre-wrap rounded-xl border px-3 py-2 text-sm leading-6 ${
+                  className={`max-w-[92%] whitespace-pre-wrap rounded-[1.35rem] border px-3.5 py-3 text-sm leading-6 shadow-sm ${
                     isAgent
                       ? 'border-emerald-900 bg-emerald-900 text-white'
-                      : 'border-amber-200 bg-amber-50 text-stone-900'
+                      : 'border-amber-200 bg-[#fff7e8] text-stone-900'
                   }`}
                 >
                   {text || '...'}

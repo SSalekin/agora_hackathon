@@ -32,18 +32,19 @@ export function ConnectionStatusPanel({
   isOpen,
   onToggle,
 }: ConnectionStatusPanelProps) {
+  const label = getConnectionLabel(connectionState, connectionSeverity);
+
   return (
     <div className="relative flex-shrink-0">
-      {/* Minimal status affordance: color and ping convey RTC health before the user opens details. */}
       <button
         type="button"
-        className="relative block"
-        aria-label={getConnectionLabel(connectionState, connectionSeverity)}
+        className="flex items-center gap-2 rounded-full border border-stone-200 bg-white/85 px-3 py-2 text-left shadow-sm backdrop-blur"
+        aria-label={label}
         aria-expanded={isOpen}
         aria-controls="connection-details-panel"
         onClick={onToggle}
       >
-        <span className="relative flex h-2 w-2">
+        <span className="relative flex h-2.5 w-2.5">
           {connectionState !== 'DISCONNECTED' && connectionState !== 'DISCONNECTING' && (
             <span
               className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
@@ -65,12 +66,14 @@ export function ConnectionStatusPanel({
             }`}
           />
         </span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-600">
+          {connectionSeverity === 'error' ? 'Needs attention' : connectionSeverity === 'warning' ? 'Checking' : 'Connected'}
+        </span>
       </button>
 
-      {/* Expandable detail panel: current RTC state plus the captured agent/RTM issues. */}
       <div
         id="connection-details-panel"
-        className={`fixed top-16 left-1/2 z-20 w-[min(92vw,22rem)] -translate-x-1/2 rounded-md border border-border bg-card/95 p-3 space-y-2 backdrop-blur-sm transition-opacity md:absolute md:left-0 md:top-full md:mt-3 md:w-[24rem] md:translate-x-0 md:translate-y-0 ${
+        className={`surface-panel fixed top-16 left-1/2 z-20 w-[min(92vw,22rem)] -translate-x-1/2 rounded-[1.5rem] border border-white/70 p-4 space-y-3 transition-opacity md:absolute md:left-0 md:top-full md:mt-3 md:w-[24rem] md:translate-x-0 md:translate-y-0 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         role="status"
@@ -78,15 +81,18 @@ export function ConnectionStatusPanel({
         aria-label="Connection details"
       >
         <div className="flex items-center justify-between gap-2">
-          <div className="text-xs font-semibold tracking-wide text-foreground">
-            Connection Details
+          <div>
+            <div className="text-xs font-semibold tracking-wide text-foreground">
+              Connection Details
+            </div>
+            <div className="mt-1 text-sm text-stone-600">{label}</div>
           </div>
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             RTC {connectionState.toLowerCase()}
           </div>
         </div>
         {connectionIssues.length === 0 ? (
-          <div className="text-xs text-muted-foreground">No RTM or agent errors reported.</div>
+          <div className="rounded-2xl bg-stone-50 px-3 py-3 text-xs text-muted-foreground">No RTM or agent errors reported.</div>
         ) : (
           <div className="space-y-2 max-h-56 overflow-auto pr-1">
             {connectionIssues.map((issue) => (
