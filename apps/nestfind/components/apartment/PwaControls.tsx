@@ -5,6 +5,12 @@ import { Bell, Download, WifiOff } from 'lucide-react';
 
 type BeforeInstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }> };
 
+declare global {
+  interface Window {
+    __nestfindSwSetup?: boolean;
+  }
+}
+
 export function PwaControls() {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isOnline, setIsOnline] = useState(true);
@@ -13,7 +19,32 @@ export function PwaControls() {
   useEffect(() => {
     setIsOnline(navigator.onLine);
     setNotificationsEnabled('Notification' in window && Notification.permission === 'granted');
-    navigator.serviceWorker?.register('/sw.js').catch((error) => console.warn('Service worker registration failed:', error));
+
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+    const shouldRegisterSw =
+      'serviceWorker' in navigator &&
+      process.env.NODE_ENV === 'production' &&
+      !isLocalhost;
+
+    if (!window.__nestfindSwSetup) {
+      window.__nestfindSwSetup = true;
+
+      if (shouldRegisterSw) {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .catch((error) => console.warn('Service worker registration failed:', error));
+      } else if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((registrations) =>
+            Promise.all(registrations.map((registration) => registration.unregister()))
+          )
+          .catch((error) => console.warn('Service worker cleanup failed:', error));
+      }
+    }
+
     const handleInstall = (event: Event) => { event.preventDefault(); setInstallPrompt(event as BeforeInstallPromptEvent); };
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);

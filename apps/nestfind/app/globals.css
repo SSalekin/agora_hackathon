@@ -28,16 +28,16 @@
   --foreground:       220 25% 12%;
   --muted-foreground: 220 10% 42%;
 
-  /* Brand — Agora cyan */
-  --primary:            194 100% 42%;
+  /* Brand — deep evergreen */
+  --primary:            155 56% 26%;
   --primary-foreground: 220 25% 12%;
 
   /* Secondary — quiet surface-level control */
   --secondary:            220 14% 94%;
   --secondary-foreground: 220 25% 12%;
 
-  /* Accent — same hue as primary */
-  --accent:            194 100% 42%;
+  /* Accent — warm ochre */
+  --accent:            37 83% 58%;
   --accent-foreground: 220 25% 12%;
 
   /* Destructive — end call, error states only */
@@ -45,14 +45,14 @@
   --destructive-foreground: 0 0% 100%;
 
   /* Focus ring */
-  --ring: 194 100% 42%;
+  --ring: 155 56% 26%;
 
   /* Radius base (8px) */
   --radius: 0.5rem;
 
   /* Charts */
-  --chart-1: 194 100% 42%;
-  --chart-2: 220 10% 45%;
+  --chart-1: 155 56% 26%;
+  --chart-2: 37 83% 58%;
   --chart-3: 220 10% 35%;
   --chart-4: 0 72% 52%;
   --chart-5: 150 50% 40%;
@@ -60,24 +60,24 @@
   /* Sidebar */
   --sidebar-background:         0 0% 100%;
   --sidebar-foreground:         220 25% 12%;
-  --sidebar-primary:            194 100% 42%;
+  --sidebar-primary:            155 56% 26%;
   --sidebar-primary-foreground: 220 25% 12%;
   --sidebar-accent:             220 14% 94%;
   --sidebar-accent-foreground:  220 25% 12%;
   --sidebar-border:             220 13% 88%;
-  --sidebar-ring:               194 100% 42%;
+  --sidebar-ring:               155 56% 26%;
 
   /*
    * AgentVisualizer: same order as dark — cool/primary at bar bottom, soft mid, purple at top.
    * Light: blue ≈ cyan role; dark: overridden below (cyan → soft → purple).
    */
-  --viz-stop-1: 225 92% 50%;
-  --viz-stop-2: 220 14% 78%;
-  --viz-stop-3: 285 58% 48%;
+  --viz-stop-1: 155 56% 32%;
+  --viz-stop-2: 44 76% 72%;
+  --viz-stop-3: 18 80% 62%;
 
   /* Font */
-  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-sans: 'Avenir Next', 'Segoe UI', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -142,9 +142,31 @@ body {
   font-family: var(--font-sans);
   color: hsl(var(--foreground));
   background-color: hsl(var(--background));
+  background-image:
+    radial-gradient(circle at top left, rgba(226, 239, 228, 0.9), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(250, 229, 189, 0.9), transparent 22%),
+    linear-gradient(180deg, #faf8f1 0%, #f7f5ef 38%, #f3efe6 100%);
+  background-attachment: fixed;
 }
 
 .font-serif { font-family: var(--font-serif); }
+
+::selection {
+  background: rgba(23, 92, 68, 0.18);
+}
+
+.surface-panel {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 50px rgba(76, 61, 38, 0.08);
+}
+
+.soft-grid {
+  background-image:
+    linear-gradient(rgba(120, 110, 90, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 110, 90, 0.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
 
 /* --- Entry animations --- */
 

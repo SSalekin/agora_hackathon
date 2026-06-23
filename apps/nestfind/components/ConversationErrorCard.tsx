@@ -115,18 +115,18 @@ export function ConversationErrorCard({ issue }: ConversationErrorCardProps) {
 
   return (
     // Compact diagnostic card: headline for quick triage, optional CTA, raw payload for deeper debugging.
-    <div className="rounded border border-destructive/30 bg-destructive/10 px-2 py-1.5 text-xs">
-      <div className="font-medium text-destructive">
-        Conversation AI Engine Error: {transportCode}
+    <div className="rounded-2xl border border-destructive/20 bg-white/70 px-3 py-3 text-xs shadow-sm">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-destructive">
+        Conversation issue {transportCode}
       </div>
-      {showNormalizedMessage && <div className="text-foreground">{normalizedMessage}</div>}
-      {cta && <div className="text-[11px] text-destructive/90">{cta}</div>}
+      {showNormalizedMessage && <div className="mt-1 text-foreground">{normalizedMessage}</div>}
+      {cta && <div className="mt-1 text-[11px] text-destructive/90">{cta}</div>}
       {showRaw && (
-        <div className="mt-2 border-t border-destructive/20 pt-2 text-muted-foreground break-words">
+        <div className="mt-2 border-t border-destructive/15 pt-2 text-muted-foreground break-words">
           {issue.message}
         </div>
       )}
-      <div className="text-muted-foreground">
+      <div className="mt-2 text-muted-foreground">
         agent {issue.agentUserId} at {new Date(issue.timestamp).toLocaleTimeString()}
       </div>
     </div>

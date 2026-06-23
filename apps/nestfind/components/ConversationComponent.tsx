@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Mic, MicOff } from 'lucide-react';
 import AgoraRTC, {
   useRTCClient,
   useLocalMicrophoneTrack,
@@ -8,7 +9,6 @@ import AgoraRTC, {
   useClientEvent,
   useJoin,
   usePublish,
-  RemoteUser,
   UID,
 } from 'agora-rtc-react';
 import {
@@ -21,13 +21,10 @@ import {
   type UserTranscription,
   type AgentTranscription,
 } from 'agora-agent-client-toolkit';
-import { AgentVisualizer } from 'agora-agent-uikit';
-import { MicButtonWithVisualizer } from 'agora-agent-uikit/rtc';
 import { DEFAULT_AGENT_UID } from '@/lib/agora';
 import {
   getCurrentInProgressMessage,
   getMessageList,
-  mapAgentVisualizerState,
   normalizeTimestampMs,
   normalizeTranscript,
 } from '@/lib/conversation';
@@ -38,10 +35,7 @@ import {
 } from './ConversationErrorCard';
 import { ConnectionStatusPanel } from './ConnectionStatusPanel';
 import { QuickstartConversationLayout } from './QuickstartConversationLayout';
-import {
-  QuickstartPipelineMetrics,
-  type QuickstartAgentMetric,
-} from './QuickstartPipelineMetrics';
+import { type QuickstartAgentMetric } from './QuickstartPipelineMetrics';
 import { QuickstartTranscriptPanel } from './QuickstartTranscriptPanel';
 import type { ConversationComponentProps } from '@/types/conversation';
 import { ListingGrid } from './apartment/ListingGrid';
@@ -458,12 +452,6 @@ export default function ConversationComponent({
       : 'warning';
   }, [connectionState, connectionIssues]);
 
-  const visualizerState = useMemo(
-    () =>
-      mapAgentVisualizerState(agentState, isAgentConnected, connectionState),
-    [agentState, isAgentConnected, connectionState],
-  );
-
   /**
    * Mute/unmute via track.setEnabled() only — usePublish owns publish state.
    * If we also unpublish in the toggle, usePublish and the button fight each other
@@ -515,7 +503,6 @@ export default function ConversationComponent({
           onToggle={() => setIsConnectionDetailsOpen((open) => !open)}
         />
       }
-      pipelineMetrics={<QuickstartPipelineMetrics metrics={agentMetrics} />}
       transcriptPanel={
         <QuickstartTranscriptPanel
           messageList={messageList}
@@ -524,39 +511,24 @@ export default function ConversationComponent({
         />
       }
       listingPanel={hasSearched ? <><SearchFilterChips filters={activeFilters} /><div className="mt-4"><ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} emptyMessage="No exact matches yet. Tell the concierge to relax one of the active filters." /></div></> : <div className="rounded-3xl border border-dashed border-stone-300 bg-white/60 px-6 py-14 text-center text-sm text-stone-500">Tell Mai what you need. Matching apartments will appear after your request.</div>}
-      visualizer={
-        <div
-          className="relative flex h-full min-h-[10rem] w-full max-w-4xl items-center justify-center"
-          role="region"
-          aria-label="AI agent status visualization"
-        >
-          <AgentVisualizer state={visualizerState} size="lg" />
-          {remoteUsers.map((user) => (
-            <div key={user.uid} className="hidden">
-              <RemoteUser user={user} />
-            </div>
-          ))}
-        </div>
-      }
       controls={
-        <div
-          className="mx-auto flex w-fit items-center gap-3 rounded-full border border-border bg-card/80 px-4 py-2 backdrop-blur-md"
-          role="group"
-          aria-label="Audio controls"
-        >
-          <div className="conversation-mic-host flex items-center justify-center">
-            <MicButtonWithVisualizer
-              isEnabled={isEnabled}
-              setIsEnabled={setIsEnabled}
-              track={localMicrophoneTrack}
-              onToggle={handleMicToggle}
-              className="overflow-visible"
-              aria-label={isEnabled ? 'Mute microphone' : 'Unmute microphone'}
-              enabledColor="hsl(var(--primary))"
-              disabledColor="hsl(var(--destructive))"
-            />
+        <div className="flex items-center gap-2" role="group" aria-label="Audio controls">
+          <button
+            type="button"
+            onClick={handleMicToggle}
+            className={`grid h-10 w-10 place-items-center rounded-full border shadow-sm transition ${
+              isEnabled
+                ? 'border-stone-200 bg-white/90 text-stone-700 hover:bg-stone-50'
+                : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+            }`}
+            aria-label={isEnabled ? 'Mute microphone' : 'Unmute microphone'}
+            title={isEnabled ? 'Mute microphone' : 'Unmute microphone'}
+          >
+            {isEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+          </button>
+          <div className="hidden sm:block">
+            <MicrophoneSelector localMicrophoneTrack={localMicrophoneTrack} />
           </div>
-          <MicrophoneSelector localMicrophoneTrack={localMicrophoneTrack} />
         </div>
       }
       onEndConversation={handleEndConversation}
