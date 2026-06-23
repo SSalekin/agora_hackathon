@@ -39,6 +39,60 @@ const INITIAL_TX_STATE: TxState = {
   message: null,
 };
 
+type AgreementUiState =
+  | 'awaitingLandlordApproval'
+  | 'awaitingFunding'
+  | 'funded'
+  | 'disputed'
+  | 'released'
+  | 'refunded'
+  | 'cancelled'
+  | 'unknown';
+
+function decodeAgreementState(value: unknown): AgreementUiState {
+  if (typeof value === 'string') {
+    const normalized = value.replace(/_/g, '').toLowerCase();
+    if (normalized === 'awaitinglandlordapproval') return 'awaitingLandlordApproval';
+    if (normalized === 'awaitingfunding') return 'awaitingFunding';
+    if (normalized === 'funded') return 'funded';
+    if (normalized === 'disputed') return 'disputed';
+    if (normalized === 'released') return 'released';
+    if (normalized === 'refunded') return 'refunded';
+    if (normalized === 'cancelled') return 'cancelled';
+    return 'unknown';
+  }
+
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value as Record<string, unknown>);
+    if (keys.length === 1) {
+      return decodeAgreementState(keys[0]);
+    }
+  }
+
+  return 'unknown';
+}
+
+function formatAgreementStateLabel(state: AgreementUiState): string {
+  if (state === 'unknown') return 'Unknown';
+  return state
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/^./, (char) => char.toUpperCase());
+}
+
+function buildAgreementView(
+  onchain: unknown,
+  pda: string,
+  txSignature: string | null,
+  stateValue: unknown,
+) {
+  return {
+    onchain,
+    pda,
+    txSignature,
+    state: decodeAgreementState(stateValue),
+  };
+}
+
 function explorerUrl(signature: string) {
   return `https://explorer.solana.com/tx/${signature}?cluster=${DEFAULT_CLUSTER}`;
 }
@@ -161,7 +215,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         // Fetch on-chain agreement account
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
-        setAgreement({ onchain, pda: agreementPda.toBase58(), txSignature, state: onchain.state?.toString?.() ?? 'unknown' });
+        setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -207,7 +261,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         await confirmSignature(connection, txSignature, 'fund agreement');
 
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
-        setAgreement({ ...agreement, onchain, txSignature, state: onchain.state?.toString?.() ?? 'unknown' });
+        setAgreement({ ...agreement, ...buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state) });
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -301,7 +355,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         {agreement && (
           <div className="rounded-md border p-3">
-            <p className="text-xs text-stone-500">Agreement state: <span className="font-semibold">{agreement.state}</span></p>
+            <p className="text-xs text-stone-500">Agreement state: <span className="font-semibold">{formatAgreementStateLabel(agreement.state)}</span></p>
             {agreement.txSignature && <p className="mt-1 text-xs text-stone-500">Last on-chain signature: <a href={explorerUrl(agreement.txSignature)} target="_blank" rel="noreferrer" className="underline underline-offset-2">{agreement.txSignature}</a></p>}
             <pre className="mt-2 max-h-40 overflow-auto text-xs text-stone-700">{JSON.stringify(agreement, null, 2)}</pre>
             <div className="mt-3 flex gap-2">
