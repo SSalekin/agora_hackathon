@@ -3,6 +3,76 @@
 ## Proect Name: NestFind
 ### Smart Apartment Allocator
 
+## Prerequisites
+
+Install these once before working with the complete NestFind workspace:
+
+- Git and `curl`
+- Node.js 22 or newer
+- pnpm 10
+- Rust and Cargo
+- Solana CLI 3.1.x
+- Anchor CLI 1.0.2
+- Phantom (or another Wallet Standard browser wallet) for the upcoming escrow UI
+
+You also need an Agora project with an App ID and App Certificate. Couchbase Capella is optional because the app falls back to its local listing catalog. Agora CLI is useful for project diagnostics, but it is not required to run the app.
+
+The official Solana/Anchor installer can install Rust, Solana CLI, and Anchor CLI together:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSfL https://solana-install.solana.workers.dev | bash
+```
+
+After installation, open a new terminal and verify the complete toolchain:
+
+```bash
+node --version
+pnpm --version
+rustc --version
+cargo --version
+solana --version
+anchor --version
+```
+
+Expected major versions are Node 22+, pnpm 10, Solana 3.1.x, and Anchor 1.0.2.
+
+## How to run the PWA
+
+```bash
+cd smart-apartment-finder
+cp env.local.example .env.local
+pnpm install
+pnpm run dev
+```
+
+Fill in `NEXT_PUBLIC_AGORA_APP_ID` and `NEXT_AGORA_APP_CERTIFICATE` in `.env.local` before starting a voice conversation. Open `http://localhost:3000` in the browser. To verify the full web project before a demo, run:
+
+```bash
+pnpm run verify
+```
+
+## How to build and test the escrow
+
+The escrow uses devnet test SOL only. Real SOL is not required.
+
+```bash
+cd anchor
+pnpm install
+anchor build
+pnpm test
+```
+
+The escrow is deployed on devnet at `9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X`. To prepare another devnet deployment, create or select a dedicated devnet wallet and fund it with faucet SOL:
+
+```bash
+solana config set --url devnet
+solana-keygen new
+solana airdrop 2
+solana balance
+```
+
+Do not overwrite an existing wallet. `solana-keygen new` refuses to overwrite the default keypair unless forced.
+
 
 Currently finding a suitable apartment to rent is a very tedious task in Vietnam.
 Often, people need to search through various Zalo groups or ask for help from agents, which is tedious and time consuming.
