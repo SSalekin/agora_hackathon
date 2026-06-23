@@ -111,16 +111,50 @@ function explorerUrl(signature: string) {
 
 type Props = { listing: ApartmentListing; onClose: () => void };
 
+function isValidSolanaPubkey(value: string): boolean {
+  try {
+    const decoded = anchorWeb3Decode(value);
+    return decoded.length === 32;
+  } catch {
+    return false;
+  }
+}
+
+function anchorWeb3Decode(base58: string): Uint8Array {
+  const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  const decoded: number[] = [];
+  for (const char of base58) {
+    const index = ALPHABET.indexOf(char);
+    if (index < 0) throw new Error(`Invalid base58 character: ${char}`);
+    let carry = index;
+    for (let j = 0; j < decoded.length; j++) {
+      const x = decoded[j] * 58 + carry;
+      decoded[j] = x & 0xff;
+      carry = x >> 8;
+    }
+    while (carry > 0) {
+      decoded.push(carry & 0xff);
+      carry >>= 8;
+    }
+  }
+  for (const char of base58) {
+    if (char === '1') decoded.push(0);
+    else break;
+  }
+  return new Uint8Array(decoded.reverse());
+}
+
 export default function TenantAgreementPanel({ listing, onClose }: Props) {
   const [walletPubkey, setWalletPubkey] = useState<string | null>(null);
   const [depositSol, setDepositSol] = useState<string>('0.5');
-  const [landlord, setLandlord] = useState<string>('');
   const [inspectionDate, setInspectionDate] = useState<string>('');
   const [agreement, setAgreement] = useState<any>(null);
   const [txState, setTxState] = useState<TxState>(INITIAL_TX_STATE);
   const [error, setError] = useState<string | null>(null);
   const [evidence, setEvidence] = useState<string>('');
 
+  const landlordWallet = listing.landlordWallet;
+  const isLandlordValid = isValidSolanaPubkey(landlordWallet);
   const isBusy = txState.phase !== 'idle' && txState.phase !== 'confirmed' && txState.phase !== 'failed';
 
   const clearTxState = () => setTxState(INITIAL_TX_STATE);
@@ -174,6 +208,10 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
   const createAgreement = async () => {
     try {
       return await withTxFeedback('create agreement', async () => {
+        if (!isLandlordValid) {
+          throw new Error('Listing has an invalid landlord wallet address. Cannot create agreement.');
+        }
+
         // Prepare on-chain client
         const Anchor = await import('@anchor-lang/core');
         const anchor = Anchor as typeof import('@anchor-lang/core');
@@ -196,7 +234,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         const tenantPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
         if (!tenantPubkey) throw new Error('Wallet not connected');
-        const landlordPubkey = new anchor.web3.PublicKey(landlord || tenantPubkey);
+        const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
+
+        if (tenantPubkey.equals(landlordPubkey)) {
+          throw new Error('Tenant and landlord wallets must be different. Connect a different wallet or choose a listing with a different landlord.');
+        }
 
         const listingHashBytes = await sha256Bytes(listing.id);
         const depositLamports = Math.round(Number(depositSol || '0') * LAMPORTS_PER_SOL);
@@ -255,7 +297,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         const tenantPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
         if (!tenantPubkey) throw new Error('Wallet not connected');
-        const landlordPubkey = new anchor.web3.PublicKey(landlord || tenantPubkey);
+        const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
         const listingHashBytes = await sha256Bytes(listing.id);
         const [agreementPda] = anchor.web3.PublicKey.findProgramAddressSync([
           Buffer.from('agreement'),
@@ -328,8 +370,15 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             </div>
           </div>
           <div>
-            <label className="text-xs font-medium">Landlord public key</label>
-            <input value={landlord} onChange={(e) => setLandlord(e.target.value)} placeholder="Landlord wallet address" className="mt-1 w-full rounded-md border px-3 py-2 text-sm" />
+            <label className="text-xs font-medium">Landlord wallet (from listing)</label>
+            <input
+              value={landlordWallet}
+              readOnly
+              className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${isLandlordValid ? 'bg-stone-50 text-stone-700' : 'border-rose-300 bg-rose-50 text-rose-700'}`}
+            />
+            {!isLandlordValid && (
+              <p className="mt-1 text-xs text-rose-600">Invalid landlord wallet address on this listing.</p>
+            )}
           </div>
         </div>
 
@@ -343,7 +392,12 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             <input type="datetime-local" value={inspectionDate} onChange={(e) => setInspectionDate(e.target.value)} className="mt-1 w-full rounded-md border px-3 py-2 text-sm" />
           </div>
           <div className="flex items-end">
-            <button type="button" onClick={createAgreement} disabled={isBusy} className="w-full rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+            <button
+              type="button"
+              onClick={createAgreement}
+              disabled={isBusy || !isLandlordValid}
+              className="w-full rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
               {txState.phase === 'signing' || txState.action === 'create agreement' ? 'Creating…' : 'Create agreement'}
             </button>
           </div>
