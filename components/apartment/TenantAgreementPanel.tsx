@@ -93,6 +93,18 @@ function buildAgreementView(
   };
 }
 
+function withAgreementState<T extends { state?: AgreementUiState }>(
+  agreement: T,
+  state: AgreementUiState,
+  extra?: Record<string, unknown>,
+) {
+  return {
+    ...agreement,
+    ...extra,
+    state,
+  };
+}
+
 function explorerUrl(signature: string) {
   return `https://explorer.solana.com/tx/${signature}?cluster=${DEFAULT_CLUSTER}`;
 }
@@ -271,13 +283,13 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
   const cancelAgreement = async () => {
     if (!agreement) return setError('No agreement to cancel');
     setTxState({ phase: 'confirmed', action: 'cancel agreement', signature: null, explorerUrl: null, message: 'This demo action remains local until the cancel transaction is wired.' });
-    setAgreement({ ...agreement, state: 'cancelled' });
+    setAgreement(withAgreementState(agreement, 'cancelled'));
   };
 
   const releaseByTenant = async () => {
     if (!agreement) return setError('No agreement to release');
     setTxState({ phase: 'confirmed', action: 'release agreement', signature: null, explorerUrl: null, message: 'This demo action remains local until the release transaction is wired.' });
-    setAgreement({ ...agreement, state: 'released' });
+    setAgreement(withAgreementState(agreement, 'released'));
   };
 
   const openDispute = async () => {
@@ -286,7 +298,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         if (!agreement) throw new Error('No agreement to dispute');
         const evidenceHash = await sha256Hex(evidence || `${Date.now()}`);
         setTxState({ phase: 'confirmed', action: 'open dispute', signature: null, explorerUrl: null, message: 'This demo dispute is local until the dispute transaction is wired.' });
-        setAgreement({ ...agreement, state: 'disputed', dispute: { reasonCode: 1, evidenceHash } });
+        setAgreement(withAgreementState(agreement, 'disputed', { dispute: { reasonCode: 1, evidenceHash } }));
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
