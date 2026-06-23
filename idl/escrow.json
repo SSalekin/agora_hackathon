@@ -1,0 +1,1130 @@
+
+{
+	"address": "9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X",
+	"metadata": {
+		"name": "escrow",
+		"version": "0.1.0",
+		"spec": "0.1.0",
+		"description": "Created with Anchor"
+	},
+	"instructions": [
+		{
+			"name": "approve_agreement",
+			"discriminator": [
+				155,
+				95,
+				200,
+				13,
+				36,
+				229,
+				121,
+				96
+			],
+			"accounts": [
+				{
+					"name": "landlord",
+					"signer": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "agreement",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									97,
+									103,
+									114,
+									101,
+									101,
+									109,
+									101,
+									110,
+									116
+								]
+							},
+							{
+								"kind": "account",
+								"path": "agreement.tenant",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.landlord",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.listing_hash",
+								"account": "Agreement"
+							}
+						]
+					}
+				}
+			],
+			"args": []
+		},
+		{
+			"name": "cancel_agreement",
+			"discriminator": [
+				75,
+				89,
+				85,
+				4,
+				100,
+				216,
+				143,
+				37
+			],
+			"accounts": [
+				{
+					"name": "authority",
+					"signer": true
+				},
+				{
+					"name": "tenant",
+					"writable": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "landlord",
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "agreement",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									97,
+									103,
+									114,
+									101,
+									101,
+									109,
+									101,
+									110,
+									116
+								]
+							},
+							{
+								"kind": "account",
+								"path": "agreement.tenant",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.landlord",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.listing_hash",
+								"account": "Agreement"
+							}
+						]
+					}
+				}
+			],
+			"args": []
+		},
+		{
+			"name": "create_agreement",
+			"discriminator": [
+				220,
+				156,
+				65,
+				172,
+				252,
+				68,
+				74,
+				233
+			],
+			"accounts": [
+				{
+					"name": "tenant",
+					"writable": true,
+					"signer": true
+				},
+				{
+					"name": "landlord"
+				},
+				{
+					"name": "config",
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									99,
+									111,
+									110,
+									102,
+									105,
+									103
+								]
+							}
+						]
+					}
+				},
+				{
+					"name": "agreement",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									97,
+									103,
+									114,
+									101,
+									101,
+									109,
+									101,
+									110,
+									116
+								]
+							},
+							{
+								"kind": "account",
+								"path": "tenant"
+							},
+							{
+								"kind": "account",
+								"path": "landlord"
+							},
+							{
+								"kind": "arg",
+								"path": "listing_hash"
+							}
+						]
+					}
+				},
+				{
+					"name": "system_program",
+					"address": "11111111111111111111111111111111"
+				}
+			],
+			"args": [
+				{
+					"name": "listing_hash",
+					"type": {
+						"array": [
+							"u8",
+							32
+						]
+					}
+				},
+				{
+					"name": "deposit_lamports",
+					"type": "u64"
+				},
+				{
+					"name": "inspection_deadline",
+					"type": "i64"
+				}
+			]
+		},
+		{
+			"name": "fund_agreement",
+			"discriminator": [
+				107,
+				79,
+				10,
+				20,
+				10,
+				243,
+				34,
+				18
+			],
+			"accounts": [
+				{
+					"name": "tenant",
+					"writable": true,
+					"signer": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "agreement",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									97,
+									103,
+									114,
+									101,
+									101,
+									109,
+									101,
+									110,
+									116
+								]
+							},
+							{
+								"kind": "account",
+								"path": "agreement.tenant",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.landlord",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.listing_hash",
+								"account": "Agreement"
+							}
+						]
+					}
+				},
+				{
+					"name": "system_program",
+					"address": "11111111111111111111111111111111"
+				}
+			],
+			"args": []
+		},
+		{
+			"name": "initialize_config",
+			"discriminator": [
+				208,
+				127,
+				21,
+				1,
+				194,
+				190,
+				196,
+				70
+			],
+			"accounts": [
+				{
+					"name": "payer",
+					"writable": true,
+					"signer": true
+				},
+				{
+					"name": "config",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									99,
+									111,
+									110,
+									102,
+									105,
+									103
+								]
+							}
+						]
+					}
+				},
+				{
+					"name": "system_program",
+					"address": "11111111111111111111111111111111"
+				}
+			],
+			"args": [
+				{
+					"name": "moderator",
+					"type": "pubkey"
+				}
+			]
+		},
+		{
+			"name": "open_dispute",
+			"discriminator": [
+				137,
+				25,
+				99,
+				119,
+				23,
+				223,
+				161,
+				42
+			],
+			"accounts": [
+				{
+					"name": "authority",
+					"signer": true
+				},
+				{
+					"name": "agreement",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									97,
+									103,
+									114,
+									101,
+									101,
+									109,
+									101,
+									110,
+									116
+								]
+							},
+							{
+								"kind": "account",
+								"path": "agreement.tenant",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.landlord",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.listing_hash",
+								"account": "Agreement"
+							}
+						]
+					}
+				}
+			],
+			"args": [
+				{
+					"name": "reason_code",
+					"type": "u8"
+				},
+				{
+					"name": "evidence_hash",
+					"type": {
+						"array": [
+							"u8",
+							32
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "release_after_deadline",
+			"discriminator": [
+				2,
+				177,
+				21,
+				56,
+				128,
+				99,
+				102,
+				98
+			],
+			"accounts": [
+				{
+					"name": "landlord",
+					"writable": true,
+					"signer": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "tenant",
+					"writable": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "agreement",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									97,
+									103,
+									114,
+									101,
+									101,
+									109,
+									101,
+									110,
+									116
+								]
+							},
+							{
+								"kind": "account",
+								"path": "agreement.tenant",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.landlord",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.listing_hash",
+								"account": "Agreement"
+							}
+						]
+					}
+				}
+			],
+			"args": []
+		},
+		{
+			"name": "release_by_tenant",
+			"discriminator": [
+				252,
+				72,
+				48,
+				57,
+				8,
+				126,
+				102,
+				232
+			],
+			"accounts": [
+				{
+					"name": "tenant",
+					"writable": true,
+					"signer": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "landlord",
+					"writable": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "agreement",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									97,
+									103,
+									114,
+									101,
+									101,
+									109,
+									101,
+									110,
+									116
+								]
+							},
+							{
+								"kind": "account",
+								"path": "agreement.tenant",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.landlord",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.listing_hash",
+								"account": "Agreement"
+							}
+						]
+					}
+				}
+			],
+			"args": []
+		},
+		{
+			"name": "resolve_dispute",
+			"discriminator": [
+				231,
+				6,
+				202,
+				6,
+				96,
+				103,
+				12,
+				230
+			],
+			"accounts": [
+				{
+					"name": "moderator",
+					"signer": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "tenant",
+					"writable": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "landlord",
+					"writable": true,
+					"relations": [
+						"agreement"
+					]
+				},
+				{
+					"name": "agreement",
+					"writable": true,
+					"pda": {
+						"seeds": [
+							{
+								"kind": "const",
+								"value": [
+									97,
+									103,
+									114,
+									101,
+									101,
+									109,
+									101,
+									110,
+									116
+								]
+							},
+							{
+								"kind": "account",
+								"path": "agreement.tenant",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.landlord",
+								"account": "Agreement"
+							},
+							{
+								"kind": "account",
+								"path": "agreement.listing_hash",
+								"account": "Agreement"
+							}
+						]
+					}
+				}
+			],
+			"args": [
+				{
+					"name": "release_to_landlord",
+					"type": "bool"
+				}
+			]
+		}
+	],
+	"accounts": [
+		{
+			"name": "Agreement",
+			"discriminator": [
+				83,
+				212,
+				5,
+				110,
+				225,
+				249,
+				197,
+				84
+			]
+		},
+		{
+			"name": "Config",
+			"discriminator": [
+				155,
+				12,
+				170,
+				224,
+				30,
+				250,
+				204,
+				130
+			]
+		}
+	],
+	"events": [
+		{
+			"name": "AgreementCancelled",
+			"discriminator": [
+				132,
+				200,
+				190,
+				125,
+				242,
+				4,
+				12,
+				146
+			]
+		},
+		{
+			"name": "AgreementCreated",
+			"discriminator": [
+				131,
+				148,
+				204,
+				18,
+				83,
+				92,
+				57,
+				18
+			]
+		},
+		{
+			"name": "ConfigInitialized",
+			"discriminator": [
+				181,
+				49,
+				200,
+				156,
+				19,
+				167,
+				178,
+				91
+			]
+		},
+		{
+			"name": "DepositFunded",
+			"discriminator": [
+				190,
+				149,
+				158,
+				29,
+				44,
+				245,
+				132,
+				242
+			]
+		},
+		{
+			"name": "DepositRefunded",
+			"discriminator": [
+				182,
+				155,
+				48,
+				105,
+				176,
+				178,
+				212,
+				215
+			]
+		},
+		{
+			"name": "DepositReleased",
+			"discriminator": [
+				124,
+				51,
+				186,
+				122,
+				47,
+				97,
+				234,
+				181
+			]
+		},
+		{
+			"name": "DisputeOpened",
+			"discriminator": [
+				239,
+				222,
+				102,
+				235,
+				193,
+				85,
+				1,
+				214
+			]
+		},
+		{
+			"name": "LandlordApproved",
+			"discriminator": [
+				138,
+				23,
+				82,
+				202,
+				219,
+				27,
+				246,
+				156
+			]
+		}
+	],
+	"errors": [
+		{
+			"code": 6000,
+			"name": "InvalidModerator",
+			"msg": "Moderator public key cannot be the default public key"
+		},
+		{
+			"code": 6001,
+			"name": "RolesMustBeDistinct",
+			"msg": "Tenant, landlord, and moderator must be different wallets"
+		},
+		{
+			"code": 6002,
+			"name": "InvalidDepositAmount",
+			"msg": "Deposit amount must be greater than zero"
+		},
+		{
+			"code": 6003,
+			"name": "InvalidInspectionDeadline",
+			"msg": "Inspection deadline must be in the future"
+		},
+		{
+			"code": 6004,
+			"name": "InvalidAgreementState",
+			"msg": "Agreement is not in the required state"
+		},
+		{
+			"code": 6005,
+			"name": "UnauthorizedParty",
+			"msg": "Only the tenant or landlord may perform this action"
+		},
+		{
+			"code": 6006,
+			"name": "InspectionDeadlinePassed",
+			"msg": "The inspection deadline has passed"
+		},
+		{
+			"code": 6007,
+			"name": "InspectionDeadlineNotReached",
+			"msg": "The inspection deadline has not passed"
+		},
+		{
+			"code": 6008,
+			"name": "InvalidDisputeReason",
+			"msg": "Dispute reason code must be non-zero"
+		},
+		{
+			"code": 6009,
+			"name": "InsufficientEscrowBalance",
+			"msg": "Agreement does not contain enough lamports for the deposit"
+		},
+		{
+			"code": 6010,
+			"name": "LamportOverflow",
+			"msg": "Lamport arithmetic overflowed"
+		}
+	],
+	"types": [
+		{
+			"name": "Agreement",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "tenant",
+						"type": "pubkey"
+					},
+					{
+						"name": "landlord",
+						"type": "pubkey"
+					},
+					{
+						"name": "moderator",
+						"type": "pubkey"
+					},
+					{
+						"name": "listing_hash",
+						"type": {
+							"array": [
+								"u8",
+								32
+							]
+						}
+					},
+					{
+						"name": "deposit_lamports",
+						"type": "u64"
+					},
+					{
+						"name": "inspection_deadline",
+						"type": "i64"
+					},
+					{
+						"name": "created_at",
+						"type": "i64"
+					},
+					{
+						"name": "funded_at",
+						"type": "i64"
+					},
+					{
+						"name": "state",
+						"type": {
+							"defined": {
+								"name": "AgreementState"
+							}
+						}
+					},
+					{
+						"name": "dispute_reason_code",
+						"type": "u8"
+					},
+					{
+						"name": "evidence_hash",
+						"type": {
+							"array": [
+								"u8",
+								32
+							]
+						}
+					},
+					{
+						"name": "bump",
+						"type": "u8"
+					}
+				]
+			}
+		},
+		{
+			"name": "AgreementCancelled",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "agreement",
+						"type": "pubkey"
+					},
+					{
+						"name": "cancelled_by",
+						"type": "pubkey"
+					}
+				]
+			}
+		},
+		{
+			"name": "AgreementCreated",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "agreement",
+						"type": "pubkey"
+					},
+					{
+						"name": "tenant",
+						"type": "pubkey"
+					},
+					{
+						"name": "landlord",
+						"type": "pubkey"
+					},
+					{
+						"name": "listing_hash",
+						"type": {
+							"array": [
+								"u8",
+								32
+							]
+						}
+					},
+					{
+						"name": "deposit_lamports",
+						"type": "u64"
+					},
+					{
+						"name": "inspection_deadline",
+						"type": "i64"
+					}
+				]
+			}
+		},
+		{
+			"name": "AgreementState",
+			"type": {
+				"kind": "enum",
+				"variants": [
+					{
+						"name": "AwaitingLandlordApproval"
+					},
+					{
+						"name": "AwaitingFunding"
+					},
+					{
+						"name": "Funded"
+					},
+					{
+						"name": "Disputed"
+					},
+					{
+						"name": "Released"
+					},
+					{
+						"name": "Refunded"
+					},
+					{
+						"name": "Cancelled"
+					}
+				]
+			}
+		},
+		{
+			"name": "Config",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "moderator",
+						"type": "pubkey"
+					},
+					{
+						"name": "bump",
+						"type": "u8"
+					}
+				]
+			}
+		},
+		{
+			"name": "ConfigInitialized",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "moderator",
+						"type": "pubkey"
+					}
+				]
+			}
+		},
+		{
+			"name": "DepositFunded",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "agreement",
+						"type": "pubkey"
+					},
+					{
+						"name": "tenant",
+						"type": "pubkey"
+					},
+					{
+						"name": "deposit_lamports",
+						"type": "u64"
+					},
+					{
+						"name": "funded_at",
+						"type": "i64"
+					}
+				]
+			}
+		},
+		{
+			"name": "DepositRefunded",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "agreement",
+						"type": "pubkey"
+					},
+					{
+						"name": "tenant",
+						"type": "pubkey"
+					},
+					{
+						"name": "deposit_lamports",
+						"type": "u64"
+					},
+					{
+						"name": "resolved_by",
+						"type": "pubkey"
+					}
+				]
+			}
+		},
+		{
+			"name": "DepositReleased",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "agreement",
+						"type": "pubkey"
+					},
+					{
+						"name": "landlord",
+						"type": "pubkey"
+					},
+					{
+						"name": "deposit_lamports",
+						"type": "u64"
+					},
+					{
+						"name": "released_by",
+						"type": "pubkey"
+					}
+				]
+			}
+		},
+		{
+			"name": "DisputeOpened",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "agreement",
+						"type": "pubkey"
+					},
+					{
+						"name": "opened_by",
+						"type": "pubkey"
+					},
+					{
+						"name": "reason_code",
+						"type": "u8"
+					},
+					{
+						"name": "evidence_hash",
+						"type": {
+							"array": [
+								"u8",
+								32
+							]
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "LandlordApproved",
+			"type": {
+				"kind": "struct",
+				"fields": [
+					{
+						"name": "agreement",
+						"type": "pubkey"
+					},
+					{
+						"name": "landlord",
+						"type": "pubkey"
+					}
+				]
+			}
+		}
+	]
+}
