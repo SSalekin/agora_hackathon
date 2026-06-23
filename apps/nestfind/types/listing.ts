@@ -12,6 +12,7 @@ export type ApartmentListing = {
   furnished: boolean;
   amenities: string[];
   accent: string;
+  landlordWallet: string;
 };
 
 export type ListingSearchFilters = {

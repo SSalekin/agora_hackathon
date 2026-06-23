@@ -4,6 +4,16 @@ import type {
   ListingSearchResponse,
 } from '@/types/listing';
 
+// Demo landlord wallets (devnet only — do not use on mainnet).
+// Each listing must carry the landlord's public key so the escrow PDA is
+// derived with the correct, explicit role separation.
+const LANDLORD_DEMO = {
+  alice: '34G8SyYe3N9JnDe9zMTheZbfbJCrHtwB6MAjfmy9h68e',
+  bob: '7oYg85FpwboPrwDUMABYMjtAk9mQYqFck9TzM8ZNQLYq',
+  carol: '9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X',
+  dave: 'DtHv4Tywz2VzFxCY8MpHf7VnCqXjM3K2vN5pR9uS4wX7',
+};
+
 export const APARTMENT_LISTINGS: ApartmentListing[] = [
   {
     id: 'fpt-garden-studio',
@@ -19,6 +29,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Balcony', 'Fast Wi-Fi', 'Motorbike parking'],
     accent: 'from-amber-200 via-orange-100 to-rose-100',
+    landlordWallet: LANDLORD_DEMO.alice,
   },
   {
     id: 'greenwich-loft',
@@ -34,6 +45,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Study desk', 'Elevator', 'Weekly cleaning'],
     accent: 'from-emerald-200 via-teal-100 to-cyan-100',
+    landlordWallet: LANDLORD_DEMO.bob,
   },
   {
     id: 'marble-mountain-flat',
@@ -49,6 +61,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Air conditioning', 'Security', 'Laundry'],
     accent: 'from-violet-200 via-fuchsia-100 to-pink-100',
+    landlordWallet: LANDLORD_DEMO.alice,
   },
   {
     id: 'my-khe-one-bedroom',
@@ -64,6 +77,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Beach access', 'Kitchen', 'Rooftop'],
     accent: 'from-sky-200 via-blue-100 to-indigo-100',
+    landlordWallet: LANDLORD_DEMO.carol,
   },
   {
     id: 'student-house-share',
@@ -79,6 +93,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: false,
     amenities: ['Shared kitchen', 'Garden', 'Parking'],
     accent: 'from-lime-200 via-green-100 to-emerald-100',
+    landlordWallet: LANDLORD_DEMO.dave,
   },
   {
     id: 'han-river-modern',
@@ -94,6 +109,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['River view', 'Gym', 'Pool'],
     accent: 'from-cyan-200 via-sky-100 to-blue-100',
+    landlordWallet: LANDLORD_DEMO.bob,
   },
   {
     id: 'hoa-khanh-budget-room',
@@ -109,6 +125,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: false,
     amenities: ['Private bathroom', 'Parking', 'Local market'],
     accent: 'from-yellow-200 via-amber-100 to-orange-100',
+    landlordWallet: LANDLORD_DEMO.carol,
   },
   {
     id: 'thanh-khe-cozy-studio',
@@ -124,6 +141,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Kitchenette', 'Air conditioning', 'Bus access'],
     accent: 'from-rose-200 via-pink-100 to-orange-100',
+    landlordWallet: LANDLORD_DEMO.alice,
   },
   {
     id: 'cam-le-riverside-studio',
@@ -139,6 +157,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['River walk', 'Laundry', 'Quiet street'],
     accent: 'from-teal-200 via-emerald-100 to-lime-100',
+    landlordWallet: LANDLORD_DEMO.dave,
   },
   {
     id: 'son-tra-compact-flat',
@@ -154,6 +173,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Elevator', 'Balcony', 'Dragon Bridge access'],
     accent: 'from-indigo-200 via-blue-100 to-sky-100',
+    landlordWallet: LANDLORD_DEMO.bob,
   },
   {
     id: 'an-thuong-serviced-suite',
@@ -169,6 +189,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Weekly cleaning', 'Coworking lounge', 'Beach access'],
     accent: 'from-purple-200 via-violet-100 to-fuchsia-100',
+    landlordWallet: LANDLORD_DEMO.carol,
   },
   {
     id: 'my-khe-sea-view',
@@ -184,6 +205,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Ocean view', 'Pool', '24-hour security'],
     accent: 'from-blue-300 via-cyan-100 to-sky-100',
+    landlordWallet: LANDLORD_DEMO.alice,
   },
   {
     id: 'hai-chau-city-two-bedroom',
@@ -199,6 +221,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['City center', 'Gym', 'Reception'],
     accent: 'from-stone-300 via-slate-100 to-zinc-100',
+    landlordWallet: LANDLORD_DEMO.dave,
   },
   {
     id: 'hoa-cuong-family-residence',
@@ -214,6 +237,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Three bedrooms', 'Large kitchen', 'Car parking'],
     accent: 'from-orange-200 via-amber-100 to-yellow-100',
+    landlordWallet: LANDLORD_DEMO.bob,
   },
   {
     id: 'son-tra-peninsula-penthouse',
@@ -229,6 +253,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Panoramic view', 'Private terrace', 'Concierge'],
     accent: 'from-fuchsia-200 via-purple-100 to-indigo-100',
+    landlordWallet: LANDLORD_DEMO.carol,
   },
   {
     id: 'hoa-hai-townhouse',
@@ -244,6 +269,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: false,
     amenities: ['Private garden', 'Pet friendly', 'Parking'],
     accent: 'from-green-200 via-lime-100 to-yellow-100',
+    landlordWallet: LANDLORD_DEMO.alice,
   },
   {
     id: 'greenwich-micro-studio',
@@ -259,6 +285,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Campus shuttle', 'Study desk', 'Utilities included'],
     accent: 'from-red-200 via-orange-100 to-amber-100',
+    landlordWallet: LANDLORD_DEMO.dave,
   },
   {
     id: 'ngu-hanh-son-family-flat',
@@ -274,6 +301,7 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     furnished: true,
     amenities: ['Family friendly', 'Playground', 'Supermarket nearby'],
     accent: 'from-cyan-200 via-emerald-100 to-green-100',
+    landlordWallet: LANDLORD_DEMO.carol,
   },
 ];
 

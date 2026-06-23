@@ -27,7 +27,9 @@ function isApartmentListing(value: unknown): value is ApartmentListing {
     typeof listing.furnished === 'boolean' &&
     Array.isArray(listing.amenities) &&
     listing.amenities.every((amenity) => typeof amenity === 'string') &&
-    typeof listing.accent === 'string'
+    typeof listing.accent === 'string' &&
+    typeof listing.landlordWallet === 'string' &&
+    listing.landlordWallet.length > 0
   );
 }
 
