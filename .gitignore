@@ -137,3 +137,11 @@ dist
 .pnpm-store/
 
 .DS_Store
+
+.anchor
+.env
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn

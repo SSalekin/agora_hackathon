@@ -39,13 +39,12 @@ Expected major versions are Node 22+, pnpm 10, Solana 3.1.x, and Anchor 1.0.2.
 ## How to run the PWA
 
 ```bash
-cd smart-apartment-finder
-cp env.local.example .env.local
 pnpm install
+cp apps/nestfind/env.local.example .env
 pnpm run dev
 ```
 
-Fill in `NEXT_PUBLIC_AGORA_APP_ID` and `NEXT_AGORA_APP_CERTIFICATE` in `.env.local` before starting a voice conversation. Open `http://localhost:3000` in the browser. To verify the full web project before a demo, run:
+Fill in `NEXT_PUBLIC_AGORA_APP_ID` and `NEXT_AGORA_APP_CERTIFICATE` in `.env` before starting a voice conversation. Open `http://localhost:3000` in the browser. To verify the full web project before a demo, run:
 
 ```bash
 pnpm run verify
@@ -56,9 +55,8 @@ pnpm run verify
 The escrow uses devnet test SOL only. Real SOL is not required.
 
 ```bash
-cd anchor
 pnpm install
-anchor build
+pnpm run anchor:build
 pnpm test
 ```
 
@@ -201,4 +199,4 @@ pnpm run seed:couchbase
 pnpm run dev
 ```
 
-See [docs/COUCHBASE.md](docs/COUCHBASE.md) for the complete setup and safety notes.
+See `apps/nestfind/scripts/seed-couchbase-listings.ts` and `apps/nestfind/lib/db/couchbase.ts` for the Couchbase setup.
