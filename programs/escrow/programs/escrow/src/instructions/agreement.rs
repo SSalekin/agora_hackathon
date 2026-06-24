@@ -2,8 +2,9 @@ use anchor_lang::{prelude::*, system_program};
 
 use crate::{
     Agreement, AgreementCancelled, AgreementCreated, AgreementState, Config, DepositFunded,
-    DepositRefunded, DepositReleased, DisputeOpened, EscrowError, LandlordApproved, AGREEMENT_SEED,
-    ANCHOR_DISCRIMINATOR, CONFIG_SEED,
+    DepositRefunded, DepositReleased, DisputeOpened, EscrowError, LandlordApproved,
+    LandlordProfile, AGREEMENT_SEED, ANCHOR_DISCRIMINATOR, CONFIG_SEED, LANDLORD_PROFILE_SEED,
+    MIN_LANDLORD_STAKE_LAMPORTS,
 };
 
 #[derive(Accounts)]
@@ -86,6 +87,13 @@ pub struct ApproveAgreement<'info> {
     pub landlord: Signer<'info>,
 
     #[account(
+        seeds = [LANDLORD_PROFILE_SEED, landlord.key().as_ref()],
+        bump = landlord_profile.bump,
+        has_one = landlord,
+    )]
+    pub landlord_profile: Account<'info, LandlordProfile>,
+
+    #[account(
         mut,
         has_one = landlord,
         seeds = [
@@ -103,6 +111,14 @@ pub fn handle_approve_agreement(context: Context<ApproveAgreement>) -> Result<()
     require!(
         context.accounts.agreement.state == AgreementState::AwaitingLandlordApproval,
         EscrowError::InvalidAgreementState
+    );
+    require!(
+        context
+            .accounts
+            .landlord_profile
+            .active_stake_lamports
+            >= MIN_LANDLORD_STAKE_LAMPORTS,
+        EscrowError::InsufficientLandlordStake
     );
 
     context.accounts.agreement.state = AgreementState::AwaitingFunding;

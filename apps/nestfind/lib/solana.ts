@@ -150,6 +150,21 @@ export async function deriveConfigPda(
 }
 
 /**
+ * Derive the landlord profile PDA.
+ */
+export async function deriveLandlordProfilePda(
+  landlordPubkey: import('@solana/web3.js').PublicKey,
+  programId: import('@solana/web3.js').PublicKey,
+): Promise<import('@solana/web3.js').PublicKey> {
+  const web3 = await import('@solana/web3.js');
+  const [pda] = web3.PublicKey.findProgramAddressSync(
+    [Buffer.from('landlord-profile'), landlordPubkey.toBuffer()],
+    programId,
+  );
+  return pda;
+}
+
+/**
  * Hash a string to SHA-256 bytes.
  */
 export async function sha256Bytes(input: string): Promise<Uint8Array> {

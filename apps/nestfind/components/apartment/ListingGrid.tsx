@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Bath, BedDouble, Heart, MapPin, Ruler } from 'lucide-react';
 import type { ApartmentListing } from '@/types/listing';
 import { formatVnd } from '@/lib/listings';
+import { StakeBadge } from '@/components/landlord/StakeBadge';
+import { useLandlordProfile } from '@/hooks/use-landlord-profile';
 
 type ListingGridProps = {
   listings: ApartmentListing[];
@@ -11,6 +13,49 @@ type ListingGridProps = {
   onToggleFavorite: (id: string) => void;
   emptyMessage?: string;
 };
+
+function ListingCard({ listing, isFavorite, onToggleFavorite, onOpenAgreement }: {
+  listing: ApartmentListing;
+  isFavorite: boolean;
+  onToggleFavorite: (id: string) => void;
+  onOpenAgreement: (id: string) => void;
+}) {
+  const { profile, activeStakeSol, hasMinimumStake } = useLandlordProfile(listing.landlordWallet);
+  return (
+    <article className="group overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(58,45,30,0.08)] transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(58,45,30,0.14)]">
+      <div className={`relative h-16 bg-gradient-to-br md:h-36 ${listing.accent}`}>
+        <div className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_20%_20%,white_0,transparent_34%),linear-gradient(125deg,transparent_42%,rgba(255,255,255,.65)_43%,transparent_68%)]" />
+        <span className="absolute left-2 top-2 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-stone-700 backdrop-blur md:left-3 md:top-3">{listing.distanceKm} km away</span>
+        <button type="button" onClick={() => onToggleFavorite(listing.id)} className="absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full bg-white/85 text-stone-600 shadow-sm backdrop-blur transition hover:scale-105 hover:text-rose-500 md:right-3 md:top-3" aria-label={isFavorite ? 'Remove from saved listings' : 'Save listing'}>
+          <Heart className={`h-5 w-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
+        </button>
+      </div>
+      <div className="p-3 pt-2 md:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="font-serif text-lg font-semibold leading-tight text-stone-900 md:text-xl">{listing.title}</h3>
+            <p className="mt-1 flex items-start gap-1 text-xs leading-5 text-stone-500 md:mt-2"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span className="line-clamp-2">{listing.address}</span></p>
+          </div>
+          <div className="shrink-0 text-right"><p className="text-base font-bold text-emerald-800 md:text-lg">{formatVnd(listing.monthlyRentVnd)}</p><p className="text-[11px] text-stone-400">per month</p></div>
+        </div>
+        {profile.exists && (
+          <div className="mt-2">
+            <StakeBadge activeStakeSol={activeStakeSol} hasMinimumStake={hasMinimumStake} disputesLost={profile.disputesLost} />
+          </div>
+        )}
+        <div className="mt-2 grid grid-cols-3 gap-2 border-y border-stone-100 py-2 text-xs font-medium text-stone-600 md:mt-4 md:py-3">
+          <span className="flex items-center gap-1"><BedDouble className="h-4 w-4" />{listing.bedrooms} bed</span>
+          <span className="flex items-center gap-1"><Bath className="h-4 w-4" />{listing.bathrooms} bath</span>
+          <span className="flex items-center gap-1"><Ruler className="h-4 w-4" />{listing.areaSqm} m²</span>
+        </div>
+        <div className="mt-2 flex flex-wrap gap-2 md:mt-4">{listing.amenities.slice(0, 2).map((amenity) => <span key={amenity} className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] text-stone-600">{amenity}</span>)}{listing.amenities.length > 2 && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800">+{listing.amenities.length - 2} more</span>}</div>
+        <div className="mt-2 md:mt-4">
+          <button type="button" onClick={() => onOpenAgreement(listing.id)} className="w-full rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white md:py-3">Start rental agreement</button>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export function ListingGrid({ listings, favoriteIds, onToggleFavorite, emptyMessage = 'No apartments match those filters yet.' }: ListingGridProps) {
   const [activeListingId, setActiveListingId] = useState<string | null>(null);
@@ -23,38 +68,15 @@ export function ListingGrid({ listings, favoriteIds, onToggleFavorite, emptyMess
   return (
     <>
       <div className="grid gap-3 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
-        {listings.map((listing) => {
-          const isFavorite = favoriteIds.includes(listing.id);
-          return (
-            <article key={listing.id} className="group overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(58,45,30,0.08)] transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(58,45,30,0.14)]">
-              <div className={`relative h-16 bg-gradient-to-br md:h-36 ${listing.accent}`}>
-                <div className="absolute inset-0 opacity-50 [background-image:radial-gradient(circle_at_20%_20%,white_0,transparent_34%),linear-gradient(125deg,transparent_42%,rgba(255,255,255,.65)_43%,transparent_68%)]" />
-                <span className="absolute left-2 top-2 rounded-full bg-white/85 px-3 py-1 text-xs font-semibold text-stone-700 backdrop-blur md:left-3 md:top-3">{listing.distanceKm} km away</span>
-                <button type="button" onClick={() => onToggleFavorite(listing.id)} className="absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full bg-white/85 text-stone-600 shadow-sm backdrop-blur transition hover:scale-105 hover:text-rose-500 md:right-3 md:top-3" aria-label={isFavorite ? 'Remove from saved listings' : 'Save listing'}>
-                  <Heart className={`h-5 w-5 ${isFavorite ? 'fill-rose-500 text-rose-500' : ''}`} />
-                </button>
-              </div>
-              <div className="p-3 pt-2 md:p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="font-serif text-lg font-semibold leading-tight text-stone-900 md:text-xl">{listing.title}</h3>
-                    <p className="mt-1 flex items-start gap-1 text-xs leading-5 text-stone-500 md:mt-2"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span className="line-clamp-2">{listing.address}</span></p>
-                  </div>
-                  <div className="shrink-0 text-right"><p className="text-base font-bold text-emerald-800 md:text-lg">{formatVnd(listing.monthlyRentVnd)}</p><p className="text-[11px] text-stone-400">per month</p></div>
-                </div>
-                <div className="mt-2 grid grid-cols-3 gap-2 border-y border-stone-100 py-2 text-xs font-medium text-stone-600 md:mt-4 md:py-3">
-                  <span className="flex items-center gap-1"><BedDouble className="h-4 w-4" />{listing.bedrooms} bed</span>
-                  <span className="flex items-center gap-1"><Bath className="h-4 w-4" />{listing.bathrooms} bath</span>
-                  <span className="flex items-center gap-1"><Ruler className="h-4 w-4" />{listing.areaSqm} m²</span>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2 md:mt-4">{listing.amenities.slice(0, 2).map((amenity) => <span key={amenity} className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] text-stone-600">{amenity}</span>)}{listing.amenities.length > 2 && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800">+{listing.amenities.length - 2} more</span>}</div>
-                <div className="mt-2 md:mt-4">
-                  <button type="button" onClick={() => { setActiveListingId(listing.id); import('@/components/apartment/TenantAgreementPanel').then((m) => setTenantPanel(() => m.default)); }} className="w-full rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white md:py-3">Start rental agreement</button>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+        {listings.map((listing) => (
+          <ListingCard
+            key={listing.id}
+            listing={listing}
+            isFavorite={favoriteIds.includes(listing.id)}
+            onToggleFavorite={onToggleFavorite}
+            onOpenAgreement={(id) => { setActiveListingId(id); import('@/components/apartment/TenantAgreementPanel').then((m) => setTenantPanel(() => m.default)); }}
+          />
+        ))}
       </div>
 
       {activeListingId && (() => {

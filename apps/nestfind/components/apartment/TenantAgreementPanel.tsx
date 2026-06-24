@@ -20,11 +20,14 @@ import {
   prepareAnchorClient,
   deriveAgreementPda,
   deriveConfigPda,
+  deriveLandlordProfilePda,
   sha256Bytes,
   sha256Hex,
   bytesToHex,
   explorerUrl,
 } from '@/lib/solana';
+import { useLandlordProfile } from '@/hooks/use-landlord-profile';
+import { LandlordReputationPanel } from '@/components/landlord/LandlordReputationPanel';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 const PROGRAM_ID = '9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X';
@@ -100,6 +103,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
   const landlordWallet = listing.landlordWallet;
   const isLandlordValid = isValidSolanaPubkey(landlordWallet);
+  const { profile: landlordProfile, totalStakedSol, activeStakeSol, hasMinimumStake } = useLandlordProfile(landlordWallet);
   const isBusy = txState.phase !== 'idle' && txState.phase !== 'confirmed' && txState.phase !== 'failed';
   const agreementOnchain = agreement?.onchain as Record<string, { toBase58?: () => string }> | null;
   const connectedRole =
@@ -526,10 +530,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     try {
       return await withTxFeedback('approve agreement', async () => {
         const { connection, program, landlordPubkey, agreementPda } = await getAgreementActors();
+        const profilePda = await deriveLandlordProfilePda(landlordPubkey, program.programId);
         setTxState({ phase: 'signing', action: 'approve agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
         const txSignature = await program.methods
           .approveAgreement()
-          .accounts({ landlord: landlordPubkey, agreement: agreementPda })
+          .accounts({ landlord: landlordPubkey, landlordProfile: profilePda, agreement: agreementPda })
           .rpc();
         setTxState({ phase: 'submitted', action: 'approve agreement', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
         await confirmSignature(connection, txSignature, 'approve agreement');
@@ -635,6 +640,21 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             <p className="font-semibold text-stone-700">On-chain preview</p>
             <p className="mt-1 break-all">Listing hash: <span className="font-mono text-stone-500">{pdaPreview.listingHash}</span></p>
             <p className="mt-1 break-all">Agreement PDA: <span className="font-mono text-stone-500">{pdaPreview.agreementPda}</span></p>
+          </div>
+        )}
+
+        {isLandlordValid && landlordProfile.exists && (
+          <LandlordReputationPanel
+            profile={landlordProfile}
+            totalStakedSol={totalStakedSol}
+            activeStakeSol={activeStakeSol}
+            hasMinimumStake={hasMinimumStake}
+          />
+        )}
+
+        {isLandlordValid && !landlordProfile.exists && connectedRole === 'tenant' && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            This landlord has no on-chain stake profile. They must stake at least 0.5 SOL before they can approve agreements.
           </div>
         )}
 

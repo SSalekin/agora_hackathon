@@ -58,3 +58,25 @@ pub struct AgreementCancelled {
     pub agreement: Pubkey,
     pub cancelled_by: Pubkey,
 }
+
+#[event]
+pub struct LandlordProfileInitialized {
+    pub landlord: Pubkey,
+    pub landlord_profile: Pubkey,
+}
+
+#[event]
+pub struct LandlordStaked {
+    pub landlord: Pubkey,
+    pub landlord_profile: Pubkey,
+    pub amount: u64,
+    pub total_staked: u64,
+}
+
+#[event]
+pub struct LandlordUnstaked {
+    pub landlord: Pubkey,
+    pub landlord_profile: Pubkey,
+    pub amount: u64,
+    pub total_staked: u64,
+}

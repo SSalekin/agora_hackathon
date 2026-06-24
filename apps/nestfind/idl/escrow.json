@@ -24,8 +24,41 @@
           "name": "landlord",
           "signer": true,
           "relations": [
+            "landlord_profile",
             "agreement"
           ]
+        },
+        {
+          "name": "landlord_profile",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  97,
+                  110,
+                  100,
+                  108,
+                  111,
+                  114,
+                  100,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "landlord"
+              }
+            ]
+          }
         },
         {
           "name": "agreement",
@@ -350,6 +383,64 @@
       ]
     },
     {
+      "name": "initialize_landlord_profile",
+      "discriminator": [
+        247,
+        182,
+        132,
+        55,
+        43,
+        175,
+        53,
+        64
+      ],
+      "accounts": [
+        {
+          "name": "landlord",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "landlord_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  97,
+                  110,
+                  100,
+                  108,
+                  111,
+                  114,
+                  100,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "landlord"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "open_dispute",
       "discriminator": [
         137,
@@ -634,6 +725,138 @@
           "type": "bool"
         }
       ]
+    },
+    {
+      "name": "stake_landlord",
+      "discriminator": [
+        62,
+        38,
+        52,
+        19,
+        134,
+        194,
+        220,
+        163
+      ],
+      "accounts": [
+        {
+          "name": "landlord",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "landlord_profile"
+          ]
+        },
+        {
+          "name": "landlord_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  97,
+                  110,
+                  100,
+                  108,
+                  111,
+                  114,
+                  100,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "landlord"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "unstake_landlord",
+      "discriminator": [
+        128,
+        255,
+        69,
+        227,
+        47,
+        59,
+        142,
+        0
+      ],
+      "accounts": [
+        {
+          "name": "landlord",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "landlord_profile"
+          ]
+        },
+        {
+          "name": "landlord_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  97,
+                  110,
+                  100,
+                  108,
+                  111,
+                  114,
+                  100,
+                  45,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "landlord"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -661,6 +884,19 @@
         250,
         204,
         130
+      ]
+    },
+    {
+      "name": "LandlordProfile",
+      "discriminator": [
+        46,
+        17,
+        232,
+        54,
+        198,
+        78,
+        226,
+        97
       ]
     }
   ],
@@ -768,6 +1004,45 @@
         246,
         156
       ]
+    },
+    {
+      "name": "LandlordProfileInitialized",
+      "discriminator": [
+        81,
+        169,
+        119,
+        218,
+        255,
+        18,
+        13,
+        246
+      ]
+    },
+    {
+      "name": "LandlordStaked",
+      "discriminator": [
+        39,
+        124,
+        100,
+        111,
+        229,
+        170,
+        208,
+        25
+      ]
+    },
+    {
+      "name": "LandlordUnstaked",
+      "discriminator": [
+        64,
+        123,
+        72,
+        106,
+        207,
+        248,
+        187,
+        217
+      ]
     }
   ],
   "errors": [
@@ -825,6 +1100,21 @@
       "code": 6010,
       "name": "LamportOverflow",
       "msg": "Lamport arithmetic overflowed"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6012,
+      "name": "InsufficientStake",
+      "msg": "Landlord has insufficient stake"
+    },
+    {
+      "code": 6013,
+      "name": "InsufficientLandlordStake",
+      "msg": "Landlord stake is below the required minimum"
     }
   ],
   "types": [
@@ -1121,6 +1411,102 @@
           {
             "name": "landlord",
             "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LandlordProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "landlord",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_staked_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "active_stake_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "completed_rentals",
+            "type": "u32"
+          },
+          {
+            "name": "disputes_lost",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LandlordProfileInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "landlord",
+            "type": "pubkey"
+          },
+          {
+            "name": "landlord_profile",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LandlordStaked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "landlord",
+            "type": "pubkey"
+          },
+          {
+            "name": "landlord_profile",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "total_staked",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LandlordUnstaked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "landlord",
+            "type": "pubkey"
+          },
+          {
+            "name": "landlord_profile",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "total_staked",
+            "type": "u64"
           }
         ]
       }
