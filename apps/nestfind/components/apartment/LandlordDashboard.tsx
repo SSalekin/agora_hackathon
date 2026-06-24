@@ -6,8 +6,11 @@ import type { ApartmentListing } from '@/types/listing';
 import { DEFAULT_CLUSTER } from '@/types/solana-wallet';
 import { buildAgreementView, decodeAgreementState, formatAgreementStateLabel, withAgreementState, persistAgreementAction, persistDisputeEvidence, type AgreementView } from '@/lib/escrow';
 import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
+import { useLandlordProfile } from '@/hooks/use-landlord-profile';
 import { checkNetwork, formatWalletError } from '@/lib/preflight';
-import { prepareAnchorClient, sha256Hex, explorerUrl } from '@/lib/solana';
+import { prepareAnchorClient, deriveLandlordProfilePda, sha256Hex, explorerUrl } from '@/lib/solana';
+import { StakeSummaryCard } from '@/components/landlord/StakeSummaryCard';
+import { LandlordReputationPanel } from '@/components/landlord/LandlordReputationPanel';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 
@@ -58,6 +61,7 @@ function parseBigNumber(value: unknown): number {
 
 export function LandlordDashboard({ listings }: Props) {
   const { publicKey: walletPubkey, connect } = usePhantomWallet();
+  const { profile, totalStakedSol, activeStakeSol, hasMinimumStake, refresh: refreshProfile } = useLandlordProfile();
   const [queue, setQueue] = useState<LandlordAgreementQueueItem[]>([]);
   const [isLoadingQueue, setIsLoadingQueue] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -232,11 +236,12 @@ export function LandlordDashboard({ listings }: Props) {
       await withTxFeedback('approve agreement', pda, async () => {
         const { anchor, connection, program, connectedPubkey } = await prepareAnchorClient();
         const agreementPubkey = new anchor.web3.PublicKey(pda);
+        const profilePda = await deriveLandlordProfilePda(connectedPubkey, program.programId);
 
         setTxState((c) => ({ ...c, phase: 'signing', message: 'Waiting for wallet signature...' }));
         const txSignature = await program.methods
           .approveAgreement()
-          .accounts({ landlord: connectedPubkey, agreement: agreementPubkey })
+          .accounts({ landlord: connectedPubkey, landlordProfile: profilePda, agreement: agreementPubkey })
           .rpc();
         setTxState((c) => ({ ...c, phase: 'submitted', signature: txSignature, explorerUrl: txExplorerUrl(txSignature), message: 'Submitted. Waiting for confirmation...' }));
         await confirmSignature(connection, txSignature, 'approve agreement', pda);
@@ -574,6 +579,24 @@ export function LandlordDashboard({ listings }: Props) {
           {walletPubkey ? 'Refresh queue' : 'Connect landlord wallet'}
         </button>
       </div>
+
+      {walletPubkey && (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <StakeSummaryCard
+            profile={profile}
+            totalStakedSol={totalStakedSol}
+            activeStakeSol={activeStakeSol}
+            hasMinimumStake={hasMinimumStake}
+            onRefresh={refreshProfile}
+          />
+          <LandlordReputationPanel
+            profile={profile}
+            totalStakedSol={totalStakedSol}
+            activeStakeSol={activeStakeSol}
+            hasMinimumStake={hasMinimumStake}
+          />
+        </div>
+      )}
 
       <div className="mt-6 flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
         <Building2 className="h-4 w-4 text-emerald-800" />
