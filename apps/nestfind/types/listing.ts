@@ -13,6 +13,8 @@ export type ApartmentListing = {
   amenities: string[];
   accent: string;
   landlordWallet: string;
+  defaultDepositSol: number;
+  defaultInspectionDays: number;
 };
 
 export type ListingSearchFilters = {

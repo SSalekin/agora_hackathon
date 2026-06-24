@@ -29,7 +29,11 @@ function isApartmentListing(value: unknown): value is ApartmentListing {
     listing.amenities.every((amenity) => typeof amenity === 'string') &&
     typeof listing.accent === 'string' &&
     typeof listing.landlordWallet === 'string' &&
-    listing.landlordWallet.length > 0
+    listing.landlordWallet.length > 0 &&
+    typeof listing.defaultDepositSol === 'number' &&
+    listing.defaultDepositSol > 0 &&
+    typeof listing.defaultInspectionDays === 'number' &&
+    listing.defaultInspectionDays > 0
   );
 }
 

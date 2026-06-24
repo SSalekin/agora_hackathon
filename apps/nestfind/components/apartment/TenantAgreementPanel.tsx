@@ -1,8 +1,18 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ApartmentListing } from '@/types/listing';
 import idl from '@/idl/escrow.json';
+import {
+  buildAgreementView,
+  decodeAgreementState,
+  formatAgreementStateLabel,
+  withAgreementState,
+  type AgreementUiState,
+  type AgreementView,
+} from '@/lib/escrow';
+import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
+import { checkNetwork, checkBalance, formatWalletError } from '@/lib/preflight';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 const DEFAULT_RPC_URL = (process.env.NEXT_PUBLIC_SOLANA_RPC_URL as string) || 'https://api.devnet.solana.com';
@@ -38,72 +48,6 @@ const INITIAL_TX_STATE: TxState = {
   explorerUrl: null,
   message: null,
 };
-
-type AgreementUiState =
-  | 'awaitingLandlordApproval'
-  | 'awaitingFunding'
-  | 'funded'
-  | 'disputed'
-  | 'released'
-  | 'refunded'
-  | 'cancelled'
-  | 'unknown';
-
-function decodeAgreementState(value: unknown): AgreementUiState {
-  if (typeof value === 'string') {
-    const normalized = value.replace(/_/g, '').toLowerCase();
-    if (normalized === 'awaitinglandlordapproval') return 'awaitingLandlordApproval';
-    if (normalized === 'awaitingfunding') return 'awaitingFunding';
-    if (normalized === 'funded') return 'funded';
-    if (normalized === 'disputed') return 'disputed';
-    if (normalized === 'released') return 'released';
-    if (normalized === 'refunded') return 'refunded';
-    if (normalized === 'cancelled') return 'cancelled';
-    return 'unknown';
-  }
-
-  if (value && typeof value === 'object') {
-    const keys = Object.keys(value as Record<string, unknown>);
-    if (keys.length === 1) {
-      return decodeAgreementState(keys[0]);
-    }
-  }
-
-  return 'unknown';
-}
-
-function formatAgreementStateLabel(state: AgreementUiState): string {
-  if (state === 'unknown') return 'Unknown';
-  return state
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .replace(/^./, (char) => char.toUpperCase());
-}
-
-function buildAgreementView(
-  onchain: unknown,
-  pda: string,
-  txSignature: string | null,
-  stateValue: unknown,
-) {
-  return {
-    onchain,
-    pda,
-    txSignature,
-    state: decodeAgreementState(stateValue),
-  };
-}
-
-function withAgreementState<T extends { state?: AgreementUiState }>(
-  agreement: T,
-  state: AgreementUiState,
-  extra?: Record<string, unknown>,
-) {
-  return {
-    ...agreement,
-    ...extra,
-    state,
-  };
-}
 
 function explorerUrl(signature: string) {
   return `https://explorer.solana.com/tx/${signature}?cluster=${DEFAULT_CLUSTER}`;
@@ -145,17 +89,35 @@ function anchorWeb3Decode(base58: string): Uint8Array {
 }
 
 export default function TenantAgreementPanel({ listing, onClose }: Props) {
-  const [walletPubkey, setWalletPubkey] = useState<string | null>(null);
-  const [depositSol, setDepositSol] = useState<string>('0.5');
-  const [inspectionDate, setInspectionDate] = useState<string>('');
-  const [agreement, setAgreement] = useState<any>(null);
+  const { publicKey: walletPubkey, connect, disconnect } = usePhantomWallet();
+  const [depositSol, setDepositSol] = useState<string>(String(listing.defaultDepositSol));
+  const [inspectionDate, setInspectionDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + listing.defaultInspectionDays);
+    return d.toISOString().slice(0, 16);
+  });
+  const [agreement, setAgreement] = useState<AgreementView | null>(null);
   const [txState, setTxState] = useState<TxState>(INITIAL_TX_STATE);
   const [error, setError] = useState<string | null>(null);
   const [evidence, setEvidence] = useState<string>('');
+  const [isLoadingAgreement, setIsLoadingAgreement] = useState(false);
+  const [pdaPreview, setPdaPreview] = useState<{ listingHash: string; agreementPda: string } | null>(null);
+  const [networkWarning, setNetworkWarning] = useState<string | null>(null);
 
   const landlordWallet = listing.landlordWallet;
   const isLandlordValid = isValidSolanaPubkey(landlordWallet);
   const isBusy = txState.phase !== 'idle' && txState.phase !== 'confirmed' && txState.phase !== 'failed';
+  const agreementOnchain = agreement?.onchain as Record<string, any> | null;
+  const connectedRole =
+    walletPubkey && agreementOnchain
+      ? walletPubkey === agreementOnchain.tenant?.toBase58?.()
+        ? 'tenant'
+        : walletPubkey === agreementOnchain.landlord?.toBase58?.()
+          ? 'landlord'
+          : walletPubkey === agreementOnchain.moderator?.toBase58?.()
+            ? 'moderator'
+            : 'viewer'
+      : null;
 
   const clearTxState = () => setTxState(INITIAL_TX_STATE);
 
@@ -181,29 +143,186 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     try {
       const result = await work();
       return result;
-    } catch (err: any) {
-      const message = err?.message ?? String(err);
+    } catch (err: unknown) {
+      const message = formatWalletError(err);
       setTxFailure(action, message);
       throw err;
+    }
+  };
+
+  const prepareAnchorClient = async () => {
+    const Anchor = await import('@anchor-lang/core');
+    const anchor = Anchor as typeof import('@anchor-lang/core');
+    const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
+    // @ts-ignore — Phantom injects window.solana
+    const providerWindow = window.solana;
+    if (!providerWindow) throw new Error('No wallet provider found (Phantom recommended).');
+    const walletAdapter: any = {
+      publicKey: providerWindow.publicKey,
+      signTransaction: providerWindow.signTransaction?.bind(providerWindow),
+      signAllTransactions: providerWindow.signAllTransactions?.bind(providerWindow),
+    };
+    const anchorProvider = new anchor.AnchorProvider(connection, walletAdapter, anchor.AnchorProvider.defaultOptions());
+    const program = new anchor.Program(idl as any, anchorProvider);
+    const connectedPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
+    if (!connectedPubkey) throw new Error('Wallet not connected');
+    const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
+    const listingHashBytes = await sha256Bytes(listing.id);
+    const [agreementPda] = anchor.web3.PublicKey.findProgramAddressSync([
+      Buffer.from('agreement'),
+      connectedPubkey.toBuffer(),
+      landlordPubkey.toBuffer(),
+      Buffer.from(listingHashBytes),
+    ], program.programId);
+
+    return {
+      anchor,
+      connection,
+      program,
+      connectedPubkey,
+      landlordPubkey,
+      listingHashBytes,
+      agreementPda,
+    };
+  };
+
+  const getAgreementActors = async () => {
+    const { anchor, connection, program, connectedPubkey } = await prepareAnchorClient();
+    if (!agreement || !agreementOnchain) throw new Error('No agreement loaded');
+
+    const tenantPubkey = new anchor.web3.PublicKey(agreementOnchain.tenant.toBase58());
+    const landlordPubkey = new anchor.web3.PublicKey(agreementOnchain.landlord.toBase58());
+    const moderatorPubkey = new anchor.web3.PublicKey(agreementOnchain.moderator.toBase58());
+    const agreementPda = new anchor.web3.PublicKey(agreement.pda);
+
+    return {
+      anchor,
+      connection,
+      program,
+      connectedPubkey,
+      tenantPubkey,
+      landlordPubkey,
+      moderatorPubkey,
+      agreementPda,
+    };
+  };
+
+  const loadExistingAgreement = async () => {
+    try {
+      setIsLoadingAgreement(true);
+      const { program, connectedPubkey } = await prepareAnchorClient();
+      const listingHashHex = await sha256Hex(listing.id);
+      const allAgreements = await (program as any).account.agreement.all();
+
+      const matchingAgreement = allAgreements
+        .map((item: any) => ({
+          publicKey: item.publicKey,
+          account: item.account,
+        }))
+        .filter(({ account }: any) => {
+          const accountListingHashHex = bytesToHex(Uint8Array.from(account.listingHash));
+          if (accountListingHashHex !== listingHashHex) return false;
+
+          const connectedBase58 = connectedPubkey.toBase58();
+          return (
+            account.tenant?.toBase58?.() === connectedBase58 ||
+            account.landlord?.toBase58?.() === connectedBase58 ||
+            account.moderator?.toBase58?.() === connectedBase58
+          );
+        })
+        .sort((a: any, b: any) => Number(b.account.createdAt ?? 0) - Number(a.account.createdAt ?? 0))[0];
+
+      if (!matchingAgreement) {
+        setAgreement(null);
+        return;
+      }
+
+      setAgreement(
+        buildAgreementView(
+          matchingAgreement.account,
+          matchingAgreement.publicKey.toBase58(),
+          null,
+          matchingAgreement.account.state,
+        ),
+      );
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    } finally {
+      setIsLoadingAgreement(false);
     }
   };
 
   const connectWallet = async () => {
     setError(null);
     try {
-      // Basic Phantom support via window.solana
-      // This is intentionally minimal; consider using Wallet Adapter later.
-      // @ts-ignore
-      const provider = window.solana;
-      if (!provider) throw new Error('No wallet provider found (Phantom recommended).');
-      // @ts-ignore
-      const resp = await provider.connect();
-      // @ts-ignore
-      setWalletPubkey(resp.publicKey?.toString?.() ?? provider.publicKey?.toString?.() ?? null);
+      const key = await connect();
+      if (key) {
+        await loadExistingAgreement();
+      }
     } catch (err: any) {
       setError(err?.message ?? String(err));
     }
   };
+
+  const prevPubkeyRef = useRef<string | null>(walletPubkey);
+  useEffect(() => {
+    const prev = prevPubkeyRef.current;
+    const curr = walletPubkey;
+    prevPubkeyRef.current = curr;
+
+    // Wallet disconnected — clear agreement state.
+    if (prev && !curr) {
+      setAgreement(null);
+      clearTxState();
+      setError(null);
+      return;
+    }
+
+    // Wallet connected or account changed — load agreement for the new pubkey.
+    if (curr) {
+      // Check network.
+      (async () => {
+        try {
+          const Anchor = await import('@anchor-lang/core');
+          const anchor = Anchor as typeof import('@anchor-lang/core');
+          const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
+          const result = await checkNetwork(connection, DEFAULT_CLUSTER);
+          setNetworkWarning(result.ok ? null : result.error ?? null);
+        } catch {
+          setNetworkWarning(null);
+        }
+      })();
+
+      loadExistingAgreement().catch(() => {});
+      // Derive PDA preview for display.
+      (async () => {
+        try {
+          const Anchor = await import('@anchor-lang/core');
+          const anchor = Anchor as typeof import('@anchor-lang/core');
+          // @ts-ignore
+          const providerWindow = window.solana;
+          if (!providerWindow?.publicKey) return;
+          const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
+          const tenantPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
+          const listingHashBuf = await sha256Bytes(listing.id);
+          const listingHashHex = bytesToHex(listingHashBuf);
+          const programId = new anchor.web3.PublicKey('9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X');
+          const [agreementPda] = anchor.web3.PublicKey.findProgramAddressSync([
+            Buffer.from('agreement'),
+            tenantPubkey.toBuffer(),
+            landlordPubkey.toBuffer(),
+            Buffer.from(listingHashBuf),
+          ], programId);
+          setPdaPreview({ listingHash: listingHashHex, agreementPda: agreementPda.toBase58() });
+        } catch {
+          // PDA preview is informational only; ignore derivation errors.
+        }
+      })();
+    } else {
+      setPdaPreview(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walletPubkey, listing.id]);
 
   const createAgreement = async () => {
     try {
@@ -212,57 +331,75 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
           throw new Error('Listing has an invalid landlord wallet address. Cannot create agreement.');
         }
 
-        // Prepare on-chain client
-        const Anchor = await import('@anchor-lang/core');
-        const anchor = Anchor as typeof import('@anchor-lang/core');
-        const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
+        const { anchor, connection, program, connectedPubkey, landlordPubkey, listingHashBytes, agreementPda } = await prepareAnchorClient();
 
-        // Ensure wallet provider
-        // @ts-ignore
-        const providerWindow = window.solana;
-        if (!providerWindow) throw new Error('No wallet provider found (Phantom recommended).');
-        // Minimal wallet adapter for Anchor
-        const walletAdapter: any = {
-          publicKey: providerWindow.publicKey,
-          signTransaction: providerWindow.signTransaction?.bind(providerWindow),
-          signAllTransactions: providerWindow.signAllTransactions?.bind(providerWindow),
-        };
-
-        const provider = new anchor.AnchorProvider(connection, walletAdapter, anchor.AnchorProvider.defaultOptions());
-        const programId = new anchor.web3.PublicKey((idl as any).address);
-        const program = new anchor.Program(idl as any, provider);
-
-        const tenantPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
-        if (!tenantPubkey) throw new Error('Wallet not connected');
-        const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
-
-        if (tenantPubkey.equals(landlordPubkey)) {
+        // --- Role separation ---
+        if (connectedPubkey.equals(landlordPubkey)) {
           throw new Error('Tenant and landlord wallets must be different. Connect a different wallet or choose a listing with a different landlord.');
         }
 
-        const listingHashBytes = await sha256Bytes(listing.id);
-        const depositLamports = Math.round(Number(depositSol || '0') * LAMPORTS_PER_SOL);
-        if (!Number.isFinite(depositLamports) || depositLamports <= 0) {
-          throw new Error('Deposit amount must be greater than zero');
+        // Check tenant != moderator and landlord != moderator.
+        const [configPda] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
+        const configAccount = await (program as any).account.config.fetch(configPda);
+        const moderatorPubkey = new anchor.web3.PublicKey(configAccount.moderator);
+        if (connectedPubkey.equals(moderatorPubkey)) {
+          throw new Error('Connected wallet is the moderator. The tenant cannot also be the moderator.');
         }
-        const inspectionDeadline = inspectionDate ? Math.floor(new Date(inspectionDate).getTime() / 1000) : 0;
-        if (!inspectionDeadline || inspectionDeadline <= Math.floor(Date.now() / 1000)) {
-          throw new Error('Inspection deadline must be in the future');
+        if (landlordPubkey.equals(moderatorPubkey)) {
+          throw new Error('This listing\'s landlord is the moderator. Choose a listing with a different landlord.');
         }
 
-        const [configPda] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
-        const [agreementPda] = anchor.web3.PublicKey.findProgramAddressSync([
-          Buffer.from('agreement'),
-          tenantPubkey.toBuffer(),
-          landlordPubkey.toBuffer(),
-          Buffer.from(listingHashBytes),
-        ], program.programId);
+        // --- SOL amount precision ---
+        const depositInput = depositSol.trim();
+        const depositNumber = Number(depositInput);
+        if (!depositInput || !Number.isFinite(depositNumber)) {
+          throw new Error('Enter a valid deposit amount in SOL.');
+        }
+        const decimalPart = depositInput.includes('.') ? depositInput.split('.')[1] ?? '' : '';
+        if (decimalPart.length > 9) {
+          throw new Error('SOL amount has too many decimals. Maximum is 9 decimal places (1 lamport).');
+        }
+        const depositLamports = Math.round(depositNumber * LAMPORTS_PER_SOL);
+        if (depositLamports <= 0) {
+          throw new Error('Deposit amount must be greater than zero.');
+        }
+        if (depositLamports > 100 * LAMPORTS_PER_SOL) {
+          throw new Error('Deposit amount exceeds maximum (100 SOL). Use a smaller amount.');
+        }
+
+        // --- Future deadline ---
+        const inspectionDeadline = inspectionDate ? Math.floor(new Date(inspectionDate).getTime() / 1000) : 0;
+        if (!inspectionDeadline) {
+          throw new Error('Inspection deadline is required.');
+        }
+        const nowSec = Math.floor(Date.now() / 1000);
+        if (inspectionDeadline <= nowSec) {
+          throw new Error('Inspection deadline must be in the future.');
+        }
+        const minDeadline = nowSec + 3600; // at least 1 hour from now
+        if (inspectionDeadline < minDeadline) {
+          throw new Error('Inspection deadline must be at least 1 hour from now.');
+        }
+
+        // --- Listing configuration ---
+        if (!listing.id || !listing.title || !listing.address) {
+          throw new Error('Listing is missing required fields (id, title, address).');
+        }
+        if (!listing.landlordWallet) {
+          throw new Error('Listing is missing a landlord wallet address.');
+        }
+
+        // --- Insufficient balance ---
+        const balanceResult = await checkBalance(connection, connectedPubkey, depositLamports);
+        if (!balanceResult.ok) {
+          throw new Error(balanceResult.error);
+        }
 
         // Build and send the createAgreement transaction
         setTxState({ phase: 'signing', action: 'create agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
         const txSignature = await program.methods
           .createAgreement(Array.from(listingHashBytes), new anchor.BN(depositLamports), new anchor.BN(inspectionDeadline))
-          .accounts({ tenant: tenantPubkey, landlord: landlordPubkey, config: configPda, agreement: agreementPda, systemProgram: anchor.web3.SystemProgram.programId })
+          .accounts({ tenant: connectedPubkey, landlord: landlordPubkey, config: configPda, agreement: agreementPda, systemProgram: anchor.web3.SystemProgram.programId })
           .rpc();
         setTxState({ phase: 'submitted', action: 'create agreement', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
         await confirmSignature(connection, txSignature, 'create agreement');
@@ -280,31 +417,37 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     try {
       return await withTxFeedback('fund agreement', async () => {
         if (!agreement) throw new Error('No agreement to fund');
-        const Anchor = await import('@anchor-lang/core');
-        const anchor = Anchor as typeof import('@anchor-lang/core');
-        const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
-        // @ts-ignore
-        const providerWindow = window.solana;
-        if (!providerWindow) throw new Error('No wallet provider found');
-        const walletAdapter: any = {
-          publicKey: providerWindow.publicKey,
-          signTransaction: providerWindow.signTransaction?.bind(providerWindow),
-          signAllTransactions: providerWindow.signAllTransactions?.bind(providerWindow),
-        };
-        const provider = new anchor.AnchorProvider(connection, walletAdapter, anchor.AnchorProvider.defaultOptions());
-        const programId = new anchor.web3.PublicKey((idl as any).address);
-        const program = new anchor.Program(idl as any, provider);
+        const { anchor, connection, program, tenantPubkey, agreementPda } = await getAgreementActors();
 
-        const tenantPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
-        if (!tenantPubkey) throw new Error('Wallet not connected');
-        const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
-        const listingHashBytes = await sha256Bytes(listing.id);
-        const [agreementPda] = anchor.web3.PublicKey.findProgramAddressSync([
-          Buffer.from('agreement'),
-          tenantPubkey.toBuffer(),
-          landlordPubkey.toBuffer(),
-          Buffer.from(listingHashBytes),
-        ], program.programId);
+        // Pre-flight: verify agreement state is awaiting funding.
+        const freshOnchain = await (program as any).account.agreement.fetch(agreementPda);
+        const freshState = decodeAgreementState(freshOnchain.state);
+        if (freshState !== 'awaitingFunding') {
+          throw new Error(`Agreement is not awaiting funding. Current state: ${formatAgreementStateLabel(freshState)}.`);
+        }
+
+        // Pre-flight: verify inspection deadline has not passed.
+        const deadline = typeof freshOnchain.inspectionDeadline === 'object'
+          ? Number(freshOnchain.inspectionDeadline.toString())
+          : Number(freshOnchain.inspectionDeadline ?? 0);
+        if (deadline > 0 && Math.floor(Date.now() / 1000) > deadline) {
+          throw new Error('Inspection deadline has passed. The agreement can no longer be funded.');
+        }
+
+        // Pre-flight: verify caller is the tenant.
+        const onchainTenant = freshOnchain.tenant?.toBase58?.();
+        if (onchainTenant !== tenantPubkey.toBase58()) {
+          throw new Error('Connected wallet is not the tenant for this agreement.');
+        }
+
+        // Pre-flight: check balance covers deposit + fees.
+        const depositLamports = typeof freshOnchain.depositLamports === 'object'
+          ? Number(freshOnchain.depositLamports.toString())
+          : Number(freshOnchain.depositLamports ?? 0);
+        const balanceResult = await checkBalance(connection, tenantPubkey, depositLamports);
+        if (!balanceResult.ok) {
+          throw new Error(balanceResult.error);
+        }
 
         setTxState({ phase: 'signing', action: 'fund agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
         const txSignature = await program.methods
@@ -315,7 +458,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         await confirmSignature(connection, txSignature, 'fund agreement');
 
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
-        setAgreement({ ...agreement, ...buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state) });
+        setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -323,24 +466,143 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
   };
 
   const cancelAgreement = async () => {
-    if (!agreement) return setError('No agreement to cancel');
-    setTxState({ phase: 'confirmed', action: 'cancel agreement', signature: null, explorerUrl: null, message: 'This demo action remains local until the cancel transaction is wired.' });
-    setAgreement(withAgreementState(agreement, 'cancelled'));
+    try {
+      return await withTxFeedback('cancel agreement', async () => {
+        if (!agreement) throw new Error('No agreement to cancel');
+        const currentAgreement = agreement;
+        const { connection, program, connectedPubkey, tenantPubkey, landlordPubkey, agreementPda } = await getAgreementActors();
+
+        setTxState({ phase: 'signing', action: 'cancel agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
+        const txSignature = await program.methods
+          .cancelAgreement()
+          .accounts({
+            authority: connectedPubkey,
+            tenant: tenantPubkey,
+            landlord: landlordPubkey,
+            agreement: agreementPda,
+          })
+          .rpc();
+        setTxState({ phase: 'submitted', action: 'cancel agreement', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
+        await confirmSignature(connection, txSignature, 'cancel agreement');
+
+        setAgreement(withAgreementState(currentAgreement, 'cancelled', { onchain: null, txSignature }));
+      });
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    }
   };
 
   const releaseByTenant = async () => {
-    if (!agreement) return setError('No agreement to release');
-    setTxState({ phase: 'confirmed', action: 'release agreement', signature: null, explorerUrl: null, message: 'This demo action remains local until the release transaction is wired.' });
-    setAgreement(withAgreementState(agreement, 'released'));
+    try {
+      return await withTxFeedback('release agreement', async () => {
+        if (!agreement) throw new Error('No agreement to release');
+        const currentAgreement = agreement;
+        const { connection, program, tenantPubkey, landlordPubkey, agreementPda } = await getAgreementActors();
+
+        setTxState({ phase: 'signing', action: 'release agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
+        const txSignature = await program.methods
+          .releaseByTenant()
+          .accounts({
+            tenant: tenantPubkey,
+            landlord: landlordPubkey,
+            agreement: agreementPda,
+          })
+          .rpc();
+        setTxState({ phase: 'submitted', action: 'release agreement', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
+        await confirmSignature(connection, txSignature, 'release agreement');
+
+        setAgreement(withAgreementState(currentAgreement, 'released', { onchain: null, txSignature }));
+      });
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    }
   };
 
   const openDispute = async () => {
     try {
       return await withTxFeedback('open dispute', async () => {
         if (!agreement) throw new Error('No agreement to dispute');
-        const evidenceHash = await sha256Hex(evidence || `${Date.now()}`);
-        setTxState({ phase: 'confirmed', action: 'open dispute', signature: null, explorerUrl: null, message: 'This demo dispute is local until the dispute transaction is wired.' });
-        setAgreement(withAgreementState(agreement, 'disputed', { dispute: { reasonCode: 1, evidenceHash } }));
+        const { anchor, connection, program, connectedPubkey, agreementPda } = await getAgreementActors();
+        const evidenceHashBytes = await sha256Bytes(evidence || `${Date.now()}`);
+
+        setTxState({ phase: 'signing', action: 'open dispute', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
+        const txSignature = await program.methods
+          .openDispute(1, Array.from(evidenceHashBytes))
+          .accounts({
+            authority: connectedPubkey,
+            agreement: agreementPda,
+          })
+          .rpc();
+        setTxState({ phase: 'submitted', action: 'open dispute', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
+        await confirmSignature(connection, txSignature, 'open dispute');
+
+        const onchain = await (program as any).account.agreement.fetch(agreementPda);
+        setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+      });
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    }
+  };
+
+  const approveAgreement = async () => {
+    try {
+      return await withTxFeedback('approve agreement', async () => {
+        const { connection, program, landlordPubkey, agreementPda } = await getAgreementActors();
+        setTxState({ phase: 'signing', action: 'approve agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
+        const txSignature = await program.methods
+          .approveAgreement()
+          .accounts({ landlord: landlordPubkey, agreement: agreementPda })
+          .rpc();
+        setTxState({ phase: 'submitted', action: 'approve agreement', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
+        await confirmSignature(connection, txSignature, 'approve agreement');
+        const onchain = await (program as any).account.agreement.fetch(agreementPda);
+        setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+      });
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    }
+  };
+
+  const releaseAfterDeadline = async () => {
+    try {
+      return await withTxFeedback('release after deadline', async () => {
+        if (!agreement) throw new Error('No agreement to release');
+        const currentAgreement = agreement;
+        const { connection, program, tenantPubkey, landlordPubkey, agreementPda } = await getAgreementActors();
+        setTxState({ phase: 'signing', action: 'release after deadline', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
+        const txSignature = await program.methods
+          .releaseAfterDeadline()
+          .accounts({ landlord: landlordPubkey, tenant: tenantPubkey, agreement: agreementPda })
+          .rpc();
+        setTxState({ phase: 'submitted', action: 'release after deadline', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
+        await confirmSignature(connection, txSignature, 'release after deadline');
+        setAgreement(withAgreementState(currentAgreement, 'released', { onchain: null, txSignature }));
+      });
+    } catch (err: any) {
+      setError(err?.message ?? String(err));
+    }
+  };
+
+  const resolveDispute = async (releaseToLandlord: boolean) => {
+    try {
+      return await withTxFeedback(releaseToLandlord ? 'resolve dispute: release' : 'resolve dispute: refund', async () => {
+        if (!agreement) throw new Error('No agreement to resolve');
+        const currentAgreement = agreement;
+        const { connection, program, tenantPubkey, landlordPubkey, moderatorPubkey, agreementPda } = await getAgreementActors();
+        const action = releaseToLandlord ? 'resolve dispute: release' : 'resolve dispute: refund';
+        setTxState({ phase: 'signing', action, signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
+        const txSignature = await program.methods
+          .resolveDispute(releaseToLandlord)
+          .accounts({
+            moderator: moderatorPubkey,
+            tenant: tenantPubkey,
+            landlord: landlordPubkey,
+            agreement: agreementPda,
+          })
+          .rpc();
+        setTxState({ phase: 'submitted', action, signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
+        await confirmSignature(connection, txSignature, action);
+        setAgreement(withAgreementState(currentAgreement, releaseToLandlord ? 'released' : 'refunded', { onchain: null, txSignature }));
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -363,11 +625,13 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
-            <label className="text-xs font-medium">Tenant wallet</label>
+            <label className="text-xs font-medium">Connected wallet</label>
             <div className="mt-1 flex items-center gap-2">
               <input value={walletPubkey ?? ''} readOnly placeholder="Not connected" className="flex-1 rounded-md border px-3 py-2 text-sm" />
               <button type="button" onClick={connectWallet} disabled={isBusy} className="rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">Connect</button>
             </div>
+            {connectedRole && <p className="mt-1 text-xs text-stone-500">Role for loaded agreement: <span className="font-semibold capitalize">{connectedRole}</span></p>}
+            {isLoadingAgreement && <p className="mt-1 text-xs text-stone-500">Loading existing agreement for this wallet…</p>}
           </div>
           <div>
             <label className="text-xs font-medium">Landlord wallet (from listing)</label>
@@ -381,6 +645,14 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             )}
           </div>
         </div>
+
+        {pdaPreview && (
+          <div className="rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
+            <p className="font-semibold text-stone-700">On-chain preview</p>
+            <p className="mt-1 break-all">Listing hash: <span className="font-mono text-stone-500">{pdaPreview.listingHash}</span></p>
+            <p className="mt-1 break-all">Agreement PDA: <span className="font-mono text-stone-500">{pdaPreview.agreementPda}</span></p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>
@@ -425,20 +697,37 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             {agreement.txSignature && <p className="mt-1 text-xs text-stone-500">Last on-chain signature: <a href={explorerUrl(agreement.txSignature)} target="_blank" rel="noreferrer" className="underline underline-offset-2">{agreement.txSignature}</a></p>}
             <pre className="mt-2 max-h-40 overflow-auto text-xs text-stone-700">{JSON.stringify(agreement, null, 2)}</pre>
             <div className="mt-3 flex gap-2">
-              <button type="button" onClick={fundAgreement} disabled={isBusy || agreement.state !== 'awaitingFunding'} className="rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="button" onClick={approveAgreement} disabled={isBusy || agreement.state !== 'awaitingLandlordApproval' || connectedRole !== 'landlord'} className="rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+                {txState.action === 'approve agreement' && isBusy ? 'Approving…' : 'Approve'}
+              </button>
+              <button type="button" onClick={fundAgreement} disabled={isBusy || agreement.state !== 'awaitingFunding' || connectedRole !== 'tenant'} className="rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
                 {txState.action === 'fund agreement' && isBusy ? 'Funding…' : 'Fund'}
               </button>
-              <button type="button" onClick={cancelAgreement} disabled={isBusy} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Cancel</button>
-              <button type="button" onClick={releaseByTenant} disabled={isBusy || agreement.state !== 'funded'} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Release (tenant)</button>
+              <button type="button" onClick={cancelAgreement} disabled={isBusy || !connectedRole || connectedRole === 'viewer' || !['awaitingLandlordApproval', 'awaitingFunding'].includes(agreement.state)} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Cancel</button>
+              <button type="button" onClick={releaseByTenant} disabled={isBusy || agreement.state !== 'funded' || connectedRole !== 'tenant'} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Release (tenant)</button>
+              <button type="button" onClick={releaseAfterDeadline} disabled={isBusy || agreement.state !== 'funded' || connectedRole !== 'landlord'} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Release after deadline</button>
             </div>
             <div className="mt-3">
               <label className="text-xs font-medium">Evidence (optional)</label>
               <input value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Short description or evidence text" className="mt-1 w-full rounded-md border px-3 py-2 text-sm" />
               <div className="mt-2 flex gap-2">
-                <button type="button" onClick={openDispute} disabled={isBusy} className="rounded-md bg-rose-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">{txState.action === 'open dispute' && isBusy ? 'Opening…' : 'Open dispute'}</button>
+                <button type="button" onClick={openDispute} disabled={isBusy || agreement.state !== 'funded' || (connectedRole !== 'tenant' && connectedRole !== 'landlord')} className="rounded-md bg-rose-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">{txState.action === 'open dispute' && isBusy ? 'Opening…' : 'Open dispute'}</button>
+                <button type="button" onClick={() => resolveDispute(true)} disabled={isBusy || agreement.state !== 'disputed' || connectedRole !== 'moderator'} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Moderator release</button>
+                <button type="button" onClick={() => resolveDispute(false)} disabled={isBusy || agreement.state !== 'disputed' || connectedRole !== 'moderator'} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Moderator refund</button>
                 <button type="button" onClick={() => { setAgreement(null); clearTxState(); onClose(); }} disabled={isBusy} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Close</button>
               </div>
+              {(connectedRole === 'moderator' || agreement.state === 'disputed') && (
+                <p className="mt-2 text-xs text-amber-700">
+                  Moderator note: The hackathon moderator is a centralized role. Dispute decisions are final and cannot be appealed.
+                </p>
+              )}
             </div>
+          </div>
+        )}
+
+        {networkWarning && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            {networkWarning}
           </div>
         )}
 
