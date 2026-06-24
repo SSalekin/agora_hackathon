@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Building2, CalendarClock, ExternalLink, KeyRound } from 'lucide-react';
 import type { ApartmentListing } from '@/types/listing';
-import { buildAgreementView, formatAgreementStateLabel, withAgreementState, type AgreementView } from '@/lib/escrow';
+import { buildAgreementView, decodeAgreementState, formatAgreementStateLabel, withAgreementState, persistAgreementAction, persistDisputeEvidence, type AgreementView } from '@/lib/escrow';
 import idl from '@/idl/escrow.json';
 import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
 import { checkNetwork, formatWalletError } from '@/lib/preflight';
@@ -284,6 +284,7 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction('approve', pda, txSignature, txExplorerUrl(txSignature), decodeAgreementState(onchain.state));
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -319,6 +320,7 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction('cancel', pda, txSignature, txExplorerUrl(txSignature), 'cancelled');
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -348,6 +350,7 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction('releaseAfterDeadline', pda, txSignature, txExplorerUrl(txSignature), 'released');
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -379,6 +382,10 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction('dispute', pda, txSignature, txExplorerUrl(txSignature), 'disputed');
+        if (evidenceText) {
+          persistDisputeEvidence(pda, evidenceText, connectedPubkey.toBase58());
+        }
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -415,6 +422,7 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction(releaseToLandlord ? 'resolve:release' : 'resolve:refund', pda, txSignature, txExplorerUrl(txSignature), releaseToLandlord ? 'released' : 'refunded');
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));

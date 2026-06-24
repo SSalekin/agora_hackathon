@@ -8,6 +8,9 @@ import {
   decodeAgreementState,
   formatAgreementStateLabel,
   withAgreementState,
+  persistCreateAgreement,
+  persistAgreementAction,
+  persistDisputeEvidence,
   type AgreementUiState,
   type AgreementView,
 } from '@/lib/escrow';
@@ -407,6 +410,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         // Fetch on-chain agreement account
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
         setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+        persistCreateAgreement(listing.id, agreementPda.toBase58(), txSignature, explorerUrl(txSignature), onchain);
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -459,6 +463,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
         setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+        persistAgreementAction('fund', agreement.pda, txSignature, explorerUrl(txSignature), decodeAgreementState(onchain.state));
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -486,6 +491,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         await confirmSignature(connection, txSignature, 'cancel agreement');
 
         setAgreement(withAgreementState(currentAgreement, 'cancelled', { onchain: null, txSignature }));
+        persistAgreementAction('cancel', agreement.pda, txSignature, explorerUrl(txSignature), 'cancelled');
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -512,6 +518,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         await confirmSignature(connection, txSignature, 'release agreement');
 
         setAgreement(withAgreementState(currentAgreement, 'released', { onchain: null, txSignature }));
+        persistAgreementAction('release', agreement.pda, txSignature, explorerUrl(txSignature), 'released');
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -538,6 +545,10 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
         setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+        persistAgreementAction('dispute', agreement.pda, txSignature, explorerUrl(txSignature), 'disputed');
+        if (evidence) {
+          persistDisputeEvidence(agreement.pda, evidence, connectedPubkey.toBase58());
+        }
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -557,6 +568,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         await confirmSignature(connection, txSignature, 'approve agreement');
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
         setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+        if (agreement) persistAgreementAction('approve', agreement.pda, txSignature, explorerUrl(txSignature), decodeAgreementState(onchain.state));
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -577,6 +589,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         setTxState({ phase: 'submitted', action: 'release after deadline', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
         await confirmSignature(connection, txSignature, 'release after deadline');
         setAgreement(withAgreementState(currentAgreement, 'released', { onchain: null, txSignature }));
+        persistAgreementAction('releaseAfterDeadline', agreement.pda, txSignature, explorerUrl(txSignature), 'released');
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
@@ -603,6 +616,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         setTxState({ phase: 'submitted', action, signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
         await confirmSignature(connection, txSignature, action);
         setAgreement(withAgreementState(currentAgreement, releaseToLandlord ? 'released' : 'refunded', { onchain: null, txSignature }));
+        persistAgreementAction('resolve', agreement.pda, txSignature, explorerUrl(txSignature), releaseToLandlord ? 'released' : 'refunded');
       });
     } catch (err: any) {
       setError(err?.message ?? String(err));
