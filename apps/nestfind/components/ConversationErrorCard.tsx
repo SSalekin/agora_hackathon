@@ -2,7 +2,7 @@ import React from 'react';
 
 export type ConnectionIssue = {
   id: string;
-  source: 'rtm' | 'agent' | 'rtm-signaling';
+  source: 'rtm' | 'agent' | 'rtm-signaling' | 'rtc-audio';
   agentUserId: string;
   code: string | number;
   message: string;
@@ -79,6 +79,12 @@ function getCta(issue: ConnectionIssue): string | null {
     return 'Verify provider API permissions.';
   if (msg.includes('http 404') || code === '404')
     return 'Verify provider endpoint and model ID.';
+  if (code === 'autoplay-blocked' || msg.includes('autoplay')) {
+    return 'Click anywhere on the page and retry audio playback.';
+  }
+  if (code === 'agent-audio-missing' || msg.includes('audio track')) {
+    return 'The agent joined but no RTC audio track is available.';
+  }
   if (msg.includes('http 408') || msg.includes('timeout') || code === '408')
     return 'Check network stability and retry.';
   if (msg.includes('http 409') || code === '409')
