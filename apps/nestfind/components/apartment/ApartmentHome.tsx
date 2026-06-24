@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Clock3, Heart, Home, LogOut, Mic, Search, Shield, Sparkles, UserRound } from 'lucide-react';
 import type { ApartmentListing, ListingSearchFilters, SearchHistoryItem } from '@/types/listing';
+import { useAuth } from '@/lib/auth-context';
 import { LandlordDashboard } from './LandlordDashboard';
 import { ListingGrid } from './ListingGrid';
 import { ModeratorDashboard } from './ModeratorDashboard';
@@ -15,19 +16,24 @@ type Props = {
   isLoading: boolean; error: string | null; userName: string | null;
   listings: ApartmentListing[]; listingCatalog: ApartmentListing[]; hasSearched: boolean; activeFilters: ListingSearchFilters | null; favoriteIds: string[]; history: SearchHistoryItem[];
   onStartConversation: () => void; onTextSearch: (query: string) => void;
-  onToggleFavorite: (id: string) => void; onSignIn: (name: string) => void; onSignOut: () => void;
+  onToggleFavorite: (id: string) => void;
 };
 
 const EXAMPLE_QUERY = 'Find apartments within 2 kilometers of Greenwich Da Nang under 5 million VND in July 2027';
 
-export function ApartmentHome({ isLoading, error, userName, listings, listingCatalog, hasSearched, activeFilters, favoriteIds, history, onStartConversation, onTextSearch, onToggleFavorite, onSignIn, onSignOut }: Props) {
+export function ApartmentHome({ isLoading, error, userName, listings, listingCatalog, hasSearched, activeFilters, favoriteIds, history, onStartConversation, onTextSearch, onToggleFavorite }: Props) {
   const router = useRouter();
+  const { logout } = useAuth();
   const [tab, setTab] = useState<AppTab>('discover');
   const [query, setQuery] = useState('');
   const savedListings = listingCatalog.filter((listing) => favoriteIds.includes(listing.id));
   const submitSearch = (event: FormEvent) => { event.preventDefault(); if (query.trim()) { onTextSearch(query); setTab('discover'); } };
   const openSignIn = () => router.push('/login');
   const resultSummary = hasSearched ? `${listings.length} matched home${listings.length === 1 ? '' : 's'}` : 'Search by voice or text';
+
+  const handleSignOut = async () => {
+    await logout();
+  };
 
   return (
     <div className="min-h-dvh bg-[#f7f5ef] pb-24 text-stone-900 sm:pb-0">
@@ -37,7 +43,7 @@ export function ApartmentHome({ isLoading, error, userName, listings, listingCat
           <nav className="hidden items-center gap-1 rounded-full border border-stone-200 bg-white p-1 sm:flex" aria-label="Main navigation">
             {([['discover', 'Discover', Search], ['saved', `Saved ${favoriteIds.length ? `(${favoriteIds.length})` : ''}`, Heart], ['history', 'History', Clock3], ['landlord', 'Landlord', Home], ['moderator', 'Moderator', Shield]] as const).map(([value, label, Icon]) => <button type="button" key={value} onClick={() => setTab(value)} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold ${tab === value ? 'bg-stone-900 text-white' : 'text-stone-500 hover:text-stone-900'}`}><Icon className="h-3.5 w-3.5" />{label}</button>)}
           </nav>
-          <div className="flex items-center gap-2"><div className="hidden sm:block"><PwaControls /></div>{userName ? <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-2 text-xs font-semibold"><span className="grid h-7 w-7 place-items-center rounded-full bg-amber-100">{userName[0].toUpperCase()}</span><span className="hidden md:block">{userName}</span><button type="button" onClick={() => { onSignOut(); router.push('/login'); }} aria-label="Sign out"><LogOut className="h-3.5 w-3.5" /></button></div> : <button type="button" onClick={openSignIn} className="flex h-9 items-center gap-2 rounded-full bg-stone-900 px-3 text-xs font-semibold text-white sm:px-4"><UserRound className="h-4 w-4" /> <span className="hidden sm:inline">Sign in</span></button>}</div>
+          <div className="flex items-center gap-2"><div className="hidden sm:block"><PwaControls /></div>{userName ? <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-2 text-xs font-semibold"><span className="grid h-7 w-7 place-items-center rounded-full bg-amber-100">{userName[0].toUpperCase()}</span><span className="hidden md:block">{userName}</span><button type="button" onClick={handleSignOut} aria-label="Sign out"><LogOut className="h-3.5 w-3.5" /></button></div> : <button type="button" onClick={openSignIn} className="flex h-9 items-center gap-2 rounded-full bg-stone-900 px-3 text-xs font-semibold text-white sm:px-4"><UserRound className="h-4 w-4" /> <span className="hidden sm:inline">Sign in</span></button>}</div>
         </div>
       </header>
 
@@ -46,7 +52,7 @@ export function ApartmentHome({ isLoading, error, userName, listings, listingCat
           <div><div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800"><Sparkles className="h-3.5 w-3.5" /> Voice-powered apartment discovery</div><h1 className="mt-5 max-w-3xl font-serif text-4xl font-bold leading-[1.02] tracking-[-0.04em] sm:text-5xl lg:text-6xl">Find a place that feels like <span className="italic text-emerald-800">home.</span></h1><p className="mt-4 max-w-xl text-sm leading-6 text-stone-600 sm:text-base sm:leading-7">Tell our voice concierge where, when, and how much. NestFind turns the conversation into apartment matches around Da Nang.</p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center"><button type="button" onClick={userName ? onStartConversation : openSignIn} disabled={isLoading} className="group flex h-13 items-center justify-center gap-3 rounded-2xl bg-emerald-900 px-5 text-sm font-semibold text-white shadow-lg transition hover:bg-emerald-800 disabled:opacity-60 sm:h-14 sm:px-6"><span className="grid h-8 w-8 place-items-center rounded-full bg-white/15"><Mic className="h-4 w-4" /></span>{isLoading ? 'Connecting…' : 'Talk to your apartment concierge'}<ArrowRight className="h-4 w-4" /></button><p className="text-xs leading-5 text-stone-500 sm:max-w-[14rem]">Voice works best for budgets, dates, and neighborhoods in one sentence.</p></div>{error && <p className="mt-3 text-sm text-rose-700">{error}</p>}
           </div>
-          <div className="flex items-center"><div className="surface-panel w-full rounded-[2rem] border border-white/80 p-4 sm:p-5"><div className="flex items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[.18em] text-emerald-800">Try saying</p><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">1 request</span></div><blockquote className="mt-4 font-serif text-lg leading-8 sm:text-2xl sm:leading-9">“I’m moving to Da Nang in July 2027. Find me a place near Greenwich University for under 5 million.”</blockquote><div className="mt-5 grid gap-3 border-t border-stone-200 pt-4 sm:grid-cols-2"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-900 text-white"><Mic className="h-4 w-4" /></span><div><p className="text-sm font-semibold">Natural voice search</p><p className="text-xs text-stone-500">Budget, distance and dates understood</p></div></div><div className="rounded-2xl bg-stone-50 px-4 py-3 text-xs leading-5 text-stone-600">Use follow-up prompts like “closer to campus” or “more furnished options.”</div></div></div></div>
+          <div className="flex items-center"><div className="surface-panel w-full rounded-[2rem] border border-white/80 p-4 sm:p-5"><div className="flex items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[.18em] text-emerald-800">Try saying</p><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">1 request</span></div><blockquote className="mt-4 font-serif text-lg leading-8 sm:text-2xl sm:leading-9">"I'm moving to Da Nang in July 2027. Find me a place near Greenwich University for under 5 million."</blockquote><div className="mt-5 grid gap-3 border-t border-stone-200 pt-4 sm:grid-cols-2"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-900 text-white"><Mic className="h-4 w-4" /></span><div><p className="text-sm font-semibold">Natural voice search</p><p className="text-xs text-stone-500">Budget, distance and dates understood</p></div></div><div className="rounded-2xl bg-stone-50 px-4 py-3 text-xs leading-5 text-stone-600">Use follow-up prompts like "closer to campus" or "more furnished options."</div></div></div></div>
         </div></section>
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10"><div className="surface-panel rounded-[1.75rem] border border-stone-200 p-3 sm:p-4"><form onSubmit={submitSearch} className="flex flex-col gap-3 sm:flex-row sm:items-center"><div className="flex flex-1 items-center gap-3 rounded-2xl bg-stone-50 px-3"><Search className="h-5 w-5 text-stone-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} className="h-12 w-full bg-transparent text-sm outline-none" placeholder="Type your apartment request…" /></div><button type="submit" className="h-12 rounded-2xl bg-stone-900 px-5 text-sm font-semibold text-white sm:px-6">Search</button></form><div className="mt-3 flex flex-col gap-2 text-xs text-stone-500 sm:flex-row sm:items-center sm:justify-between"><button type="button" onClick={() => { setQuery(EXAMPLE_QUERY); onTextSearch(EXAMPLE_QUERY); }} className="text-left underline underline-offset-4">Use the Greenwich University example</button><div className="sm:hidden"><PwaControls /></div><span className="hidden sm:inline">Shorter requests work better on mobile.</span></div></div>{hasSearched && <><div className="mb-5 mt-8 flex flex-col gap-3 sm:mb-6 sm:mt-10 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">Search results</p><h2 className="mt-1 font-serif text-2xl font-bold sm:text-3xl">{`${listings.length} matched homes`}</h2></div><p className="text-sm text-stone-500">Tap a card to review details or start an agreement.</p></div><SearchFilterChips filters={activeFilters} /><div className="mt-5 sm:mt-6"><ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} /></div></>}</section>
       </main>}
