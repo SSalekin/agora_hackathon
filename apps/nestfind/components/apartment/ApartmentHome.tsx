@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, Clock3, Heart, Home, LogOut, Mic, Search, Shield, Sparkles, UserRound } from 'lucide-react';
 import type { ApartmentListing, ListingSearchFilters, SearchHistoryItem } from '@/types/listing';
 import { LandlordDashboard } from './LandlordDashboard';
@@ -20,12 +21,12 @@ type Props = {
 const EXAMPLE_QUERY = 'Find apartments within 2 kilometers of Greenwich Da Nang under 5 million VND in July 2027';
 
 export function ApartmentHome({ isLoading, error, userName, listings, listingCatalog, hasSearched, activeFilters, favoriteIds, history, onStartConversation, onTextSearch, onToggleFavorite, onSignIn, onSignOut }: Props) {
+  const router = useRouter();
   const [tab, setTab] = useState<AppTab>('discover');
   const [query, setQuery] = useState('');
-  const [name, setName] = useState('');
   const savedListings = listingCatalog.filter((listing) => favoriteIds.includes(listing.id));
   const submitSearch = (event: FormEvent) => { event.preventDefault(); if (query.trim()) { onTextSearch(query); setTab('discover'); } };
-  const openSignIn = () => document.getElementById('demo-auth')?.showPopover?.();
+  const openSignIn = () => router.push('/login');
   const resultSummary = hasSearched ? `${listings.length} matched home${listings.length === 1 ? '' : 's'}` : 'Search by voice or text';
 
   return (
@@ -36,14 +37,9 @@ export function ApartmentHome({ isLoading, error, userName, listings, listingCat
           <nav className="hidden items-center gap-1 rounded-full border border-stone-200 bg-white p-1 sm:flex" aria-label="Main navigation">
             {([['discover', 'Discover', Search], ['saved', `Saved ${favoriteIds.length ? `(${favoriteIds.length})` : ''}`, Heart], ['history', 'History', Clock3], ['landlord', 'Landlord', Home], ['moderator', 'Moderator', Shield]] as const).map(([value, label, Icon]) => <button type="button" key={value} onClick={() => setTab(value)} className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold ${tab === value ? 'bg-stone-900 text-white' : 'text-stone-500 hover:text-stone-900'}`}><Icon className="h-3.5 w-3.5" />{label}</button>)}
           </nav>
-          <div className="flex items-center gap-2"><div className="hidden sm:block"><PwaControls /></div>{userName ? <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-2 text-xs font-semibold"><span className="grid h-7 w-7 place-items-center rounded-full bg-amber-100">{userName[0].toUpperCase()}</span><span className="hidden md:block">{userName}</span><button type="button" onClick={onSignOut} aria-label="Sign out"><LogOut className="h-3.5 w-3.5" /></button></div> : <button type="button" onClick={openSignIn} className="flex h-9 items-center gap-2 rounded-full bg-stone-900 px-3 text-xs font-semibold text-white sm:px-4"><UserRound className="h-4 w-4" /> <span className="hidden sm:inline">Sign in</span></button>}</div>
+          <div className="flex items-center gap-2"><div className="hidden sm:block"><PwaControls /></div>{userName ? <div className="flex items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-2 text-xs font-semibold"><span className="grid h-7 w-7 place-items-center rounded-full bg-amber-100">{userName[0].toUpperCase()}</span><span className="hidden md:block">{userName}</span><button type="button" onClick={() => { onSignOut(); router.push('/login'); }} aria-label="Sign out"><LogOut className="h-3.5 w-3.5" /></button></div> : <button type="button" onClick={openSignIn} className="flex h-9 items-center gap-2 rounded-full bg-stone-900 px-3 text-xs font-semibold text-white sm:px-4"><UserRound className="h-4 w-4" /> <span className="hidden sm:inline">Sign in</span></button>}</div>
         </div>
       </header>
-
-      <div id="demo-auth" popover="auto" className="m-auto w-[min(92vw,25rem)] rounded-3xl border border-stone-200 bg-white p-6 text-stone-900 shadow-2xl backdrop:bg-stone-950/40">
-        <h2 className="font-serif text-2xl font-bold">Welcome to NestFind</h2><p className="mt-2 text-sm leading-6 text-stone-500">This demo profile keeps saved homes and history on this device.</p>
-        <form className="mt-5" onSubmit={(event) => { event.preventDefault(); if (name.trim()) { onSignIn(name.trim()); document.getElementById('demo-auth')?.hidePopover?.(); } }}><label className="text-xs font-semibold" htmlFor="profile-name">Your name</label><input id="profile-name" value={name} onChange={(event) => setName(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-stone-200 px-3 outline-none focus:border-emerald-700" placeholder="e.g. Minh" /><button type="submit" className="mt-4 h-11 w-full rounded-xl bg-emerald-900 text-sm font-semibold text-white">Continue</button></form>
-      </div>
 
       {tab === 'discover' && <main>
         <section className="relative overflow-hidden border-b border-stone-200"><div className="absolute inset-0 opacity-70 [background-image:radial-gradient(circle_at_15%_20%,#d9ead3_0,transparent_28%),radial-gradient(circle_at_85%_35%,#f8dfb6_0,transparent_25%)]" /><div className="absolute inset-x-0 top-0 h-full soft-grid opacity-40" /><div className="relative mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[1.1fr_.9fr] lg:gap-10 lg:py-16">
