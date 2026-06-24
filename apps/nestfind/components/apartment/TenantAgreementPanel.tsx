@@ -88,13 +88,18 @@ function anchorWeb3Decode(base58: string): Uint8Array {
 
 export default function TenantAgreementPanel({ listing, onClose }: Props) {
   const { publicKey: walletPubkey, connect, disconnect } = usePhantomWallet();
-  const [depositSol, setDepositSol] = useState<string>('0.5');
-  const [inspectionDate, setInspectionDate] = useState<string>('');
+  const [depositSol, setDepositSol] = useState<string>(String(listing.defaultDepositSol));
+  const [inspectionDate, setInspectionDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + listing.defaultInspectionDays);
+    return d.toISOString().slice(0, 16);
+  });
   const [agreement, setAgreement] = useState<AgreementView | null>(null);
   const [txState, setTxState] = useState<TxState>(INITIAL_TX_STATE);
   const [error, setError] = useState<string | null>(null);
   const [evidence, setEvidence] = useState<string>('');
   const [isLoadingAgreement, setIsLoadingAgreement] = useState(false);
+  const [pdaPreview, setPdaPreview] = useState<{ listingHash: string; agreementPda: string } | null>(null);
 
   const landlordWallet = listing.landlordWallet;
   const isLandlordValid = isValidSolanaPubkey(landlordWallet);
@@ -273,6 +278,32 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     // Wallet connected or account changed — load agreement for the new pubkey.
     if (curr) {
       loadExistingAgreement().catch(() => {});
+      // Derive PDA preview for display.
+      (async () => {
+        try {
+          const Anchor = await import('@anchor-lang/core');
+          const anchor = Anchor as typeof import('@anchor-lang/core');
+          // @ts-ignore
+          const providerWindow = window.solana;
+          if (!providerWindow?.publicKey) return;
+          const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
+          const tenantPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
+          const listingHashBuf = await sha256Bytes(listing.id);
+          const listingHashHex = bytesToHex(listingHashBuf);
+          const programId = new anchor.web3.PublicKey('9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X');
+          const [agreementPda] = anchor.web3.PublicKey.findProgramAddressSync([
+            Buffer.from('agreement'),
+            tenantPubkey.toBuffer(),
+            landlordPubkey.toBuffer(),
+            Buffer.from(listingHashBuf),
+          ], programId);
+          setPdaPreview({ listingHash: listingHashHex, agreementPda: agreementPda.toBase58() });
+        } catch {
+          // PDA preview is informational only; ignore derivation errors.
+        }
+      })();
+    } else {
+      setPdaPreview(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletPubkey, listing.id]);
@@ -521,6 +552,14 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             )}
           </div>
         </div>
+
+        {pdaPreview && (
+          <div className="rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
+            <p className="font-semibold text-stone-700">On-chain preview</p>
+            <p className="mt-1 break-all">Listing hash: <span className="font-mono text-stone-500">{pdaPreview.listingHash}</span></p>
+            <p className="mt-1 break-all">Agreement PDA: <span className="font-mono text-stone-500">{pdaPreview.agreementPda}</span></p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div>

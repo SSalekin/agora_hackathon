@@ -30,6 +30,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Balcony', 'Fast Wi-Fi', 'Motorbike parking'],
     accent: 'from-amber-200 via-orange-100 to-rose-100',
     landlordWallet: LANDLORD_DEMO.alice,
+    defaultDepositSol: 0.5,
+    defaultInspectionDays: 10,
   },
   {
     id: 'greenwich-loft',
@@ -46,6 +48,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Study desk', 'Elevator', 'Weekly cleaning'],
     accent: 'from-emerald-200 via-teal-100 to-cyan-100',
     landlordWallet: LANDLORD_DEMO.bob,
+    defaultDepositSol: 0.5,
+    defaultInspectionDays: 10,
   },
   {
     id: 'marble-mountain-flat',
@@ -62,6 +66,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Air conditioning', 'Security', 'Laundry'],
     accent: 'from-violet-200 via-fuchsia-100 to-pink-100',
     landlordWallet: LANDLORD_DEMO.alice,
+    defaultDepositSol: 0.5,
+    defaultInspectionDays: 10,
   },
   {
     id: 'my-khe-one-bedroom',
@@ -78,6 +84,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Beach access', 'Kitchen', 'Rooftop'],
     accent: 'from-sky-200 via-blue-100 to-indigo-100',
     landlordWallet: LANDLORD_DEMO.carol,
+    defaultDepositSol: 0.7,
+    defaultInspectionDays: 10,
   },
   {
     id: 'student-house-share',
@@ -94,6 +102,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Shared kitchen', 'Garden', 'Parking'],
     accent: 'from-lime-200 via-green-100 to-emerald-100',
     landlordWallet: LANDLORD_DEMO.dave,
+    defaultDepositSol: 0.3,
+    defaultInspectionDays: 7,
   },
   {
     id: 'han-river-modern',
@@ -110,6 +120,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['River view', 'Gym', 'Pool'],
     accent: 'from-cyan-200 via-sky-100 to-blue-100',
     landlordWallet: LANDLORD_DEMO.bob,
+    defaultDepositSol: 1.0,
+    defaultInspectionDays: 14,
   },
   {
     id: 'hoa-khanh-budget-room',
@@ -126,6 +138,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Private bathroom', 'Parking', 'Local market'],
     accent: 'from-yellow-200 via-amber-100 to-orange-100',
     landlordWallet: LANDLORD_DEMO.carol,
+    defaultDepositSol: 0.3,
+    defaultInspectionDays: 7,
   },
   {
     id: 'thanh-khe-cozy-studio',
@@ -142,6 +156,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Kitchenette', 'Air conditioning', 'Bus access'],
     accent: 'from-rose-200 via-pink-100 to-orange-100',
     landlordWallet: LANDLORD_DEMO.alice,
+    defaultDepositSol: 0.4,
+    defaultInspectionDays: 7,
   },
   {
     id: 'cam-le-riverside-studio',
@@ -158,6 +174,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['River walk', 'Laundry', 'Quiet street'],
     accent: 'from-teal-200 via-emerald-100 to-lime-100',
     landlordWallet: LANDLORD_DEMO.dave,
+    defaultDepositSol: 0.4,
+    defaultInspectionDays: 10,
   },
   {
     id: 'son-tra-compact-flat',
@@ -174,6 +192,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Elevator', 'Balcony', 'Dragon Bridge access'],
     accent: 'from-indigo-200 via-blue-100 to-sky-100',
     landlordWallet: LANDLORD_DEMO.bob,
+    defaultDepositSol: 0.5,
+    defaultInspectionDays: 10,
   },
   {
     id: 'an-thuong-serviced-suite',
@@ -190,6 +210,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Weekly cleaning', 'Coworking lounge', 'Beach access'],
     accent: 'from-purple-200 via-violet-100 to-fuchsia-100',
     landlordWallet: LANDLORD_DEMO.carol,
+    defaultDepositSol: 0.7,
+    defaultInspectionDays: 10,
   },
   {
     id: 'my-khe-sea-view',
@@ -206,6 +228,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Ocean view', 'Pool', '24-hour security'],
     accent: 'from-blue-300 via-cyan-100 to-sky-100',
     landlordWallet: LANDLORD_DEMO.alice,
+    defaultDepositSol: 1.0,
+    defaultInspectionDays: 14,
   },
   {
     id: 'hai-chau-city-two-bedroom',
@@ -222,6 +246,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['City center', 'Gym', 'Reception'],
     accent: 'from-stone-300 via-slate-100 to-zinc-100',
     landlordWallet: LANDLORD_DEMO.dave,
+    defaultDepositSol: 1.2,
+    defaultInspectionDays: 14,
   },
   {
     id: 'hoa-cuong-family-residence',
@@ -238,6 +264,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Three bedrooms', 'Large kitchen', 'Car parking'],
     accent: 'from-orange-200 via-amber-100 to-yellow-100',
     landlordWallet: LANDLORD_DEMO.bob,
+    defaultDepositSol: 1.5,
+    defaultInspectionDays: 14,
   },
   {
     id: 'son-tra-peninsula-penthouse',
@@ -254,6 +282,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Panoramic view', 'Private terrace', 'Concierge'],
     accent: 'from-fuchsia-200 via-purple-100 to-indigo-100',
     landlordWallet: LANDLORD_DEMO.carol,
+    defaultDepositSol: 2.0,
+    defaultInspectionDays: 14,
   },
   {
     id: 'hoa-hai-townhouse',
@@ -270,6 +300,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Private garden', 'Pet friendly', 'Parking'],
     accent: 'from-green-200 via-lime-100 to-yellow-100',
     landlordWallet: LANDLORD_DEMO.alice,
+    defaultDepositSol: 0.7,
+    defaultInspectionDays: 10,
   },
   {
     id: 'greenwich-micro-studio',
@@ -286,6 +318,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Campus shuttle', 'Study desk', 'Utilities included'],
     accent: 'from-red-200 via-orange-100 to-amber-100',
     landlordWallet: LANDLORD_DEMO.dave,
+    defaultDepositSol: 0.3,
+    defaultInspectionDays: 7,
   },
   {
     id: 'ngu-hanh-son-family-flat',
@@ -302,6 +336,8 @@ export const APARTMENT_LISTINGS: ApartmentListing[] = [
     amenities: ['Family friendly', 'Playground', 'Supermarket nearby'],
     accent: 'from-cyan-200 via-emerald-100 to-green-100',
     landlordWallet: LANDLORD_DEMO.carol,
+    defaultDepositSol: 1.0,
+    defaultInspectionDays: 14,
   },
 ];
 
