@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Building2, CalendarClock, ExternalLink, KeyRound } from 'lucide-react';
 import type { ApartmentListing } from '@/types/listing';
 import { buildAgreementView, formatAgreementStateLabel, withAgreementState, type AgreementView } from '@/lib/escrow';
 import idl from '@/idl/escrow.json';
+import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 const DEFAULT_RPC_URL =
@@ -65,7 +66,7 @@ function parseBigNumber(value: unknown): number {
 }
 
 export function LandlordDashboard({ listings }: Props) {
-  const [walletPubkey, setWalletPubkey] = useState<string | null>(null);
+  const { publicKey: walletPubkey, connect } = usePhantomWallet();
   const [queue, setQueue] = useState<LandlordAgreementQueueItem[]>([]);
   const [isLoadingQueue, setIsLoadingQueue] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -195,28 +196,31 @@ export function LandlordDashboard({ listings }: Props) {
     }
   };
 
+  const prevPubkeyRef = useRef<string | null>(walletPubkey);
   useEffect(() => {
-    // @ts-ignore
-    const existingWallet = window.solana?.publicKey?.toString?.() ?? null;
-    if (existingWallet) {
-      setWalletPubkey(existingWallet);
-      loadQueue(existingWallet).catch(() => {});
+    const prev = prevPubkeyRef.current;
+    const curr = walletPubkey;
+    prevPubkeyRef.current = curr;
+
+    // Wallet disconnected — clear queue.
+    if (prev && !curr) {
+      setQueue([]);
+      clearTxState();
+      setError(null);
+      return;
+    }
+
+    // Wallet connected or account changed — load queue for the new pubkey.
+    if (curr) {
+      loadQueue(curr).catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [walletPubkey]);
 
   const connectWallet = async () => {
     setError(null);
     try {
-      // @ts-ignore
-      const provider = window.solana;
-      if (!provider) throw new Error('No wallet provider found (Phantom recommended).');
-      // @ts-ignore
-      const response = await provider.connect();
-      const connectedWallet =
-        response.publicKey?.toString?.() ?? provider.publicKey?.toString?.() ?? null;
-      setWalletPubkey(connectedWallet);
-      await loadQueue(connectedWallet);
+      await connect();
     } catch (err: any) {
       setError(err?.message ?? String(err));
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ApartmentListing } from '@/types/listing';
 import idl from '@/idl/escrow.json';
 import {
@@ -10,6 +10,7 @@ import {
   type AgreementUiState,
   type AgreementView,
 } from '@/lib/escrow';
+import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 const DEFAULT_RPC_URL = (process.env.NEXT_PUBLIC_SOLANA_RPC_URL as string) || 'https://api.devnet.solana.com';
@@ -86,7 +87,7 @@ function anchorWeb3Decode(base58: string): Uint8Array {
 }
 
 export default function TenantAgreementPanel({ listing, onClose }: Props) {
-  const [walletPubkey, setWalletPubkey] = useState<string | null>(null);
+  const { publicKey: walletPubkey, connect, disconnect } = usePhantomWallet();
   const [depositSol, setDepositSol] = useState<string>('0.5');
   const [inspectionDate, setInspectionDate] = useState<string>('');
   const [agreement, setAgreement] = useState<AgreementView | null>(null);
@@ -145,7 +146,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     const Anchor = await import('@anchor-lang/core');
     const anchor = Anchor as typeof import('@anchor-lang/core');
     const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
-    // @ts-ignore
+    // @ts-ignore — Phantom injects window.solana
     const providerWindow = window.solana;
     if (!providerWindow) throw new Error('No wallet provider found (Phantom recommended).');
     const walletAdapter: any = {
@@ -153,8 +154,8 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
       signTransaction: providerWindow.signTransaction?.bind(providerWindow),
       signAllTransactions: providerWindow.signAllTransactions?.bind(providerWindow),
     };
-    const provider = new anchor.AnchorProvider(connection, walletAdapter, anchor.AnchorProvider.defaultOptions());
-    const program = new anchor.Program(idl as any, provider);
+    const anchorProvider = new anchor.AnchorProvider(connection, walletAdapter, anchor.AnchorProvider.defaultOptions());
+    const program = new anchor.Program(idl as any, anchorProvider);
     const connectedPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
     if (!connectedPubkey) throw new Error('Wallet not connected');
     const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
@@ -169,7 +170,6 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     return {
       anchor,
       connection,
-      providerWindow,
       program,
       connectedPubkey,
       landlordPubkey,
@@ -247,17 +247,8 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
   const connectWallet = async () => {
     setError(null);
     try {
-      // Basic Phantom support via window.solana
-      // This is intentionally minimal; consider using Wallet Adapter later.
-      // @ts-ignore
-      const provider = window.solana;
-      if (!provider) throw new Error('No wallet provider found (Phantom recommended).');
-      // @ts-ignore
-      const resp = await provider.connect();
-      // @ts-ignore
-      const publicKey = resp.publicKey?.toString?.() ?? provider.publicKey?.toString?.() ?? null;
-      setWalletPubkey(publicKey);
-      if (publicKey) {
+      const key = await connect();
+      if (key) {
         await loadExistingAgreement();
       }
     } catch (err: any) {
@@ -265,14 +256,26 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     }
   };
 
+  const prevPubkeyRef = useRef<string | null>(walletPubkey);
   useEffect(() => {
-    // @ts-ignore
-    const existingPubkey = window.solana?.publicKey?.toString?.() ?? null;
-    if (!existingPubkey) return;
-    setWalletPubkey(existingPubkey);
-    loadExistingAgreement().catch(() => {});
+    const prev = prevPubkeyRef.current;
+    const curr = walletPubkey;
+    prevPubkeyRef.current = curr;
+
+    // Wallet disconnected — clear agreement state.
+    if (prev && !curr) {
+      setAgreement(null);
+      clearTxState();
+      setError(null);
+      return;
+    }
+
+    // Wallet connected or account changed — load agreement for the new pubkey.
+    if (curr) {
+      loadExistingAgreement().catch(() => {});
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listing.id]);
+  }, [walletPubkey, listing.id]);
 
   const createAgreement = async () => {
     try {
@@ -281,7 +284,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
           throw new Error('Listing has an invalid landlord wallet address. Cannot create agreement.');
         }
 
-        const { anchor, connection, providerWindow, program, connectedPubkey, landlordPubkey, listingHashBytes, agreementPda } = await prepareAnchorClient();
+        const { anchor, connection, program, connectedPubkey, landlordPubkey, listingHashBytes, agreementPda } = await prepareAnchorClient();
 
         if (connectedPubkey.equals(landlordPubkey)) {
           throw new Error('Tenant and landlord wallets must be different. Connect a different wallet or choose a listing with a different landlord.');
