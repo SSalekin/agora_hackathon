@@ -7,7 +7,7 @@ Hackathon Anchor program for holding an apartment rental deposit in native SOL u
 ## Roles
 
 - **Tenant:** creates and funds an agreement, accepts the apartment, or opens a dispute.
-- **Landlord:** approves/rejects the proposed agreement and may claim an undisputed deposit after the deadline.
+- **Landlord:** approves or rejects the proposed agreement, maintains a minimum on-chain stake profile for approval, and may claim an undisputed deposit after the deadline.
 - **Moderator:** one program-wide wallet configured once for the hackathon; it makes a final full-release or full-refund decision for disputes.
 
 ## Lifecycle
@@ -31,8 +31,9 @@ Terminal agreements close. The deposit goes to the selected recipient and accoun
 
 - `Config` PDA: seeds `["config"]`; stores the fixed moderator wallet.
 - `Agreement` PDA: seeds `["agreement", tenant, landlord, listing_hash]`; stores authorization-critical agreement state and holds the native-SOL deposit.
+- `LandlordProfile` PDA: seeds `["landlord_profile", landlord]`; stores landlord stake and basic reputation counters.
 
-The web app should SHA-256 the Couchbase listing ID into `listing_hash`. Full listing details, profiles, and dispute evidence stay off-chain. A compact reason code and evidence hash are stored on-chain.
+The web app SHA-256 hashes the Couchbase listing ID into `listing_hash`. Full listing details, user profiles, and dispute evidence remain off-chain. Only compact agreement and evidence-hash data are stored on-chain.
 
 ## Instructions
 
@@ -45,10 +46,36 @@ The web app should SHA-256 the Couchbase listing ID into `listing_hash`. Full li
 - `open_dispute(reason_code, evidence_hash)`
 - `resolve_dispute(release_to_landlord)`
 - `release_after_deadline()`
+- `initialize_landlord_profile()`
+- `stake_landlord(amount)`
+- `unstake_landlord(amount)`
 
 ## Events
 
-`ConfigInitialized`, `AgreementCreated`, `LandlordApproved`, `DepositFunded`, `DisputeOpened`, `DepositReleased`, `DepositRefunded`, and `AgreementCancelled`.
+- `ConfigInitialized`
+- `AgreementCreated`
+- `LandlordApproved`
+- `DepositFunded`
+- `DisputeOpened`
+- `DepositReleased`
+- `DepositRefunded`
+- `AgreementCancelled`
+- `LandlordProfileInitialized`
+- `LandlordStaked`
+- `LandlordUnstaked`
+
+## Stake model
+
+The current program requires a landlord to maintain a minimum active stake before approving an agreement. The profile tracks:
+
+- `total_staked_lamports`
+- `active_stake_lamports`
+- `completed_rentals`
+- `disputes_lost`
+
+Current limitation:
+
+- The source enforces minimum stake, but the current agreement handlers do not yet update `completed_rentals` or `disputes_lost`, so the reputation model is only partially implemented.
 
 ## Prerequisites
 
@@ -88,23 +115,40 @@ pnpm run anchor:typecheck
 pnpm test
 ```
 
-The Bankrun suite covers tenant release, moderator refund, unauthorized moderator rejection, pre-funding cancellation, and deadline-gated landlord release.
+Bankrun coverage includes:
 
-## Devnet deployment
+- tenant release;
+- moderator refund;
+- unauthorized moderator rejection;
+- pre-funding cancellation;
+- deadline-gated landlord release;
+- landlord profile initialization and staking;
+- low-stake approval rejection;
+- landlord unstaking.
+
+## Devnet verification
 
 - Program: `9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X`
 - Config PDA: `7oYg85FpwboPrwDUMABYMjtAk9mQYqFck9TzM8ZNQLYq`
 - Moderator: `34G8SyYe3N9JnDe9zMTheZbfbJCrHtwB6MAjfmy9h68e`
 
-The program is deployed and initialized on Solana devnet. The local IDL is generated at `target/idl/escrow.json`; it was intentionally not uploaded on-chain.
+The repo also contains a devnet e2e suite at `programs/escrow/tests/devnet-e2e.ts` and exposes it through:
 
-To verify or idempotently initialize the config using the wallet configured as moderator:
+```bash
+pnpm run verify:escrow
+```
+
+Current limitation:
+
+- The devnet suite does not yet cover `release_after_deadline`.
+
+## Devnet config initialization
+
+To verify or idempotently initialize the config using the moderator wallet:
 
 ```bash
 ANCHOR_WALLET="$HOME/.config/solana/id.json" \
 pnpm run anchor:initialize:devnet
 ```
 
-The `anchor:initialize:devnet` script loads `SOLANA_DEVNET_RPC_URL` from the root `.env` automatically.
-
-NestFind Phantom integration remains tracked in [TODO.md](TODO.md).
+The `anchor:initialize:devnet` script loads `SOLANA_DEVNET_RPC_URL` from the root `.env`.
