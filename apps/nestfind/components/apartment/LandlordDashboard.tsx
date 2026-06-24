@@ -6,6 +6,7 @@ import type { ApartmentListing } from '@/types/listing';
 import { buildAgreementView, formatAgreementStateLabel, withAgreementState, type AgreementView } from '@/lib/escrow';
 import idl from '@/idl/escrow.json';
 import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
+import { checkNetwork, formatWalletError } from '@/lib/preflight';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 const DEFAULT_RPC_URL =
@@ -72,6 +73,7 @@ export function LandlordDashboard({ listings }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [txState, setTxState] = useState<TxState>(INITIAL_TX_STATE);
   const [evidence, setEvidence] = useState<Record<string, string>>({});
+  const [networkWarning, setNetworkWarning] = useState<string | null>(null);
 
   const isBusy =
     txState.phase !== 'idle' &&
@@ -126,8 +128,8 @@ export function LandlordDashboard({ listings }: Props) {
     setTxState({ phase: 'preparing', action, signature: null, explorerUrl: null, message: 'Preparing transaction...', activePda: pda });
     try {
       return await work();
-    } catch (err: any) {
-      const message = err?.message ?? String(err);
+    } catch (err: unknown) {
+      const message = formatWalletError(err);
       setTxFailure(action, pda, message);
       throw err;
     }
@@ -212,6 +214,19 @@ export function LandlordDashboard({ listings }: Props) {
 
     // Wallet connected or account changed — load queue for the new pubkey.
     if (curr) {
+      // Check network.
+      (async () => {
+        try {
+          const Anchor = await import('@anchor-lang/core');
+          const anchor = Anchor as typeof import('@anchor-lang/core');
+          const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
+          const result = await checkNetwork(connection, DEFAULT_CLUSTER);
+          setNetworkWarning(result.ok ? null : result.error ?? null);
+        } catch {
+          setNetworkWarning(null);
+        }
+      })();
+
       loadQueue(curr).catch(() => {});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -670,6 +685,12 @@ export function LandlordDashboard({ listings }: Props) {
           })
         )}
       </div>
+
+      {networkWarning && (
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          {networkWarning}
+        </div>
+      )}
     </main>
   );
 }

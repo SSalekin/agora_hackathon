@@ -12,6 +12,7 @@ import {
   type AgreementView,
 } from '@/lib/escrow';
 import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
+import { checkNetwork, checkBalance, formatWalletError } from '@/lib/preflight';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 const DEFAULT_RPC_URL = (process.env.NEXT_PUBLIC_SOLANA_RPC_URL as string) || 'https://api.devnet.solana.com';
@@ -101,6 +102,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
   const [evidence, setEvidence] = useState<string>('');
   const [isLoadingAgreement, setIsLoadingAgreement] = useState(false);
   const [pdaPreview, setPdaPreview] = useState<{ listingHash: string; agreementPda: string } | null>(null);
+  const [networkWarning, setNetworkWarning] = useState<string | null>(null);
 
   const landlordWallet = listing.landlordWallet;
   const isLandlordValid = isValidSolanaPubkey(landlordWallet);
@@ -141,8 +143,8 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     try {
       const result = await work();
       return result;
-    } catch (err: any) {
-      const message = err?.message ?? String(err);
+    } catch (err: unknown) {
+      const message = formatWalletError(err);
       setTxFailure(action, message);
       throw err;
     }
@@ -278,6 +280,19 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
     // Wallet connected or account changed — load agreement for the new pubkey.
     if (curr) {
+      // Check network.
+      (async () => {
+        try {
+          const Anchor = await import('@anchor-lang/core');
+          const anchor = Anchor as typeof import('@anchor-lang/core');
+          const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
+          const result = await checkNetwork(connection, DEFAULT_CLUSTER);
+          setNetworkWarning(result.ok ? null : result.error ?? null);
+        } catch {
+          setNetworkWarning(null);
+        }
+      })();
+
       loadExistingAgreement().catch(() => {});
       // Derive PDA preview for display.
       (async () => {
@@ -374,6 +389,12 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
           throw new Error('Listing is missing a landlord wallet address.');
         }
 
+        // --- Insufficient balance ---
+        const balanceResult = await checkBalance(connection, connectedPubkey, depositLamports);
+        if (!balanceResult.ok) {
+          throw new Error(balanceResult.error);
+        }
+
         // Build and send the createAgreement transaction
         setTxState({ phase: 'signing', action: 'create agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
         const txSignature = await program.methods
@@ -417,6 +438,15 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         const onchainTenant = freshOnchain.tenant?.toBase58?.();
         if (onchainTenant !== tenantPubkey.toBase58()) {
           throw new Error('Connected wallet is not the tenant for this agreement.');
+        }
+
+        // Pre-flight: check balance covers deposit + fees.
+        const depositLamports = typeof freshOnchain.depositLamports === 'object'
+          ? Number(freshOnchain.depositLamports.toString())
+          : Number(freshOnchain.depositLamports ?? 0);
+        const balanceResult = await checkBalance(connection, tenantPubkey, depositLamports);
+        if (!balanceResult.ok) {
+          throw new Error(balanceResult.error);
         }
 
         setTxState({ phase: 'signing', action: 'fund agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
@@ -692,6 +722,12 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
                 </p>
               )}
             </div>
+          </div>
+        )}
+
+        {networkWarning && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            {networkWarning}
           </div>
         )}
 

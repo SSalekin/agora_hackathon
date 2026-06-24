@@ -32,7 +32,7 @@ Complete a browser-based, multi-wallet devnet demonstration:
 - [x] Show transaction phases, signatures, errors, and Solana Explorer links.
 - [x] Handle wallet disconnect and account changes via shared `usePhantomWallet` hook.
 - [ ] Replace direct `window.solana` access and `any`/`@ts-ignore` usage with Wallet Standard support and typed wallet interfaces.
-- [ ] Handle wrong network, unavailable wallet, rejected signatures, and insufficient balance.
+- [x] Handle wrong network, unavailable wallet, rejected signatures, and insufficient balance.
 - [ ] Decide how browser RPC access is provided without exposing an unrestricted provider API key.
 
 ### Listing and agreement terms
@@ -40,7 +40,7 @@ Complete a browser-based, multi-wallet devnet demonstration:
 - [x] Add the landlord wallet address to each local and Couchbase listing.
 - [x] Add the landlord-proposed deposit amount and default inspection period/deadline to listing or agreement-term data.
 - [x] Stop asking tenants to type trusted landlord/deposit values when those values should come from the selected listing. Landlord is read-only from listing; deposit remains user-input.
-- [ ] Validate SOL amount precision, future deadlines, role separation, and listing configuration before requesting a signature.
+- [x] Validate SOL amount precision, future deadlines, role separation, and listing configuration before requesting a signature.
 - [x] Display the listing ID hash and derived agreement PDA before submission.
 
 ### Tenant actions
