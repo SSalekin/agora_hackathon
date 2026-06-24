@@ -527,6 +527,9 @@ export function LandlordDashboard({ listings }: Props) {
                   ? 'Refunding...'
                   : 'Refund tenant'}
               </button>
+              <p className="w-full text-xs text-amber-700">
+                Moderator note: The hackathon moderator is a centralized role. Dispute decisions are final and cannot be appealed.
+              </p>
             </>
           )}
         </div>

@@ -38,10 +38,10 @@ Complete a browser-based, multi-wallet devnet demonstration:
 ### Listing and agreement terms
 
 - [x] Add the landlord wallet address to each local and Couchbase listing.
-- [ ] Add the landlord-proposed deposit amount and default inspection period/deadline to listing or agreement-term data.
+- [x] Add the landlord-proposed deposit amount and default inspection period/deadline to listing or agreement-term data.
 - [x] Stop asking tenants to type trusted landlord/deposit values when those values should come from the selected listing. Landlord is read-only from listing; deposit remains user-input.
 - [ ] Validate SOL amount precision, future deadlines, role separation, and listing configuration before requesting a signature.
-- [ ] Display the listing ID hash and derived agreement PDA before submission.
+- [x] Display the listing ID hash and derived agreement PDA before submission.
 
 ### Tenant actions
 
@@ -66,7 +66,7 @@ Complete a browser-based, multi-wallet devnet demonstration:
 
 ### Moderator actions
 
-- [ ] Add a moderator-only dispute queue with a disclaimer that the hackathon moderator is centralized and decisions are final.
+- [x] Add a moderator-only dispute queue with a disclaimer that the hackathon moderator is centralized and decisions are final.
 - [ ] Load the off-chain reason/evidence record and verify its hash against the agreement account.
 - [x] Implement `resolve_dispute(true)` for full release to the landlord.
 - [x] Implement `resolve_dispute(false)` for full refund to the tenant.

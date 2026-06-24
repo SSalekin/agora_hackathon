@@ -5,6 +5,7 @@ import type { ApartmentListing } from '@/types/listing';
 import idl from '@/idl/escrow.json';
 import {
   buildAgreementView,
+  decodeAgreementState,
   formatAgreementStateLabel,
   withAgreementState,
   type AgreementUiState,
@@ -317,20 +318,61 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         const { anchor, connection, program, connectedPubkey, landlordPubkey, listingHashBytes, agreementPda } = await prepareAnchorClient();
 
+        // --- Role separation ---
         if (connectedPubkey.equals(landlordPubkey)) {
           throw new Error('Tenant and landlord wallets must be different. Connect a different wallet or choose a listing with a different landlord.');
         }
 
-        const depositLamports = Math.round(Number(depositSol || '0') * LAMPORTS_PER_SOL);
-        if (!Number.isFinite(depositLamports) || depositLamports <= 0) {
-          throw new Error('Deposit amount must be greater than zero');
+        // Check tenant != moderator and landlord != moderator.
+        const [configPda] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
+        const configAccount = await (program as any).account.config.fetch(configPda);
+        const moderatorPubkey = new anchor.web3.PublicKey(configAccount.moderator);
+        if (connectedPubkey.equals(moderatorPubkey)) {
+          throw new Error('Connected wallet is the moderator. The tenant cannot also be the moderator.');
         }
-        const inspectionDeadline = inspectionDate ? Math.floor(new Date(inspectionDate).getTime() / 1000) : 0;
-        if (!inspectionDeadline || inspectionDeadline <= Math.floor(Date.now() / 1000)) {
-          throw new Error('Inspection deadline must be in the future');
+        if (landlordPubkey.equals(moderatorPubkey)) {
+          throw new Error('This listing\'s landlord is the moderator. Choose a listing with a different landlord.');
         }
 
-        const [configPda] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
+        // --- SOL amount precision ---
+        const depositInput = depositSol.trim();
+        const depositNumber = Number(depositInput);
+        if (!depositInput || !Number.isFinite(depositNumber)) {
+          throw new Error('Enter a valid deposit amount in SOL.');
+        }
+        const decimalPart = depositInput.includes('.') ? depositInput.split('.')[1] ?? '' : '';
+        if (decimalPart.length > 9) {
+          throw new Error('SOL amount has too many decimals. Maximum is 9 decimal places (1 lamport).');
+        }
+        const depositLamports = Math.round(depositNumber * LAMPORTS_PER_SOL);
+        if (depositLamports <= 0) {
+          throw new Error('Deposit amount must be greater than zero.');
+        }
+        if (depositLamports > 100 * LAMPORTS_PER_SOL) {
+          throw new Error('Deposit amount exceeds maximum (100 SOL). Use a smaller amount.');
+        }
+
+        // --- Future deadline ---
+        const inspectionDeadline = inspectionDate ? Math.floor(new Date(inspectionDate).getTime() / 1000) : 0;
+        if (!inspectionDeadline) {
+          throw new Error('Inspection deadline is required.');
+        }
+        const nowSec = Math.floor(Date.now() / 1000);
+        if (inspectionDeadline <= nowSec) {
+          throw new Error('Inspection deadline must be in the future.');
+        }
+        const minDeadline = nowSec + 3600; // at least 1 hour from now
+        if (inspectionDeadline < minDeadline) {
+          throw new Error('Inspection deadline must be at least 1 hour from now.');
+        }
+
+        // --- Listing configuration ---
+        if (!listing.id || !listing.title || !listing.address) {
+          throw new Error('Listing is missing required fields (id, title, address).');
+        }
+        if (!listing.landlordWallet) {
+          throw new Error('Listing is missing a landlord wallet address.');
+        }
 
         // Build and send the createAgreement transaction
         setTxState({ phase: 'signing', action: 'create agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
@@ -355,6 +397,27 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
       return await withTxFeedback('fund agreement', async () => {
         if (!agreement) throw new Error('No agreement to fund');
         const { anchor, connection, program, tenantPubkey, agreementPda } = await getAgreementActors();
+
+        // Pre-flight: verify agreement state is awaiting funding.
+        const freshOnchain = await (program as any).account.agreement.fetch(agreementPda);
+        const freshState = decodeAgreementState(freshOnchain.state);
+        if (freshState !== 'awaitingFunding') {
+          throw new Error(`Agreement is not awaiting funding. Current state: ${formatAgreementStateLabel(freshState)}.`);
+        }
+
+        // Pre-flight: verify inspection deadline has not passed.
+        const deadline = typeof freshOnchain.inspectionDeadline === 'object'
+          ? Number(freshOnchain.inspectionDeadline.toString())
+          : Number(freshOnchain.inspectionDeadline ?? 0);
+        if (deadline > 0 && Math.floor(Date.now() / 1000) > deadline) {
+          throw new Error('Inspection deadline has passed. The agreement can no longer be funded.');
+        }
+
+        // Pre-flight: verify caller is the tenant.
+        const onchainTenant = freshOnchain.tenant?.toBase58?.();
+        if (onchainTenant !== tenantPubkey.toBase58()) {
+          throw new Error('Connected wallet is not the tenant for this agreement.');
+        }
 
         setTxState({ phase: 'signing', action: 'fund agreement', signature: null, explorerUrl: null, message: 'Waiting for wallet signature...' });
         const txSignature = await program.methods
@@ -623,6 +686,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
                 <button type="button" onClick={() => resolveDispute(false)} disabled={isBusy || agreement.state !== 'disputed' || connectedRole !== 'moderator'} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Moderator refund</button>
                 <button type="button" onClick={() => { setAgreement(null); clearTxState(); onClose(); }} disabled={isBusy} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Close</button>
               </div>
+              {(connectedRole === 'moderator' || agreement.state === 'disputed') && (
+                <p className="mt-2 text-xs text-amber-700">
+                  Moderator note: The hackathon moderator is a centralized role. Dispute decisions are final and cannot be appealed.
+                </p>
+              )}
             </div>
           </div>
         )}
