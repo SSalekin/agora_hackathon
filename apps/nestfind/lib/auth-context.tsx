@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(authUser);
 
       const redirects: Record<Role, string> = {
-        tenant: '/tenant/dashboard',
+        tenant: '/',
         landlord: '/landlord/dashboard',
         moderator: '/moderator/dashboard',
       };
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(authUser);
 
       const redirects: Record<Role, string> = {
-        tenant: '/tenant/dashboard',
+        tenant: '/',
         landlord: '/landlord/dashboard',
         moderator: '/moderator/dashboard',
       };

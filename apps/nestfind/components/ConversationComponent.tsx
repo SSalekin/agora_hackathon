@@ -111,6 +111,10 @@ export default function ConversationComponent({
   const agentUID =
     process.env.NEXT_PUBLIC_AGENT_UID ?? String(DEFAULT_AGENT_UID);
   const [joinedUID, setJoinedUID] = useState<UID>(0);
+  const playingAgentAudioTrackRef = useRef<{
+    uid: string;
+    track: { stop?: () => void };
+  } | null>(null);
 
   // Transcript + agent state — managed with AgoraVoiceAI (see effect below).
   const [rawTranscript, setRawTranscript] = useState<
@@ -133,6 +137,9 @@ export default function ConversationComponent({
       if (isDuplicate) return prev;
       return [issue, ...prev].slice(0, MAX_CONNECTION_ISSUES);
     });
+  }, []);
+  const removeConnectionIssues = useCallback((predicate: (issue: ConnectionIssue) => boolean) => {
+    setConnectionIssues((prev) => prev.filter((issue) => !predicate(issue)));
   }, []);
 
   // Auto-open details panel as soon as a new issue is recorded.
@@ -191,6 +198,24 @@ export default function ConversationComponent({
       console.warn('Could not set ENABLE_AUDIO_PTS:', error);
     }
   }, [client]);
+
+  useEffect(() => {
+    const previousHandler = AgoraRTC.onAutoplayFailed;
+    AgoraRTC.onAutoplayFailed = () => {
+      addConnectionIssue({
+        id: `${Date.now()}-autoplay-failed`,
+        source: 'rtc-audio',
+        agentUserId: agentUID,
+        code: 'autoplay-blocked',
+        message: 'Browser blocked remote audio autoplay.',
+        timestamp: Date.now(),
+      });
+    };
+
+    return () => {
+      AgoraRTC.onAutoplayFailed = previousHandler;
+    };
+  }, [addConnectionIssue, agentUID]);
 
   // Track the auto-assigned RTC UID for token renewal and agent invite.
   useEffect(() => {
@@ -427,6 +452,142 @@ export default function ConversationComponent({
   useClientEvent(client, 'connection-state-change', (curState) => {
     setConnectionState(curState);
   });
+
+  useClientEvent(client, 'user-published', async (user, mediaType) => {
+    if (user.uid.toString() !== agentUID || mediaType !== 'audio') return;
+
+    try {
+      removeConnectionIssues(
+        (issue) =>
+          issue.agentUserId === user.uid.toString() &&
+          (issue.code === 'agent-audio-missing' || issue.code === 'audio-subscribe-failed'),
+      );
+      await client.subscribe(user, 'audio');
+      user.audioTrack?.play();
+      if (user.audioTrack) {
+        playingAgentAudioTrackRef.current = {
+          uid: user.uid.toString(),
+          track: user.audioTrack,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to subscribe/play agent audio from user-published:', error);
+      addConnectionIssue({
+        id: `${Date.now()}-${user.uid}-audio-subscribe-failed`,
+        source: 'rtc-audio',
+        agentUserId: user.uid.toString(),
+        code: 'audio-subscribe-failed',
+        message: error instanceof Error ? error.message : 'Failed to subscribe to agent audio.',
+        timestamp: Date.now(),
+      });
+    }
+  });
+
+  useClientEvent(client, 'user-unpublished', (user, mediaType) => {
+    if (user.uid.toString() !== agentUID || mediaType !== 'audio') return;
+    try {
+      playingAgentAudioTrackRef.current?.track.stop?.();
+    } catch {}
+    playingAgentAudioTrackRef.current = null;
+  });
+
+  useEffect(() => {
+    if (!client) return;
+
+    const stopCurrentAgentAudio = () => {
+      const current = playingAgentAudioTrackRef.current;
+      if (!current) return;
+      try {
+        current.track.stop?.();
+      } catch {}
+      playingAgentAudioTrackRef.current = null;
+    };
+
+    const ensureAgentAudioPlayback = async () => {
+      const agentUser = remoteUsers.find((user) => user.uid.toString() === agentUID);
+      const audioTrack = agentUser?.audioTrack;
+      if (!agentUser || !audioTrack) {
+        stopCurrentAgentAudio();
+        return;
+      }
+
+      const alreadyPlaying =
+        playingAgentAudioTrackRef.current?.uid === agentUser.uid.toString() &&
+        playingAgentAudioTrackRef.current.track === audioTrack;
+      if (alreadyPlaying) return;
+
+      removeConnectionIssues(
+        (issue) =>
+          issue.agentUserId === agentUser.uid.toString() &&
+          (issue.code === 'agent-audio-missing' || issue.code === 'audio-subscribe-failed'),
+      );
+      stopCurrentAgentAudio();
+
+      try {
+        await client.subscribe(agentUser, 'audio');
+      } catch (error) {
+        console.error('Failed to subscribe to agent audio:', error);
+        return;
+      }
+
+      try {
+        audioTrack.play();
+        playingAgentAudioTrackRef.current = {
+          uid: agentUser.uid.toString(),
+          track: audioTrack,
+        };
+      } catch (error) {
+        console.error('Failed to play agent audio:', error);
+      }
+    };
+
+    ensureAgentAudioPlayback().catch((error) => {
+      console.error('Failed to ensure agent audio playback:', error);
+    });
+
+    return () => {
+      stopCurrentAgentAudio();
+    };
+  }, [client, remoteUsers, agentUID, isAgentConnected, addConnectionIssue, removeConnectionIssues]);
+
+  useEffect(() => {
+    if (!isAgentConnected) {
+      removeConnectionIssues(
+        (issue) =>
+          issue.agentUserId === agentUID && issue.code === 'agent-audio-missing',
+      );
+      return;
+    }
+
+    const hasAgentAudio = remoteUsers.some(
+      (user) => user.uid.toString() === agentUID && !!user.audioTrack,
+    );
+    if (hasAgentAudio) {
+      removeConnectionIssues(
+        (issue) =>
+          issue.agentUserId === agentUID && issue.code === 'agent-audio-missing',
+      );
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      const stillMissingAudio = !remoteUsers.some(
+        (user) => user.uid.toString() === agentUID && !!user.audioTrack,
+      );
+      if (!stillMissingAudio) return;
+
+      addConnectionIssue({
+        id: `${Date.now()}-${agentUID}-audio-missing`,
+        source: 'rtc-audio',
+        agentUserId: agentUID,
+        code: 'agent-audio-missing',
+        message: 'Agent is connected but no RTC audio track is available.',
+        timestamp: Date.now(),
+      });
+    }, 3000);
+
+    return () => window.clearTimeout(timeout);
+  }, [isAgentConnected, remoteUsers, agentUID, addConnectionIssue, removeConnectionIssues]);
 
   const connectionSeverity = useMemo<'normal' | 'warning' | 'error'>(() => {
     // RTC transport problems take precedence; otherwise derive severity from captured issues.

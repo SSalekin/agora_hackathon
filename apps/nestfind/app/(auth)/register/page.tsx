@@ -21,7 +21,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const redirects = { tenant: '/tenant/dashboard', landlord: '/landlord/dashboard', moderator: '/moderator/dashboard' };
+      const redirects = { tenant: '/', landlord: '/landlord/dashboard', moderator: '/moderator/dashboard' };
       router.replace(redirects[user.role]);
     }
   }, [isAuthenticated, user, router]);
