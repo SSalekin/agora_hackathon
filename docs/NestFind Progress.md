@@ -1,10 +1,10 @@
 # NestFind Progress
 
-Last updated: 2026-06-23
+Last updated: 2026-06-24
 
 ## Current status
 
-NestFind has a working Next.js PWA for Agora-powered apartment discovery and a tested native-SOL rental deposit escrow deployed on Solana devnet. The main missing milestone is connecting the PWA to wallets and the deployed escrow for a complete browser-based transaction flow.
+NestFind has a working Next.js PWA for Agora-powered apartment discovery and a tested native-SOL rental deposit escrow deployed on Solana devnet. The PWA is fully connected to Phantom wallets and the deployed escrow program. Tenants can create, fund, cancel, release, and dispute agreements. Landlords can approve, cancel, release after deadline, and resolve disputes. All transaction feedback, Explorer links, and wallet disconnect handling are implemented.
 
 ## Implemented
 
@@ -84,20 +84,53 @@ Devnet addresses:
 - Config PDA: `7oYg85FpwboPrwDUMABYMjtAk9mQYqFck9TzM8ZNQLYq`
 - Moderator: `34G8SyYe3N9JnDe9zMTheZbfbJCrHtwB6MAjfmy9h68e`
 
+### Wallet integration
+
+- Shared `usePhantomWallet` hook with `disconnect` and `accountChanged` event listeners.
+- Automatic wallet detection on page load.
+- Wallet disconnect clears component state (agreement, queue, errors).
+- Account switching reloads agreement/queue for the new wallet.
+- Base58 public key validation for listing landlord wallets.
+
+### Tenant escrow UI (`TenantAgreementPanel`)
+
+- Landlord wallet displayed as read-only from listing data (not user-input).
+- Invalid landlord wallet detection with visual error feedback.
+- Tenant-equal-to-landlord check before transaction submission.
+- On-chain `createAgreement` with deposit amount and inspection deadline.
+- On-chain `fundAgreement` without duplicate transfer.
+- On-chain `cancelAgreement` by authorized party.
+- On-chain `releaseByTenant`.
+- On-chain `openDispute` with evidence hash.
+- On-chain `approveAgreement` (landlord role).
+- On-chain `releaseAfterDeadline` (landlord role).
+- On-chain `resolveDispute` (moderator role).
+- Role-based button visibility derived from on-chain account.
+- Per-transaction phase feedback (preparing, signing, submitted, confirming, confirmed, failed).
+- Transaction signature and Solana Explorer link display.
+- Existing agreement loaded after wallet connection or page refresh.
+- Anchor enum state decoded into stable UI names via `decodeAgreementState`.
+
+### Landlord escrow UI (`LandlordDashboard`)
+
+- Landlord agreement queue discovered from on-chain accounts.
+- Agreement cards showing tenant, deposit, deadline, and listing metadata.
+- On-chain `approveAgreement` for agreements awaiting landlord approval.
+- On-chain `cancelAgreement` for rejection or pre-funding cancellation.
+- On-chain `releaseAfterDeadline` for funded agreements past deadline.
+- On-chain `openDispute` with per-card evidence input.
+- On-chain `resolveDispute` (release to landlord or refund to tenant).
+- Per-card transaction feedback with Explorer links.
+
 ## Yet to implement
 
-### Required for the hackathon end-to-end demo
+### Remaining hackathon items
 
-- Add Phantom/Wallet Standard connection to the Next.js PWA.
-- Add landlord wallet addresses and proposed deposit terms to listing data.
-- Copy the generated escrow IDL/client configuration into the PWA build.
-- Add tenant UI for creating, funding, cancelling, releasing, and disputing an agreement.
-- Add landlord UI for approving/rejecting terms and releasing after the deadline.
-- Add moderator UI for reviewing and resolving disputes.
-- Display live agreement state, balances, deadlines, transaction progress, errors, signatures, and Solana Explorer links.
+- Moderator-only page with disclaimer that the hackathon moderator is centralized and decisions are final.
 - Persist wallet mappings, agreement PDAs, listing hashes, evidence hashes, and transaction signatures in Couchbase.
-- Run one complete multi-wallet devnet scenario from listing search through final release/refund.
-- Add browser-level tests for wallet and escrow UI behavior.
+- Run one complete multi-wallet devnet scenario from listing search through final release/refund and record the result.
+- Pre-flight SOL balance check before transactions to avoid cryptic RPC errors.
+- Display listing ID hash and derived agreement PDA before transaction submission.
 
 ### Product features not yet implemented
 
@@ -108,6 +141,9 @@ Devnet addresses:
 - Backend push notifications and automatic saved-search alerts; the current notification control only demonstrates local browser notifications.
 - Production deployment verification on Vercel or another host.
 - Analytics, monitoring, and indexed on-chain event history.
+- Wallet Standard / `@solana/wallet-adapter` to replace raw `window.solana` access.
+- Wrong-network detection (devnet guard).
+- Landlord-proposed deposit default in listing data (currently user-input).
 
 ### Explicitly outside the current hackathon scope
 
@@ -120,4 +156,4 @@ Devnet addresses:
 
 ## Immediate next milestone
 
-Implement Phantom/Wallet Standard and the tenant agreement-creation flow in the Next.js PWA, then extend the same client to landlord and moderator actions for the full devnet demonstration.
+Complete the remaining hackathon items: moderator disclaimer, Couchbase persistence, end-to-end devnet test, and balance pre-check. Then run the full tenant-to-landlord-to-moderator flow with separate devnet wallets.
