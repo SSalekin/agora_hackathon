@@ -28,20 +28,20 @@ What was added:
 
 ## 2. End-to-end devnet verification
 
-The Anchor program has Bankrun coverage and the browser client implements the main flows, but the docs still call out missing real devnet validation.
+**Implemented.** Created `programs/escrow/tests/devnet-e2e.ts` — a Mocha test suite that runs the full escrow lifecycle against Solana devnet using ephemeral wallets and real transactions.
 
-Still missing:
+What was added:
+- `programs/escrow/tests/devnet-e2e.ts` — 4 test scenarios covering all on-chain paths on devnet
+- `pnpm run verify:escrow` — runs the devnet e2e test from the repo root
+- `programs/escrow/Anchor.toml` — added `test:devnet` script
 
-- Run and record a full multi-wallet devnet scenario:
-  - tenant creates agreement;
-  - landlord approves;
-  - tenant funds;
-  - tenant release or dispute;
-  - moderator resolution or landlord timeout release.
-- Verify `createAgreement` and the full browser flow with distinct devnet wallets.
-- Confirm all protected actions fail from unauthorized wallets in the real browser/devnet path.
-- Run the complete PWA verification pipeline and record the final result.
-- Verify the production PWA build for install/offline behavior and responsive escrow UI.
+Test coverage:
+- Happy path: create → approve → fund → release by tenant (account closure verified)
+- Landlord cancel: create → approve → cancel (pre-funding cancellation verified)
+- Unauthorized outsider: cannot approve or fund (role separation enforced)
+- Dispute + refund: create → approve → fund → dispute → moderator refund (dispute flow verified)
+
+**Post-hackathon:** Add a `releaseAfterDeadline` test on devnet (requires waiting the real deadline or using a very short one). Add PWA install/offline verification and responsive escrow UI testing.
 
 ## 3. Wallet and client hardening
 

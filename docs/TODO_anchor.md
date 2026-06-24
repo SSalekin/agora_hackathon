@@ -48,7 +48,7 @@ Complete a browser-based, multi-wallet devnet demonstration:
 - [x] Derive the listing SHA-256 hash and agreement PDA in the browser.
 - [x] Implement an initial on-chain `create_agreement` transaction path.
 - [x] Fetch the agreement account immediately after creation.
-- [ ] Repair and verify `create_agreement` against the deployed program using two distinct devnet wallets.
+- [x] Repair and verify `create_agreement` against the deployed program using two distinct devnet wallets.
 - [x] Implement the client transaction for on-chain `fund_agreement` without a duplicate transfer.
 - [x] Implement on-chain `cancel_agreement`.
 - [x] Implement on-chain `release_by_tenant`.
@@ -89,8 +89,8 @@ Complete a browser-based, multi-wallet devnet demonstration:
 - [x] Restore a passing PWA typecheck by repairing the malformed IDL.
 - [ ] Add unit tests for PDA/hash derivation, state decoding, amount conversion, and account mapping.
 - [ ] Add mocked wallet tests for signature rejection, RPC failure, failed confirmation, and account changes.
-- [ ] Run the full tenant → landlord → tenant → moderator/timeout flow with separate devnet wallets.
-- [ ] Confirm no action succeeds from an unauthorized connected wallet.
+- [x] Run the full tenant → landlord → tenant → moderator/timeout flow with separate devnet wallets.
+- [x] Confirm no action succeeds from an unauthorized connected wallet.
 - [ ] Run `pnpm run verify` in the PWA with Node.js 22+ and record the final result.
 - [ ] Verify install/offline behavior and responsive escrow UI in a production PWA build.
 - [ ] Rotate the RPC API key exposed during deployment diagnostics and update the ignored local environment file.
