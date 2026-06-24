@@ -3,23 +3,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Building2, CalendarClock, ExternalLink, KeyRound } from 'lucide-react';
 import type { ApartmentListing } from '@/types/listing';
-import { buildAgreementView, formatAgreementStateLabel, withAgreementState, type AgreementView } from '@/lib/escrow';
-import idl from '@/idl/escrow.json';
+import { DEFAULT_CLUSTER } from '@/types/solana-wallet';
+import { buildAgreementView, decodeAgreementState, formatAgreementStateLabel, withAgreementState, persistAgreementAction, persistDisputeEvidence, type AgreementView } from '@/lib/escrow';
 import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
 import { checkNetwork, formatWalletError } from '@/lib/preflight';
+import { prepareAnchorClient, sha256Hex, explorerUrl } from '@/lib/solana';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
-const DEFAULT_RPC_URL =
-  (process.env.NEXT_PUBLIC_SOLANA_RPC_URL as string) || 'https://api.devnet.solana.com';
-const DEFAULT_CLUSTER =
-  (process.env.NEXT_PUBLIC_SOLANA_CLUSTER as string) || 'devnet';
 
 type Props = {
   listings: ApartmentListing[];
 };
 
 type LandlordAgreementQueueItem = {
-  agreement: AgreementView<any>;
+  agreement: AgreementView<Record<string, unknown>>;
   listing: ApartmentListing | null;
 };
 
@@ -44,18 +41,11 @@ const INITIAL_TX_STATE: TxState = {
 };
 
 function txExplorerUrl(signature: string) {
-  return `https://explorer.solana.com/tx/${signature}?cluster=${DEFAULT_CLUSTER}`;
+  return explorerUrl(signature, 'tx');
 }
 
 function addressExplorerUrl(address: string) {
-  return `https://explorer.solana.com/address/${address}?cluster=${DEFAULT_CLUSTER}`;
-}
-
-async function sha256Hex(input: string) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
-  return Array.from(new Uint8Array(buf))
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
+  return explorerUrl(address, 'address');
 }
 
 function parseBigNumber(value: unknown): number {
@@ -135,29 +125,6 @@ export function LandlordDashboard({ listings }: Props) {
     }
   };
 
-  const prepareAnchorClient = async () => {
-    const Anchor = await import('@anchor-lang/core');
-    const anchor = Anchor as typeof import('@anchor-lang/core');
-    const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
-    // @ts-ignore
-    const providerWindow = window.solana;
-    if (!providerWindow) throw new Error('No wallet provider found (Phantom recommended).');
-    const walletAdapter: any = {
-      publicKey: providerWindow.publicKey,
-      signTransaction: providerWindow.signTransaction?.bind(providerWindow),
-      signAllTransactions: providerWindow.signAllTransactions?.bind(providerWindow),
-    };
-    const provider = new anchor.AnchorProvider(
-      connection,
-      walletAdapter,
-      anchor.AnchorProvider.defaultOptions(),
-    );
-    const program = new anchor.Program(idl as any, provider);
-    const connectedPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
-    if (!connectedPubkey) throw new Error('Wallet not connected');
-    return { anchor, connection, program, connectedPubkey };
-  };
-
   const loadQueue = async (connectedWallet?: string | null) => {
     const wallet = connectedWallet ?? walletPubkey;
     if (!wallet) return;
@@ -191,8 +158,9 @@ export function LandlordDashboard({ listings }: Props) {
         });
 
       setQueue(landlordAgreements);
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     } finally {
       setIsLoadingQueue(false);
     }
@@ -217,9 +185,7 @@ export function LandlordDashboard({ listings }: Props) {
       // Check network.
       (async () => {
         try {
-          const Anchor = await import('@anchor-lang/core');
-          const anchor = Anchor as typeof import('@anchor-lang/core');
-          const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
+          const { connection } = await prepareAnchorClient();
           const result = await checkNetwork(connection, DEFAULT_CLUSTER);
           setNetworkWarning(result.ok ? null : result.error ?? null);
         } catch {
@@ -236,17 +202,16 @@ export function LandlordDashboard({ listings }: Props) {
     setError(null);
     try {
       await connect();
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
   const refreshAgreement = async (pda: string) => {
     try {
-      const { program } = await prepareAnchorClient();
-      const onchain = await (program as any).account.agreement.fetch(
-        new (await import('@solana/web3.js')).PublicKey(pda),
-      );
+      const { program, PublicKey } = await prepareAnchorClient();
+      const onchain = await (program as any).account.agreement.fetch(new PublicKey(pda));
       setQueue((prev) =>
         prev.map((item) =>
           item.agreement.pda === pda
@@ -284,9 +249,11 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction('approve', pda, txSignature, txExplorerUrl(txSignature), decodeAgreementState(onchain.state));
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -319,9 +286,11 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction('cancel', pda, txSignature, txExplorerUrl(txSignature), 'cancelled');
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -348,9 +317,11 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction('releaseAfterDeadline', pda, txSignature, txExplorerUrl(txSignature), 'released');
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -379,9 +350,14 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction('dispute', pda, txSignature, txExplorerUrl(txSignature), 'disputed');
+        if (evidenceText) {
+          persistDisputeEvidence(pda, evidenceText, connectedPubkey.toBase58());
+        }
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -415,9 +391,11 @@ export function LandlordDashboard({ listings }: Props) {
               : item,
           ),
         );
+        persistAgreementAction(releaseToLandlord ? 'resolve:release' : 'resolve:refund', pda, txSignature, txExplorerUrl(txSignature), releaseToLandlord ? 'released' : 'refunded');
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -618,10 +596,10 @@ export function LandlordDashboard({ listings }: Props) {
         ) : (
           queue.map((item) => {
             const { agreement, listing } = item;
-            const agreementOnchain = agreement.onchain as Record<string, any>;
+            const agreementOnchain = agreement.onchain as Record<string, { toBase58?: () => string }>;
             const tenant = agreementOnchain.tenant?.toBase58?.() ?? 'Unknown';
-            const deadline = parseBigNumber(agreementOnchain.inspectionDeadline);
-            const depositLamports = parseBigNumber(agreementOnchain.depositLamports);
+            const deadline = parseBigNumber((agreementOnchain as Record<string, unknown>).inspectionDeadline);
+            const depositLamports = parseBigNumber((agreementOnchain as Record<string, unknown>).depositLamports);
 
             return (
               <article

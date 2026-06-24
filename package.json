@@ -29,7 +29,8 @@
     "sync:idl": "cp programs/escrow/target/idl/escrow.json apps/nestfind/idl/escrow.json",
     "anchor:build": "cd programs/escrow && anchor build && pnpm run sync:idl",
     "anchor:test": "pnpm exec ts-mocha -p programs/escrow/tsconfig.json -t 1000000 programs/escrow/tests/bankrun.test.ts",
-    "test": "pnpm run anchor:test"
+    "test": "pnpm run anchor:test",
+    "verify:escrow": "pnpm exec ts-mocha -p programs/escrow/tsconfig.json -t 120000 programs/escrow/tests/devnet-e2e.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^3.0.39",

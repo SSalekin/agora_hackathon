@@ -2,34 +2,32 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { ApartmentListing } from '@/types/listing';
-import idl from '@/idl/escrow.json';
+import { DEFAULT_CLUSTER } from '@/types/solana-wallet';
 import {
   buildAgreementView,
   decodeAgreementState,
   formatAgreementStateLabel,
   withAgreementState,
+  persistCreateAgreement,
+  persistAgreementAction,
+  persistDisputeEvidence,
   type AgreementUiState,
   type AgreementView,
 } from '@/lib/escrow';
 import { usePhantomWallet } from '@/hooks/use-phantom-wallet';
 import { checkNetwork, checkBalance, formatWalletError } from '@/lib/preflight';
+import {
+  prepareAnchorClient,
+  deriveAgreementPda,
+  deriveConfigPda,
+  sha256Bytes,
+  sha256Hex,
+  bytesToHex,
+  explorerUrl,
+} from '@/lib/solana';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
-const DEFAULT_RPC_URL = (process.env.NEXT_PUBLIC_SOLANA_RPC_URL as string) || 'https://api.devnet.solana.com';
-const DEFAULT_CLUSTER = (process.env.NEXT_PUBLIC_SOLANA_CLUSTER as string) || 'devnet';
-
-async function sha256Bytes(input: string) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
-  return new Uint8Array(buf);
-}
-
-function bytesToHex(bytes: Uint8Array) {
-  return Array.from(bytes).map((byte) => byte.toString(16).padStart(2, '0')).join('');
-}
-
-async function sha256Hex(input: string) {
-  return bytesToHex(await sha256Bytes(input));
-}
+const PROGRAM_ID = '9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X';
 
 type TxPhase = 'idle' | 'preparing' | 'signing' | 'submitted' | 'confirming' | 'confirmed' | 'failed';
 
@@ -48,10 +46,6 @@ const INITIAL_TX_STATE: TxState = {
   explorerUrl: null,
   message: null,
 };
-
-function explorerUrl(signature: string) {
-  return `https://explorer.solana.com/tx/${signature}?cluster=${DEFAULT_CLUSTER}`;
-}
 
 type Props = { listing: ApartmentListing; onClose: () => void };
 
@@ -107,7 +101,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
   const landlordWallet = listing.landlordWallet;
   const isLandlordValid = isValidSolanaPubkey(landlordWallet);
   const isBusy = txState.phase !== 'idle' && txState.phase !== 'confirmed' && txState.phase !== 'failed';
-  const agreementOnchain = agreement?.onchain as Record<string, any> | null;
+  const agreementOnchain = agreement?.onchain as Record<string, { toBase58?: () => string }> | null;
   const connectedRole =
     walletPubkey && agreementOnchain
       ? walletPubkey === agreementOnchain.tenant?.toBase58?.()
@@ -150,56 +144,30 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     }
   };
 
-  const prepareAnchorClient = async () => {
-    const Anchor = await import('@anchor-lang/core');
-    const anchor = Anchor as typeof import('@anchor-lang/core');
-    const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
-    // @ts-ignore — Phantom injects window.solana
-    const providerWindow = window.solana;
-    if (!providerWindow) throw new Error('No wallet provider found (Phantom recommended).');
-    const walletAdapter: any = {
-      publicKey: providerWindow.publicKey,
-      signTransaction: providerWindow.signTransaction?.bind(providerWindow),
-      signAllTransactions: providerWindow.signAllTransactions?.bind(providerWindow),
-    };
-    const anchorProvider = new anchor.AnchorProvider(connection, walletAdapter, anchor.AnchorProvider.defaultOptions());
-    const program = new anchor.Program(idl as any, anchorProvider);
-    const connectedPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
-    if (!connectedPubkey) throw new Error('Wallet not connected');
-    const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
+  const prepareClient = async () => {
+    const client = await prepareAnchorClient();
+    const landlordPubkey = new client.PublicKey(landlordWallet);
     const listingHashBytes = await sha256Bytes(listing.id);
-    const [agreementPda] = anchor.web3.PublicKey.findProgramAddressSync([
-      Buffer.from('agreement'),
-      connectedPubkey.toBuffer(),
-      landlordPubkey.toBuffer(),
-      Buffer.from(listingHashBytes),
-    ], program.programId);
-
-    return {
-      anchor,
-      connection,
-      program,
-      connectedPubkey,
+    const agreementPda = await deriveAgreementPda(
+      client.connectedPubkey,
       landlordPubkey,
       listingHashBytes,
-      agreementPda,
-    };
+      client.program.programId,
+    );
+    return { ...client, landlordPubkey, listingHashBytes, agreementPda };
   };
 
   const getAgreementActors = async () => {
-    const { anchor, connection, program, connectedPubkey } = await prepareAnchorClient();
+    const client = await prepareAnchorClient();
     if (!agreement || !agreementOnchain) throw new Error('No agreement loaded');
 
-    const tenantPubkey = new anchor.web3.PublicKey(agreementOnchain.tenant.toBase58());
-    const landlordPubkey = new anchor.web3.PublicKey(agreementOnchain.landlord.toBase58());
-    const moderatorPubkey = new anchor.web3.PublicKey(agreementOnchain.moderator.toBase58());
-    const agreementPda = new anchor.web3.PublicKey(agreement.pda);
+    const tenantPubkey = new client.PublicKey(agreementOnchain.tenant!.toBase58!());
+    const landlordPubkey = new client.PublicKey(agreementOnchain.landlord!.toBase58!());
+    const moderatorPubkey = new client.PublicKey(agreementOnchain.moderator!.toBase58!());
+    const agreementPda = new client.PublicKey(agreement.pda);
 
     return {
-      anchor,
-      connection,
-      program,
-      connectedPubkey,
+      ...client,
       tenantPubkey,
       landlordPubkey,
       moderatorPubkey,
@@ -211,26 +179,33 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
     try {
       setIsLoadingAgreement(true);
       const { program, connectedPubkey } = await prepareAnchorClient();
-      const listingHashHex = await sha256Hex(listing.id);
+      const listingHashHexValue = await sha256Hex(listing.id);
       const allAgreements = await (program as any).account.agreement.all();
 
       const matchingAgreement = allAgreements
-        .map((item: any) => ({
+        .map((item: { publicKey: { toBase58(): string }; account: Record<string, unknown> }) => ({
           publicKey: item.publicKey,
           account: item.account,
         }))
-        .filter(({ account }: any) => {
-          const accountListingHashHex = bytesToHex(Uint8Array.from(account.listingHash));
-          if (accountListingHashHex !== listingHashHex) return false;
+        .filter(({ account }: { account: Record<string, { toBase58?: () => string } | unknown> }) => {
+          const rawHash = account.listingHash;
+          if (!rawHash || !(rawHash instanceof Uint8Array) && !Array.isArray(rawHash)) return false;
+          const accountListingHashHex = bytesToHex(Uint8Array.from(rawHash as ArrayLike<number>));
+          if (accountListingHashHex !== listingHashHexValue) return false;
 
           const connectedBase58 = connectedPubkey.toBase58();
+          const acct = account as Record<string, { toBase58?: () => string }>;
           return (
-            account.tenant?.toBase58?.() === connectedBase58 ||
-            account.landlord?.toBase58?.() === connectedBase58 ||
-            account.moderator?.toBase58?.() === connectedBase58
+            acct.tenant?.toBase58?.() === connectedBase58 ||
+            acct.landlord?.toBase58?.() === connectedBase58 ||
+            acct.moderator?.toBase58?.() === connectedBase58
           );
         })
-        .sort((a: any, b: any) => Number(b.account.createdAt ?? 0) - Number(a.account.createdAt ?? 0))[0];
+        .sort((a: { account: Record<string, unknown> }, b: { account: Record<string, unknown> }) => {
+          const aCreatedAt = typeof a.account.createdAt === 'object' ? Number((a.account.createdAt as { toString(): string }).toString()) : Number(a.account.createdAt ?? 0);
+          const bCreatedAt = typeof b.account.createdAt === 'object' ? Number((b.account.createdAt as { toString(): string }).toString()) : Number(b.account.createdAt ?? 0);
+          return bCreatedAt - aCreatedAt;
+        })[0];
 
       if (!matchingAgreement) {
         setAgreement(null);
@@ -242,11 +217,12 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
           matchingAgreement.account,
           matchingAgreement.publicKey.toBase58(),
           null,
-          matchingAgreement.account.state,
+          (matchingAgreement.account as Record<string, unknown>).state,
         ),
       );
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     } finally {
       setIsLoadingAgreement(false);
     }
@@ -259,8 +235,9 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
       if (key) {
         await loadExistingAgreement();
       }
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -283,9 +260,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
       // Check network.
       (async () => {
         try {
-          const Anchor = await import('@anchor-lang/core');
-          const anchor = Anchor as typeof import('@anchor-lang/core');
-          const connection = new anchor.web3.Connection(DEFAULT_RPC_URL, 'confirmed');
+          const { connection } = await prepareAnchorClient();
           const result = await checkNetwork(connection, DEFAULT_CLUSTER);
           setNetworkWarning(result.ok ? null : result.error ?? null);
         } catch {
@@ -297,23 +272,13 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
       // Derive PDA preview for display.
       (async () => {
         try {
-          const Anchor = await import('@anchor-lang/core');
-          const anchor = Anchor as typeof import('@anchor-lang/core');
-          // @ts-ignore
-          const providerWindow = window.solana;
-          if (!providerWindow?.publicKey) return;
-          const landlordPubkey = new anchor.web3.PublicKey(landlordWallet);
-          const tenantPubkey = providerWindow.publicKey as import('@solana/web3.js').PublicKey;
+          const { PublicKey, connectedPubkey } = await prepareAnchorClient();
+          const landlordPubkey = new PublicKey(landlordWallet);
           const listingHashBuf = await sha256Bytes(listing.id);
-          const listingHashHex = bytesToHex(listingHashBuf);
-          const programId = new anchor.web3.PublicKey('9nWcd1EWhogJsBtk1Q43GP9eVvn6K9TgaSG5JyhnTp6X');
-          const [agreementPda] = anchor.web3.PublicKey.findProgramAddressSync([
-            Buffer.from('agreement'),
-            tenantPubkey.toBuffer(),
-            landlordPubkey.toBuffer(),
-            Buffer.from(listingHashBuf),
-          ], programId);
-          setPdaPreview({ listingHash: listingHashHex, agreementPda: agreementPda.toBase58() });
+          const listingHashHexStr = bytesToHex(listingHashBuf);
+          const programId = new PublicKey(PROGRAM_ID);
+          const agreementPda = await deriveAgreementPda(connectedPubkey, landlordPubkey, listingHashBuf, programId);
+          setPdaPreview({ listingHash: listingHashHexStr, agreementPda: agreementPda.toBase58() });
         } catch {
           // PDA preview is informational only; ignore derivation errors.
         }
@@ -331,7 +296,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
           throw new Error('Listing has an invalid landlord wallet address. Cannot create agreement.');
         }
 
-        const { anchor, connection, program, connectedPubkey, landlordPubkey, listingHashBytes, agreementPda } = await prepareAnchorClient();
+        const { anchor, connection, program, connectedPubkey, PublicKey, landlordPubkey, listingHashBytes, agreementPda } = await prepareClient();
 
         // --- Role separation ---
         if (connectedPubkey.equals(landlordPubkey)) {
@@ -339,9 +304,9 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         }
 
         // Check tenant != moderator and landlord != moderator.
-        const [configPda] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from('config')], program.programId);
+        const configPda = await deriveConfigPda(program.programId);
         const configAccount = await (program as any).account.config.fetch(configPda);
-        const moderatorPubkey = new anchor.web3.PublicKey(configAccount.moderator);
+        const moderatorPubkey = new PublicKey(configAccount.moderator);
         if (connectedPubkey.equals(moderatorPubkey)) {
           throw new Error('Connected wallet is the moderator. The tenant cannot also be the moderator.');
         }
@@ -407,9 +372,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         // Fetch on-chain agreement account
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
         setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+        persistCreateAgreement(listing.id, agreementPda.toBase58(), txSignature, explorerUrl(txSignature), onchain);
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -459,9 +426,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
         setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+        persistAgreementAction('fund', agreement.pda, txSignature, explorerUrl(txSignature), decodeAgreementState(onchain.state));
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -486,9 +455,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         await confirmSignature(connection, txSignature, 'cancel agreement');
 
         setAgreement(withAgreementState(currentAgreement, 'cancelled', { onchain: null, txSignature }));
+        persistAgreementAction('cancel', agreement.pda, txSignature, explorerUrl(txSignature), 'cancelled');
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -512,9 +483,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         await confirmSignature(connection, txSignature, 'release agreement');
 
         setAgreement(withAgreementState(currentAgreement, 'released', { onchain: null, txSignature }));
+        persistAgreementAction('release', agreement.pda, txSignature, explorerUrl(txSignature), 'released');
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -538,9 +511,14 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
         setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+        persistAgreementAction('dispute', agreement.pda, txSignature, explorerUrl(txSignature), 'disputed');
+        if (evidence) {
+          persistDisputeEvidence(agreement.pda, evidence, connectedPubkey.toBase58());
+        }
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -557,9 +535,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         await confirmSignature(connection, txSignature, 'approve agreement');
         const onchain = await (program as any).account.agreement.fetch(agreementPda);
         setAgreement(buildAgreementView(onchain, agreementPda.toBase58(), txSignature, onchain.state));
+        if (agreement) persistAgreementAction('approve', agreement.pda, txSignature, explorerUrl(txSignature), decodeAgreementState(onchain.state));
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -577,9 +557,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         setTxState({ phase: 'submitted', action: 'release after deadline', signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
         await confirmSignature(connection, txSignature, 'release after deadline');
         setAgreement(withAgreementState(currentAgreement, 'released', { onchain: null, txSignature }));
+        persistAgreementAction('releaseAfterDeadline', agreement.pda, txSignature, explorerUrl(txSignature), 'released');
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
@@ -603,9 +585,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         setTxState({ phase: 'submitted', action, signature: txSignature, explorerUrl: explorerUrl(txSignature), message: 'Transaction submitted. Waiting for confirmation...' });
         await confirmSignature(connection, txSignature, action);
         setAgreement(withAgreementState(currentAgreement, releaseToLandlord ? 'released' : 'refunded', { onchain: null, txSignature }));
+        persistAgreementAction('resolve', agreement.pda, txSignature, explorerUrl(txSignature), releaseToLandlord ? 'released' : 'refunded');
       });
-    } catch (err: any) {
-      setError(err?.message ?? String(err));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
     }
   };
 
