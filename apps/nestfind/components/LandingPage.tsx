@@ -4,6 +4,7 @@ import { useState, useRef, Suspense, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import type { RTMClient } from 'agora-rtm';
+import { useAuth } from '@/lib/auth-context';
 import type {
   AgoraTokenData,
   ClientStartRequest,
@@ -86,8 +87,8 @@ const AgoraProvider = dynamic(
 );
 
 export default function LandingPage() {
+  const { user } = useAuth();
   const [showConversation, setShowConversation] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
   const [listings, setListings] = useState<ApartmentListing[]>([]);
   const [listingCatalog, setListingCatalog] = useState<ApartmentListing[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
@@ -96,6 +97,9 @@ export default function LandingPage() {
   const [history, setHistory] = useState<SearchHistoryItem[]>([]);
   const searchContextRef = useRef('');
   const listingSearchRequestRef = useRef(0);
+
+  // Use auth user name or fall back to localStorage for backwards compatibility
+  const userName = user?.name ?? null;
 
   // Preload heavy modules on mount so they're already cached when the user
   // clicks "Try it Now" — eliminates the ~1.8s dynamic-import delay.
@@ -109,7 +113,6 @@ export default function LandingPage() {
       })
       .then((catalog) => setListingCatalog(catalog.listings))
       .catch((catalogError) => console.error('Listing catalog load failed:', catalogError));
-    setUserName(localStorage.getItem('nestfind:user'));
     try {
       setFavoriteIds(JSON.parse(localStorage.getItem('nestfind:favorites') ?? '[]'));
       setHistory(JSON.parse(localStorage.getItem('nestfind:history') ?? '[]'));
@@ -158,8 +161,6 @@ export default function LandingPage() {
       return next;
     });
   }, []);
-  const handleSignIn = useCallback((name: string) => { localStorage.setItem('nestfind:user', name); setUserName(name); }, []);
-  const handleSignOut = useCallback(() => { localStorage.removeItem('nestfind:user'); setUserName(null); }, []);
 
   const handleStartConversation = async () => {
     listingSearchRequestRef.current += 1;
@@ -329,8 +330,6 @@ export default function LandingPage() {
               onStartConversation={handleStartConversation}
               onTextSearch={handleTextListingSearch}
               onToggleFavorite={handleToggleFavorite}
-              onSignIn={handleSignIn}
-              onSignOut={handleSignOut}
             />
           ) : agoraData && rtmClient ? (
             <>
