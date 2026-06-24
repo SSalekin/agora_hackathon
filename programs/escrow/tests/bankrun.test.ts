@@ -17,6 +17,7 @@ import type { Escrow } from "../target/types/escrow";
 const BN = anchor.BN;
 const PROGRAM_ID = new PublicKey(IDL.address);
 const DEPOSIT_LAMPORTS = 2n * BigInt(LAMPORTS_PER_SOL);
+const MIN_LANDLORD_STAKE = 500_000_000; // 0.5 SOL
 
 function listingHash(listingId: string): number[] {
   return [...createHash("sha256").update(listingId).digest()];
@@ -38,6 +39,13 @@ function agreementAddress(
   )[0];
 }
 
+function landlordProfileAddress(landlord: PublicKey): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("landlord-profile"), landlord.toBuffer()],
+    PROGRAM_ID,
+  )[0];
+}
+
 describe("rental deposit escrow", () => {
   let context: ProgramTestContext;
   let provider: BankrunProvider;
@@ -47,6 +55,7 @@ describe("rental deposit escrow", () => {
   let moderator: Keypair;
   let outsider: Keypair;
   let config: PublicKey;
+  let landlordProfile: PublicKey;
 
   before(async () => {
     context = await startAnchor(
@@ -87,6 +96,27 @@ describe("rental deposit escrow", () => {
         systemProgram: SystemProgram.programId,
       })
       .rpc();
+
+    landlordProfile = landlordProfileAddress(landlord.publicKey);
+    await program.methods
+      .initializeLandlordProfile()
+      .accountsStrict({
+        landlord: landlord.publicKey,
+        landlordProfile,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([landlord])
+      .rpc();
+
+    await program.methods
+      .stakeLandlord(new BN(MIN_LANDLORD_STAKE))
+      .accountsStrict({
+        landlord: landlord.publicKey,
+        landlordProfile,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([landlord])
+      .rpc();
   });
 
   async function createAgreement(
@@ -124,7 +154,11 @@ describe("rental deposit escrow", () => {
   async function approveAndFund(agreement: PublicKey) {
     await program.methods
       .approveAgreement()
-      .accountsStrict({ landlord: landlord.publicKey, agreement })
+      .accountsStrict({
+        landlord: landlord.publicKey,
+        landlordProfile,
+        agreement,
+      })
       .signers([landlord])
       .rpc();
 
@@ -263,7 +297,11 @@ describe("rental deposit escrow", () => {
     const { agreement } = await createAgreement("student-house-share");
     await program.methods
       .approveAgreement()
-      .accountsStrict({ landlord: landlord.publicKey, agreement })
+      .accountsStrict({
+        landlord: landlord.publicKey,
+        landlordProfile,
+        agreement,
+      })
       .signers([landlord])
       .rpc();
 
@@ -338,5 +376,146 @@ describe("rental deposit escrow", () => {
       DEPOSIT_LAMPORTS,
     );
     assert.isNull(await context.banksClient.getAccount(agreement));
+  });
+
+  it("landlord initializes profile and stakes SOL", async () => {
+    const freshLandlord = Keypair.generate();
+    const fundTx = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: provider.publicKey,
+        toPubkey: freshLandlord.publicKey,
+        lamports: 10 * LAMPORTS_PER_SOL,
+      }),
+    );
+    await provider.sendAndConfirm!(fundTx);
+
+    const profile = landlordProfileAddress(freshLandlord.publicKey);
+    await program.methods
+      .initializeLandlordProfile()
+      .accountsStrict({
+        landlord: freshLandlord.publicKey,
+        landlordProfile: profile,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([freshLandlord])
+      .rpc();
+
+    const fetched = await program.account.landlordProfile.fetch(profile);
+    assert.equal(fetched.totalStakedLamports.toNumber(), 0);
+    assert.equal(fetched.activeStakeLamports.toNumber(), 0);
+
+    await program.methods
+      .stakeLandlord(new BN(MIN_LANDLORD_STAKE))
+      .accountsStrict({
+        landlord: freshLandlord.publicKey,
+        landlordProfile: profile,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([freshLandlord])
+      .rpc();
+
+    const afterStake = await program.account.landlordProfile.fetch(profile);
+    assert.equal(afterStake.totalStakedLamports.toNumber(), MIN_LANDLORD_STAKE);
+    assert.equal(afterStake.activeStakeLamports.toNumber(), MIN_LANDLORD_STAKE);
+  });
+
+  it("rejects agreement approval when landlord stake is too low", async () => {
+    const poorLandlord = Keypair.generate();
+    const fundTx = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: provider.publicKey,
+        toPubkey: poorLandlord.publicKey,
+        lamports: 10 * LAMPORTS_PER_SOL,
+      }),
+    );
+    await provider.sendAndConfirm!(fundTx);
+
+    const poorProfile = landlordProfileAddress(poorLandlord.publicKey);
+    await program.methods
+      .initializeLandlordProfile()
+      .accountsStrict({
+        landlord: poorLandlord.publicKey,
+        landlordProfile: poorProfile,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([poorLandlord])
+      .rpc();
+
+    const hash = listingHash("low-stake-listing");
+    const agreement = agreementAddress(
+      tenant.publicKey,
+      poorLandlord.publicKey,
+      hash,
+    );
+    const clock = await context.banksClient.getClock();
+    const deadline = clock.unixTimestamp + BigInt(3_600);
+
+    await program.methods
+      .createAgreement(
+        hash,
+        new BN(DEPOSIT_LAMPORTS.toString()),
+        new BN(deadline.toString()),
+      )
+      .accountsStrict({
+        tenant: tenant.publicKey,
+        landlord: poorLandlord.publicKey,
+        config,
+        agreement,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([tenant])
+      .rpc();
+
+    try {
+      await program.methods
+        .approveAgreement()
+        .accountsStrict({
+          landlord: poorLandlord.publicKey,
+          landlordProfile: poorProfile,
+          agreement,
+        })
+        .signers([poorLandlord])
+        .rpc();
+      assert.fail("approval succeeded with insufficient stake");
+    } catch (error) {
+      assert.include(String(error), "InsufficientLandlordStake");
+    }
+  });
+
+  it("allows landlord to unstake unused stake", async () => {
+    const profile = landlordProfileAddress(landlord.publicKey);
+    const before = await program.account.landlordProfile.fetch(profile);
+    const unstakeAmount = 100_000_000; // 0.1 SOL
+
+    const landlordBalanceBefore = await context.banksClient.getBalance(
+      landlord.publicKey,
+    );
+    await program.methods
+      .unstakeLandlord(new BN(unstakeAmount))
+      .accountsStrict({
+        landlord: landlord.publicKey,
+        landlordProfile: profile,
+        systemProgram: SystemProgram.programId,
+      })
+      .signers([landlord])
+      .rpc();
+
+    const after = await program.account.landlordProfile.fetch(profile);
+    assert.equal(
+      after.activeStakeLamports.toNumber(),
+      before.activeStakeLamports.toNumber() - unstakeAmount,
+    );
+    assert.equal(
+      after.totalStakedLamports.toNumber(),
+      before.totalStakedLamports.toNumber() - unstakeAmount,
+    );
+
+    const landlordBalanceAfter = await context.banksClient.getBalance(
+      landlord.publicKey,
+    );
+    assert.isAtLeast(
+      Number(landlordBalanceAfter - landlordBalanceBefore),
+      unstakeAmount,
+    );
   });
 });

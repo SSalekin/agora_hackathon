@@ -19,4 +19,4 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "cd ../.. && pnpm exec ts-mocha -p programs/escrow/tsconfig.json -t 1000000 programs/escrow/tests/bankrun.test.ts"
-test:devnet = "cd ../.. && pnpm exec ts-mocha -p programs/escrow/tsconfig.json -t 120000 programs/escrow/tests/devnet-e2e.ts"
+"test:devnet" = "cd ../.. && pnpm exec ts-mocha -p programs/escrow/tsconfig.json -t 120000 programs/escrow/tests/devnet-e2e.ts"

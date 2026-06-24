@@ -24,4 +24,13 @@ pub enum EscrowError {
     InsufficientEscrowBalance,
     #[msg("Lamport arithmetic overflowed")]
     LamportOverflow,
+
+    #[msg("Amount must be greater than zero")]
+    InvalidAmount,
+
+    #[msg("Landlord has insufficient stake")]
+    InsufficientStake,
+
+    #[msg("Landlord stake is below the required minimum")]
+    InsufficientLandlordStake,
 }

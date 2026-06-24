@@ -70,4 +70,18 @@ pub mod escrow {
     ) -> Result<()> {
         instructions::handle_resolve_dispute(context, release_to_landlord)
     }
+
+    pub fn initialize_landlord_profile(
+        context: Context<InitializeLandlordProfile>,
+    ) -> Result<()> {
+        instructions::handle_initialize_landlord_profile(context)
+    }
+
+    pub fn stake_landlord(context: Context<StakeLandlord>, amount: u64) -> Result<()> {
+        instructions::handle_stake_landlord(context, amount)
+    }
+
+    pub fn unstake_landlord(context: Context<UnstakeLandlord>, amount: u64) -> Result<()> {
+        instructions::handle_unstake_landlord(context, amount)
+    }
 }
