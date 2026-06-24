@@ -45,13 +45,17 @@ Still missing:
 
 ## 3. Wallet and client hardening
 
-The current implementation still uses Phantom-specific browser access.
+**Implemented.** Replaced direct `window.solana` access, `@ts-ignore`, and `any` usage with typed interfaces and a shared Anchor client builder.
 
-Still missing:
+What was added:
+- `types/solana-wallet.ts` — `SolanaWalletProvider`, `AnchorWalletAdapter`, `SolanaRpcConfig` typed interfaces
+- `lib/solana.ts` — `getWalletProvider()`, `prepareAnchorClient()`, `deriveAgreementPda()`, `deriveConfigPda()`, `sha256Bytes()`, `sha256Hex()`, `bytesToHex()`, `explorerUrl()` shared utilities
+- `use-phantom-wallet.ts` refactored to use typed `SolanaWalletProvider` and `getWalletProvider()` instead of `window as any`
+- `TenantAgreementPanel.tsx` and `LandlordDashboard.tsx` refactored to use shared `prepareAnchorClient()` from `lib/solana.ts` — eliminated duplicated wallet adapter code and `@ts-ignore` directives
+- `env.local.example` updated with `NEXT_PUBLIC_SOLANA_RPC_URL` and `NEXT_PUBLIC_SOLANA_CLUSTER` env vars for centralized RPC configuration
+- Error handlers use `unknown` type with `instanceof Error` narrowing instead of `any`
 
-- Replace direct `window.solana` usage, `any`, and `@ts-ignore` wallet handling with Wallet Standard or `@solana/wallet-adapter`.
-- Decide and implement a safer production RPC strategy instead of depending on unrestricted browser RPC configuration.
-- Add stronger typed wallet interfaces across the escrow client.
+**Post-hackathon:** Migrate from `window.solana` to the full Wallet Standard (`@solana/wallet-adapter`) for multi-wallet support. Add a private RPC proxy endpoint to avoid exposing API keys in the browser.
 
 ## 4. Test coverage for frontend escrow utilities
 

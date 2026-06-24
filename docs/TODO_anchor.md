@@ -31,9 +31,9 @@ Complete a browser-based, multi-wallet devnet demonstration:
 - [x] Add minimal Phantom detection through `window.solana`.
 - [x] Show transaction phases, signatures, errors, and Solana Explorer links.
 - [x] Handle wallet disconnect and account changes via shared `usePhantomWallet` hook.
-- [ ] Replace direct `window.solana` access and `any`/`@ts-ignore` usage with Wallet Standard support and typed wallet interfaces.
+- [x] Replace direct `window.solana` access and `any`/`@ts-ignore` usage with Wallet Standard support and typed wallet interfaces.
 - [x] Handle wrong network, unavailable wallet, rejected signatures, and insufficient balance.
-- [ ] Decide how browser RPC access is provided without exposing an unrestricted provider API key.
+- [x] Decide how browser RPC access is provided without exposing an unrestricted provider API key.
 
 ### Listing and agreement terms
 
