@@ -51,7 +51,7 @@ export function LandlordRiskPanel({ wallet, profile, totalStakedSol, activeStake
         <div>
           <p className="text-[11px] text-stone-500">Active stake</p>
           <p className="font-semibold text-stone-900">{activeStakeSol.toFixed(2)} SOL</p>
-          {!hasMinimumStake && <p className="text-[11px] text-rose-600">Below 0.5 SOL minimum</p>}
+          {!hasMinimumStake && <p className="text-[11px] text-rose-600">Below 0.0001 SOL minimum</p>}
         </div>
         <div>
           <p className="text-[11px] text-stone-500">Completed</p>

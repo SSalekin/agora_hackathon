@@ -134,7 +134,7 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
             disabled={isBusy}
             className="mt-4 w-full rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isBusy ? <Loader2 className="inline h-4 w-4 animate-spin" /> : 'Initialize & Stake 0.5 SOL'}
+            {isBusy ? <Loader2 className="inline h-4 w-4 animate-spin" /> : 'Initialize & Stake 0.0001 SOL'}
           </button>
         )}
         {!walletPubkey && (

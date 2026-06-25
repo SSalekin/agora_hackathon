@@ -654,7 +654,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         {isLandlordValid && !landlordProfile.exists && connectedRole === 'tenant' && (
           <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            This landlord has no on-chain stake profile. They must stake at least 0.5 SOL before they can approve agreements.
+            This landlord has no on-chain stake profile. They must stake at least 0.0001 SOL before they can approve agreements.
           </div>
         )}
 
