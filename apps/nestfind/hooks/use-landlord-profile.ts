@@ -3,7 +3,7 @@ import { usePhantomWallet } from './use-phantom-wallet';
 import { prepareAnchorClient, deriveLandlordProfilePda } from '@/lib/solana';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
-const MIN_STAKE_LAMPORTS = 500_000_000; // 0.5 SOL
+const MIN_STAKE_LAMPORTS = 100_000; // 0.0001 SOL
 
 export type LandlordProfileData = {
   landlord: string;

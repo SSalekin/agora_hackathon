@@ -17,7 +17,7 @@ import type { Escrow } from "../target/types/escrow";
 const BN = anchor.BN;
 const PROGRAM_ID = new PublicKey(IDL.address);
 const DEPOSIT_LAMPORTS = 2n * BigInt(LAMPORTS_PER_SOL);
-const MIN_LANDLORD_STAKE = 500_000_000; // 0.5 SOL
+const MIN_LANDLORD_STAKE = 100_000; // 0.0001 SOL
 
 function listingHash(listingId: string): number[] {
   return [...createHash("sha256").update(listingId).digest()];

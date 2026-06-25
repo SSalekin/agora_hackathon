@@ -91,7 +91,16 @@ export function seedDemoUsers() {
 
   const demoUsers = [
     { email: 'tenant@demo.com', name: 'Demo Tenant', role: 'tenant' as Role, password: 'password123' },
-    { email: 'landlord@demo.com', name: 'Demo Landlord', role: 'landlord' as Role, password: 'password123' },
+    { email: 'alice@demo.com', name: 'Alice (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'bob@demo.com', name: 'Bob (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'carol@demo.com', name: 'Carol (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'dave@demo.com', name: 'Dave (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'eve@demo.com', name: 'Eve (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'frank@demo.com', name: 'Frank (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'grace@demo.com', name: 'Grace (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'henry@demo.com', name: 'Henry (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'irene@demo.com', name: 'Irene (Landlord)', role: 'landlord' as Role, password: 'password123' },
+    { email: 'jack@demo.com', name: 'Jack (Landlord)', role: 'landlord' as Role, password: 'password123' },
     { email: 'moderator@demo.com', name: 'Demo Moderator', role: 'moderator' as Role, password: 'password123' },
   ];
 
