@@ -432,6 +432,11 @@ pub fn handle_resolve_dispute(
             released_by: context.accounts.moderator.key(),
         });
     } else {
+        transfer_deposit(
+            &context.accounts.agreement.to_account_info(),
+            &context.accounts.tenant.to_account_info(),
+            deposit_lamports,
+        )?;
         context.accounts.agreement.state = AgreementState::Refunded;
         emit!(DepositRefunded {
             agreement: agreement_key,

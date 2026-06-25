@@ -38,14 +38,25 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
       setError(null);
       setTxPhase('preparing');
       setTxMessage('Preparing transaction...');
-      const { anchor, connection, program, connectedPubkey, PublicKey, SystemProgram } = await prepareAnchorClient();
+      const { anchor, connection, program, connectedPubkey, SystemProgram } = await prepareAnchorClient();
       const profilePda = await deriveLandlordProfilePda(connectedPubkey, program.programId);
-
-      const amount = Math.round(Number(stakeAmount) * LAMPORTS_PER_SOL);
+      const amount = profile.exists
+        ? Math.round(Number(stakeAmount) * LAMPORTS_PER_SOL)
+        : 100_000;
       if (!amount || amount <= 0) throw new Error('Enter a valid SOL amount.');
 
       setTxPhase('signing');
       setTxMessage('Waiting for wallet signature...');
+      if (!profile.exists) {
+        await program.methods
+          .initializeLandlordProfile()
+          .accounts({
+            landlord: connectedPubkey,
+            landlordProfile: profilePda,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+      }
       const txSignatureResult = await program.methods
         .stakeLandlord(new anchor.BN(amount))
         .accounts({
