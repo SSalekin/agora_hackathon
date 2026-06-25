@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 
 type TranscriptMessage = {
   turn_id?: string | number;
@@ -29,6 +29,7 @@ export function QuickstartTranscriptPanel({
   agentUID,
 }: QuickstartTranscriptPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const messages = useMemo(
     () =>
       currentInProgressMessage
@@ -37,15 +38,13 @@ export function QuickstartTranscriptPanel({
     [currentInProgressMessage, messageList],
   );
 
-  useEffect(() => {
-    const node = scrollRef.current;
-    if (!node) return;
-    node.scrollTop = node.scrollHeight;
+  useLayoutEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [messages]);
 
   return (
     <section
-      className="surface-panel flex h-full min-h-0 w-full flex-col overflow-hidden rounded-[1.75rem] border border-white/70"
+      className="surface-panel flex h-[min(52dvh,34rem)] min-h-[22rem] w-full flex-col overflow-hidden rounded-[1.75rem] border border-white/70 lg:h-full lg:min-h-0"
       aria-label="Transcription panel"
     >
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-stone-200/80 px-4">
@@ -92,6 +91,7 @@ export function QuickstartTranscriptPanel({
             );
           })
         )}
+        <div ref={bottomRef} aria-hidden="true" />
       </div>
     </section>
   );

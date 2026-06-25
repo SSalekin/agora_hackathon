@@ -485,7 +485,7 @@ describe("rental deposit escrow", () => {
   it("allows landlord to unstake unused stake", async () => {
     const profile = landlordProfileAddress(landlord.publicKey);
     const before = await program.account.landlordProfile.fetch(profile);
-    const unstakeAmount = 100_000_000; // 0.1 SOL
+    const unstakeAmount = 50_000; // 0.00005 SOL, below the minimum active stake left in this fixture
 
     const landlordBalanceBefore = await context.banksClient.getBalance(
       landlord.publicKey,

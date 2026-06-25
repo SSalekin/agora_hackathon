@@ -95,6 +95,7 @@ export default function LandingPage() {
   const [activeFilters, setActiveFilters] = useState<ListingSearchFilters | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [history, setHistory] = useState<SearchHistoryItem[]>([]);
+  const [isListingSearchLoading, setIsListingSearchLoading] = useState(false);
   const searchContextRef = useRef('');
   const listingSearchRequestRef = useRef(0);
 
@@ -131,10 +132,11 @@ export default function LandingPage() {
     const normalizedQuery = query.trim();
     if (!normalizedQuery) return;
     const requestId = ++listingSearchRequestRef.current;
+    setHasSearched(true);
+    setIsListingSearchLoading(true);
     const contextualQuery = refine && searchContextRef.current
       ? `${searchContextRef.current}. ${normalizedQuery}`
       : normalizedQuery;
-    setListings([]);
     try {
       const response = await fetch(`/api/listings?query=${encodeURIComponent(contextualQuery)}`);
       const data = (await response.json()) as ListingSearchResponse | { error: string };
@@ -150,6 +152,11 @@ export default function LandingPage() {
         return next;
       });
     } catch (searchError) { console.error('Listing search failed:', searchError); }
+    finally {
+      if (requestId === listingSearchRequestRef.current) {
+        setIsListingSearchLoading(false);
+      }
+    }
   }, []);
   const handleVoiceListingSearch = useCallback((query: string) => performListingSearch(query, true), [performListingSearch]);
   const handleTextListingSearch = useCallback((query: string) => performListingSearch(query, false), [performListingSearch]);
@@ -300,19 +307,23 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative flex min-h-dvh flex-col bg-background text-foreground">
+    <div
+      className={`relative flex flex-col bg-background text-foreground ${
+        showConversation ? 'h-dvh overflow-hidden' : 'min-h-dvh'
+      }`}
+    >
       {/* Hero shell: either shows the pre-call CTA or swaps in the live conversation experience. */}
       <div
         className={`flex min-h-0 flex-1 flex-col ${
           showConversation
-            ? 'items-stretch justify-start'
+            ? 'h-full overflow-hidden items-stretch justify-start'
             : 'items-center justify-center'
         }`}
       >
         <div
           className={`z-10 flex min-h-0 flex-1 flex-col ${
             showConversation
-              ? 'h-full w-full max-w-none items-stretch gap-0 px-0 text-left'
+              ? 'h-full w-full max-w-none overflow-hidden items-stretch gap-0 px-0 text-left'
               : 'w-full max-w-none items-stretch justify-start text-left'
           }`}
         >
@@ -327,6 +338,7 @@ export default function LandingPage() {
               activeFilters={activeFilters}
               favoriteIds={favoriteIds}
               history={history}
+              isListingSearchLoading={isListingSearchLoading}
               onStartConversation={handleStartConversation}
               onTextSearch={handleTextListingSearch}
               onToggleFavorite={handleToggleFavorite}

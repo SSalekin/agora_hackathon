@@ -124,7 +124,7 @@ export default function LoginPage() {
           </button>
           <button
             type="button"
-            onClick={() => { setEmail('landlord@demo.com'); setPassword('password123'); }}
+            onClick={() => { setEmail('alice@demo.com'); setPassword('password123'); }}
             className="px-2 py-1.5 rounded-md bg-accent/10 text-accent-foreground hover:bg-accent/20 transition-colors"
           >
             Landlord
