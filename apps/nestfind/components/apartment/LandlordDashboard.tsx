@@ -454,7 +454,7 @@ export function LandlordDashboard({ listings }: Props) {
                 type="button"
                 onClick={() => approveAgreement(pda)}
                 disabled={isBusy}
-                className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isThisCardBusy && txState.action === 'approve agreement' ? 'Approving...' : 'Approve'}
               </button>
@@ -486,7 +486,7 @@ export function LandlordDashboard({ listings }: Props) {
                 type="button"
                 onClick={() => releaseAfterDeadline(pda)}
                 disabled={isBusy}
-                className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isThisCardBusy && txState.action === 'release after deadline'
                   ? 'Releasing...'
@@ -509,7 +509,7 @@ export function LandlordDashboard({ listings }: Props) {
                 type="button"
                 onClick={() => resolveDispute(pda, true)}
                 disabled={isBusy}
-                className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isThisCardBusy && txState.action === 'resolve: release'
                   ? 'Releasing...'
@@ -549,7 +549,7 @@ export function LandlordDashboard({ listings }: Props) {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">
         Landlord workspace
       </p>
       <div className="mt-2 flex flex-col gap-4 rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -573,7 +573,7 @@ export function LandlordDashboard({ listings }: Props) {
           type="button"
           onClick={connectWallet}
           disabled={isBusy}
-          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           <KeyRound className="h-4 w-4" />
           {walletPubkey ? 'Refresh queue' : 'Connect landlord wallet'}
@@ -599,7 +599,7 @@ export function LandlordDashboard({ listings }: Props) {
       )}
 
       <div className="mt-6 flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
-        <Building2 className="h-4 w-4 text-emerald-800" />
+        <Building2 className="h-4 w-4 text-blue-600" />
         <span>
           {walletPubkey
             ? isLoadingQueue
@@ -631,7 +631,7 @@ export function LandlordDashboard({ listings }: Props) {
               >
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">
+                    <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">
                       {formatAgreementStateLabel(agreement.state)}
                     </p>
                     <h2 className="mt-2 font-serif text-2xl font-bold text-stone-900">
@@ -672,7 +672,7 @@ export function LandlordDashboard({ listings }: Props) {
                       Deadline
                     </p>
                     <p className="mt-1 inline-flex items-center gap-2">
-                      <CalendarClock className="h-4 w-4 text-emerald-800" />
+                      <CalendarClock className="h-4 w-4 text-blue-600" />
                       {deadline
                         ? new Date(deadline * 1000).toLocaleString()
                         : 'Not set'}

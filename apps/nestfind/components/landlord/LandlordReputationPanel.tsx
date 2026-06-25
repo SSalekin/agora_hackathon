@@ -32,7 +32,7 @@ export function LandlordReputationPanel({ profile, totalStakedSol, activeStakeSo
   const trustConfig = {
     low: { icon: Shield, label: 'Unverified', color: 'text-stone-500 bg-stone-100' },
     watch: { icon: ShieldAlert, label: 'Watch', color: 'text-amber-700 bg-amber-50' },
-    verified: { icon: ShieldCheck, label: 'Verified', color: 'text-emerald-700 bg-emerald-50' },
+    verified: { icon: ShieldCheck, label: 'Verified', color: 'text-blue-600 bg-blue-50' },
   };
 
   const trust = trustConfig[trustLevel];
@@ -41,7 +41,7 @@ export function LandlordReputationPanel({ profile, totalStakedSol, activeStakeSo
   return (
     <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">Landlord Reputation</p>
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">Landlord Reputation</p>
         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${trust.color}`}>
           <TrustIcon className="h-3 w-3" />
           {trust.label}
@@ -62,7 +62,7 @@ export function LandlordReputationPanel({ profile, totalStakedSol, activeStakeSo
         <div className="rounded-xl bg-stone-50 p-3 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Rentals</p>
           <p className="mt-1 flex items-center justify-center gap-1 text-base font-bold text-stone-900">
-            <Trophy className="h-3.5 w-3.5 text-emerald-600" />
+            <Trophy className="h-3.5 w-3.5 text-blue-600" />
             {profile.completedRentals}
           </p>
           <p className="text-[10px] text-stone-400">done</p>

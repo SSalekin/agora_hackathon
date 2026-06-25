@@ -70,7 +70,7 @@ function LandlordLookupSection() {
 
   return (
     <div className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
-      <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">
         Landlord Lookup
       </p>
       <p className="mt-2 max-w-2xl text-sm text-stone-500">
@@ -83,14 +83,14 @@ function LandlordLookupSection() {
             value={lookupWallet}
             onChange={(e) => setLookupWallet(e.target.value)}
             placeholder="Paste a Solana wallet address..."
-            className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 pl-9 pr-3 text-sm outline-none focus:border-emerald-700"
+            className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 pl-9 pr-3 text-sm outline-none focus:border-blue-600"
           />
         </div>
         <button
           type="button"
           onClick={handleLookup}
           disabled={!lookupWallet.trim() || lookupWallet.trim().length < 32}
-          className="h-11 rounded-xl bg-emerald-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           Lookup
         </button>
@@ -299,7 +299,7 @@ export function ModeratorDashboard({ listings }: Props) {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">
         Moderator workspace
       </p>
       <div className="mt-2 flex flex-col gap-4 rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -323,7 +323,7 @@ export function ModeratorDashboard({ listings }: Props) {
           type="button"
           onClick={connectWallet}
           disabled={isBusy}
-          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           <KeyRound className="h-4 w-4" />
           {walletPubkey ? 'Refresh disputes' : 'Connect moderator wallet'}
@@ -335,7 +335,7 @@ export function ModeratorDashboard({ listings }: Props) {
       </div>
 
       <div className="mt-6 flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
-        <Shield className="h-4 w-4 text-emerald-800" />
+        <Shield className="h-4 w-4 text-blue-600" />
         <span>
           {walletPubkey
             ? isLoading
@@ -510,7 +510,7 @@ function DisputedCard({
           type="button"
           onClick={() => onResolve(pda, true)}
           disabled={isBusy}
-          className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isThisCardBusy && txState.action === 'resolve: release' ? 'Releasing...' : 'Release to landlord'}
         </button>

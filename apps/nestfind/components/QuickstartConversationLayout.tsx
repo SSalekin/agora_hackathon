@@ -21,7 +21,7 @@ export function QuickstartConversationLayout({
   onEndConversation,
 }: QuickstartConversationLayoutProps) {
   return (
-    <div className="flex h-dvh min-h-0 flex-1 flex-col overflow-hidden bg-[#f7f5ef] text-left text-stone-900">
+    <div className="flex h-dvh min-h-0 flex-1 flex-col overflow-hidden bg-white text-left text-stone-900">
       <header className="flex shrink-0 flex-col gap-3 border-b border-stone-200 bg-white/85 px-4 py-4 backdrop-blur md:h-[76px] md:flex-row md:items-center md:justify-between md:px-6 md:py-0">
         <div className="flex min-w-0 items-center gap-3">
           <Image
@@ -60,8 +60,8 @@ export function QuickstartConversationLayout({
         </aside>
 
         <main className="order-1 flex min-h-0 flex-col overflow-hidden lg:order-2">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-stone-200 bg-[#fbfaf7] p-4 sm:p-5">
-            <div className="mb-5 shrink-0 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[.16em] text-emerald-800">Live matches</p><h2 className="mt-1 font-serif text-xl font-bold sm:text-2xl">Apartments from your conversation</h2></div><p className="text-xs text-stone-500">Results update as the conversation gets more specific.</p></div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl border border-stone-200 bg-white p-4 sm:p-5">
+            <div className="mb-5 shrink-0 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[.16em] text-blue-600">Live matches</p><h2 className="mt-1 font-serif text-xl font-bold sm:text-2xl">Apartments from your conversation</h2></div><p className="text-xs text-stone-500">Results update as the conversation gets more specific.</p></div>
             <div className="min-h-0 flex-1 overflow-y-auto">
               {listingPanel}
             </div>

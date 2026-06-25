@@ -130,8 +130,8 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
     return (
       <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-emerald-50">
-            <ShieldCheck className="h-5 w-5 text-emerald-700" />
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-blue-50">
+            <ShieldCheck className="h-5 w-5 text-blue-600" />
           </span>
           <div>
             <p className="text-sm font-semibold text-stone-900">Landlord Stake</p>
@@ -143,7 +143,7 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
             type="button"
             onClick={handleStake}
             disabled={isBusy}
-            className="mt-4 w-full rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-4 w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isBusy ? <Loader2 className="inline h-4 w-4 animate-spin" /> : 'Initialize & Stake 0.0001 SOL'}
           </button>
@@ -158,9 +158,9 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
   return (
     <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">Your Stake</p>
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">Your Stake</p>
         {hasMinimumStake && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-600">
             <ShieldCheck className="h-3 w-3" /> Verified
           </span>
         )}
@@ -198,7 +198,7 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
               type="button"
               onClick={handleStake}
               disabled={isBusy || !walletPubkey}
-              className="flex items-center gap-1 rounded-xl bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowDownToLine className="h-4 w-4" />}
               Stake

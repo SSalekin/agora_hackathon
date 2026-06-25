@@ -35,7 +35,7 @@ export function LandlordRiskPanel({ wallet, profile, totalStakedSol, activeStake
   const riskConfig = {
     high: { color: 'border-rose-200 bg-rose-50', label: 'High Risk', textColor: 'text-rose-700' },
     medium: { color: 'border-amber-200 bg-amber-50', label: 'Medium Risk', textColor: 'text-amber-700' },
-    low: { color: 'border-emerald-200 bg-emerald-50', label: 'Low Risk', textColor: 'text-emerald-700' },
+    low: { color: 'border-blue-200 bg-blue-50', label: 'Low Risk', textColor: 'text-blue-600' },
   };
 
   const risk = riskConfig[riskLevel];
@@ -72,7 +72,7 @@ export function LandlordRiskPanel({ wallet, profile, totalStakedSol, activeStake
           href={`https://explorer.solana.com/address/${wallet}?cluster=${process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet'}`}
           target="_blank"
           rel="noreferrer"
-          className="text-emerald-700 underline underline-offset-2"
+          className="text-blue-600 underline underline-offset-2"
         >
           Explorer <ExternalLink className="inline h-3 w-3" />
         </a>

@@ -39,7 +39,7 @@ function ListingCard({ listing, isFavorite, onToggleFavorite, onOpenAgreement }:
               <span className="line-clamp-2 break-words">{listing.address}</span>
             </p>
           </div>
-          <div className="shrink-0 text-right"><p className="text-base font-bold text-emerald-800 md:text-lg">{formatVnd(listing.monthlyRentVnd)}</p><p className="text-[11px] text-stone-400">per month</p></div>
+          <div className="shrink-0 text-right"><p className="text-base font-bold text-blue-600 md:text-lg">{formatVnd(listing.monthlyRentVnd)}</p><p className="text-[11px] text-stone-400">per month</p></div>
         </div>
         <div className="flex-1">
           {profile.exists && (
@@ -52,10 +52,10 @@ function ListingCard({ listing, isFavorite, onToggleFavorite, onOpenAgreement }:
             <span className="flex items-center gap-1"><Bath className="h-4 w-4" />{listing.bathrooms} bath</span>
             <span className="flex items-center gap-1"><Ruler className="h-4 w-4" />{listing.areaSqm} m²</span>
           </div>
-          <div className="mt-2 flex flex-wrap gap-2 md:mt-4">{listing.amenities.slice(0, 2).map((amenity) => <span key={amenity} className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] text-stone-600">{amenity}</span>)}{listing.amenities.length > 2 && <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-800">+{listing.amenities.length - 2} more</span>}</div>
+          <div className="mt-2 flex flex-wrap gap-2 md:mt-4">{listing.amenities.slice(0, 2).map((amenity) => <span key={amenity} className="rounded-full bg-stone-100 px-2.5 py-1 text-[11px] text-stone-600">{amenity}</span>)}{listing.amenities.length > 2 && <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-600">+{listing.amenities.length - 2} more</span>}</div>
         </div>
         <div className="mt-2 md:mt-4">
-          <button type="button" onClick={() => onOpenAgreement(listing.id)} className="w-full rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white md:py-3">Start rental agreement</button>
+          <button type="button" onClick={() => onOpenAgreement(listing.id)} className="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white md:py-3">Start rental agreement</button>
         </div>
       </div>
     </article>

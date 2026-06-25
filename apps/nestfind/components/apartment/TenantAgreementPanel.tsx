@@ -608,7 +608,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
           </div>
           <div className="text-right">
             <p className="text-xs text-stone-500">Rent</p>
-            <p className="font-semibold text-emerald-800">{listing.monthlyRentVnd.toLocaleString()} VND</p>
+            <p className="font-semibold text-blue-600">{listing.monthlyRentVnd.toLocaleString()} VND</p>
           </div>
         </div>
 
@@ -617,7 +617,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             <label className="text-xs font-medium">Connected wallet</label>
             <div className="mt-1 flex items-center gap-2">
               <input value={walletPubkey ?? ''} readOnly placeholder="Not connected" className="flex-1 rounded-md border px-3 py-2 text-sm" />
-              <button type="button" onClick={connectWallet} disabled={isBusy} className="rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">Connect</button>
+              <button type="button" onClick={connectWallet} disabled={isBusy} className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">Connect</button>
             </div>
             {connectedRole && <p className="mt-1 text-xs text-stone-500">Role for loaded agreement: <span className="font-semibold capitalize">{connectedRole}</span></p>}
             {isLoadingAgreement && <p className="mt-1 text-xs text-stone-500">Loading existing agreement for this wallet…</p>}
@@ -672,7 +672,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
               type="button"
               onClick={createAgreement}
               disabled={isBusy || !isLandlordValid}
-              className="w-full rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {txState.phase === 'signing' || txState.action === 'create agreement' ? 'Creating…' : 'Create agreement'}
             </button>
@@ -701,10 +701,10 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             {agreement.txSignature && <p className="mt-1 text-xs text-stone-500">Last on-chain signature: <a href={explorerUrl(agreement.txSignature)} target="_blank" rel="noreferrer" className="underline underline-offset-2">{agreement.txSignature}</a></p>}
             <pre className="mt-2 max-h-40 overflow-auto text-xs text-stone-700">{JSON.stringify(agreement, null, 2)}</pre>
             <div className="mt-3 flex gap-2">
-              <button type="button" onClick={approveAgreement} disabled={isBusy || agreement.state !== 'awaitingLandlordApproval' || connectedRole !== 'landlord'} className="rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="button" onClick={approveAgreement} disabled={isBusy || agreement.state !== 'awaitingLandlordApproval' || connectedRole !== 'landlord'} className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
                 {txState.action === 'approve agreement' && isBusy ? 'Approving…' : 'Approve'}
               </button>
-              <button type="button" onClick={fundAgreement} disabled={isBusy || agreement.state !== 'awaitingFunding' || connectedRole !== 'tenant'} className="rounded-md bg-emerald-800 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="button" onClick={fundAgreement} disabled={isBusy || agreement.state !== 'awaitingFunding' || connectedRole !== 'tenant'} className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
                 {txState.action === 'fund agreement' && isBusy ? 'Funding…' : 'Fund'}
               </button>
               <button type="button" onClick={cancelAgreement} disabled={isBusy || !connectedRole || connectedRole === 'viewer' || !['awaitingLandlordApproval', 'awaitingFunding'].includes(agreement.state)} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Cancel</button>
