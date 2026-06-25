@@ -20,12 +20,12 @@ In the import dialog or project settings:
 | Setting | Value |
 |---------|-------|
 | **Framework Preset** | Next.js (auto-detected) |
-| **Root Directory** | `apps/nestfind` |
-| **Install Command** | `cd ../.. && pnpm install --frozen-lockfile` |
+| **Root Directory** | `.` (repo root — the default) |
+| **Install Command** | `pnpm install --frozen-lockfile` |
 | **Build Command** | `pnpm run build` |
-| **Output Directory** | `.next` |
+| **Output Directory** | `apps/nestfind/.next` |
 
-> **Why `cd ../..`?** This is a pnpm monorepo. The Next.js app lives in `apps/nestfind/`, but dependencies are installed from the repo root. Vercel runs commands from the root directory you set, so we `cd` up to the monorepo root for install.
+> **Why repo root?** This is a pnpm monorepo. The `vercel.json` is at the repo root. The root `package.json` build script handles `cd apps/nestfind && next build --webpack`, so the output lands in `apps/nestfind/.next`. Vercel must run from the repo root to resolve pnpm workspaces.
 
 ## Step 3: Set Environment Variables
 
@@ -65,7 +65,7 @@ Click **Deploy**. Vercel will:
 
 1. Clone the repo
 2. Run `pnpm install --frozen-lockfile` from the monorepo root
-3. Build the Next.js app from `apps/nestfind/`
+3. Run `pnpm run build` which builds the Next.js app from `apps/nestfind/`
 4. Deploy to your `.vercel.app` URL
 
 ## Step 5: Verify
@@ -81,11 +81,18 @@ Click **Deploy**. Vercel will:
 
 ## Troubleshooting
 
+### Build fails: ".next was not found"
+
+The output directory must point to where Next.js writes the build output. In this monorepo, that's `apps/nestfind/.next`. Ensure:
+- Root Directory is set to `.` (repo root)
+- Output Directory is `apps/nestfind/.next`
+- The `vercel.json` is at the repo root (not inside `apps/nestfind/`)
+
 ### Build fails: "Cannot find module" or workspace errors
 
 The install command must run from the monorepo root. Ensure:
-- Root Directory is set to `apps/nestfind`
-- Install Command is `cd ../.. && pnpm install --frozen-lockfile`
+- Root Directory is set to `.` (repo root)
+- Install Command is `pnpm install --frozen-lockfile`
 
 ### Build fails: "Missing NEXT_PUBLIC_AGORA_APP_ID"
 

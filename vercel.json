@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm run build",
   "framework": "nextjs",
-  "outputDirectory": ".next",
+  "outputDirectory": "apps/nestfind/.next",
   "env": {
     "NEXT_PUBLIC_VERCEL_URL": "${VERCEL_URL}"
   },
