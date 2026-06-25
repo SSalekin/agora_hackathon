@@ -18,6 +18,7 @@
     "reindex": "cd apps/nestfind && node scripts/reindex.mjs",
     "check:couchbase": "pnpm run ensure:env && cd apps/nestfind && node --env-file=.env.local --import tsx scripts/check-couchbase-connection.ts",
     "seed:couchbase": "pnpm run ensure:env && cd apps/nestfind && node --env-file=.env.local --import tsx scripts/seed-couchbase-listings.ts",
+    "migrate:demo:couchbase": "pnpm run ensure:env && cd apps/nestfind && node --env-file=.env.local --import tsx scripts/migrate-demo-data-to-couchbase.ts",
     "verify:apartment": "cd apps/nestfind && node --import tsx scripts/verify-apartment.ts",
     "verify:api": "cd apps/nestfind && node --import tsx scripts/verify-api-contracts.ts",
     "typecheck": "cd apps/nestfind && tsc --noEmit",

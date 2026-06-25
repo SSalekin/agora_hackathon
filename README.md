@@ -201,3 +201,12 @@ pnpm run dev
 ```
 
 See `apps/nestfind/scripts/seed-couchbase-listings.ts` and `apps/nestfind/lib/db/couchbase.ts` for the Couchbase setup.
+
+## Documentation
+
+| File | Description |
+|------|-------------|
+| [docs/how_to_setup.md](docs/how_to_setup.md) | Full setup guide: prerequisites, install, env vars, Couchbase, Anchor |
+| [docs/how_to_run.md](docs/how_to_run.md) | Running the PWA, production build, feature-specific commands |
+| [docs/how_to_test.md](docs/how_to_test.md) | Testing tiers, verification scripts, Anchor tests, CI invocations |
+| [docs/bugs.md](docs/bugs.md) | Known bugs and issues from source code review |

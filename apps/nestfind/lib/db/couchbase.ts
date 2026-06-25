@@ -27,7 +27,7 @@ export function getCouchbaseKeyspace() {
   return {
     bucket: requireEnv('COUCHBASE_BUCKET'),
     scope: process.env.COUCHBASE_SCOPE || '_default',
-    collection: process.env.COUCHBASE_COLLECTION || 'listings',
+    collection: process.env.COUCHBASE_LISTINGS_COLLECTION || 'listings',
   };
 }
 
@@ -59,7 +59,7 @@ export async function getCouchbaseBucket(): Promise<Bucket> {
 
 export async function getCouchbaseCollection(
   scope = process.env.COUCHBASE_SCOPE || '_default',
-  collection = process.env.COUCHBASE_COLLECTION || 'listings',
+  collection = process.env.COUCHBASE_LISTINGS_COLLECTION || 'listings',
 ): Promise<Collection> {
   const bucket = await getCouchbaseBucket();
   return bucket.scope(scope).collection(collection);
