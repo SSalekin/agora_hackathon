@@ -3,19 +3,11 @@
 import { useState } from 'react';
 
 interface QuestionFormProps {
-  listingId: string;
-  tenantId: string;
-  landlordWallet: string;
-  listingLocation: string;
   onSubmit: (questions: string[]) => void;
   isLoading?: boolean;
 }
 
 export function QuestionForm({
-  listingId,
-  tenantId,
-  landlordWallet,
-  listingLocation,
   onSubmit,
   isLoading = false,
 }: QuestionFormProps) {

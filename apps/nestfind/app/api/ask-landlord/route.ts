@@ -1,65 +1,99 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateQuestion, createFAQItem } from '@/lib/question-collector';
-import { routeCall, type LandlordInfo } from '@/lib/call-router';
+import { cookies } from 'next/headers';
+import { getUserFromToken } from '@/lib/auth';
+import { validateQuestion } from '@/lib/question-collector';
+import { routeCall } from '@/lib/call-router';
 import { createFAQItemWithId } from '@/lib/faq-updater';
 import { createNotification } from '@/lib/notification-service';
+import { updateApartmentFAQ } from '@/lib/db/apartment-listings';
+import type { QuestionQueueItem } from '@/types/faq';
 
 interface AskLandlordRequest {
   listingId: string;
   tenantId: string;
   questions: string[];
-  landlord: LandlordInfo;
+  landlord: { wallet?: string; phone?: string; isAppUser: boolean };
   listingLocation: string;
 }
 
+const questionQueue: QuestionQueueItem[] = [];
+
 export async function POST(request: NextRequest) {
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const tokenUser = getUserFromToken(token);
+    if (!tokenUser) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
     const body: AskLandlordRequest = await request.json();
     const { listingId, tenantId, questions, landlord, listingLocation } = body;
-    
-    // Validate input
+
     if (!listingId || !tenantId || !questions.length || !landlord || !listingLocation) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
-    
-    // Validate all questions
-    const validationResults = questions.map(q => validateQuestion(q));
-    const invalidQuestions = validationResults.filter(r => !r.valid);
-    
+
+    if (tokenUser.id !== tenantId) {
+      return NextResponse.json(
+        { error: 'Tenant ID does not match authenticated user' },
+        { status: 403 }
+      );
+    }
+
+    const validationResults = questions.map((q) => validateQuestion(q));
+    const invalidQuestions = validationResults.filter((r) => !r.valid);
+
     if (invalidQuestions.length > 0) {
       return NextResponse.json(
         { error: 'Invalid questions', details: invalidQuestions },
         { status: 400 }
       );
     }
-    
-    // Route the call
+
     const routingDecision = routeCall(landlord, listingLocation);
-    
-    // Create FAQ items
-    const faqItems = questions.map(q => 
+
+    const faqItems = questions.map((q) =>
       createFAQItemWithId(q, '', tenantId, routingDecision.language, 'pending')
     );
-    
-    // Create notification for tenant
+
+    await updateApartmentFAQ(listingId, faqItems);
+
+    const queueItem: QuestionQueueItem = {
+      id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      listingId,
+      tenantId,
+      questions,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      attempts: 0,
+    };
+    questionQueue.push(queueItem);
+
     createNotification(
       tenantId,
-      'question-answered',
+      'question-submitted',
       'Questions Submitted',
       `Your questions about the apartment have been submitted. We'll call the landlord and get back to you.`,
       listingId
     );
-    
+
     return NextResponse.json({
       success: true,
       routingDecision,
       faqItems,
+      queueItemId: queueItem.id,
       message: 'Questions submitted successfully. We will call the landlord and update you with answers.',
     });
-    
+
   } catch (error) {
     console.error('Error in ask-landlord:', error);
     return NextResponse.json(

@@ -69,14 +69,34 @@ export async function updateApartmentFAQ(
   newFAQItems: FAQItem[]
 ): Promise<void> {
   const collection = await getCouchbaseCollection();
+  const maxRetries = 3;
 
-  const result = await collection.get(listingId);
-  const listing = result.content as ApartmentListing;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const result = await collection.get(APARTMENT_CATALOG_DOCUMENT_ID);
+    const document = result.content as ApartmentCatalogDocument;
+    const cas = result.cas;
 
-  const updatedFAQ = mergeFAQItems(listing.faq || [], newFAQItems);
+    const listingIndex = document.listings.findIndex((l) => l.id === listingId);
+    if (listingIndex === -1) {
+      throw new Error(`Listing ${listingId} not found in apartment catalog`);
+    }
 
-  await collection.upsert(listingId, {
-    ...listing,
-    faq: updatedFAQ,
-  });
+    const listing = document.listings[listingIndex];
+    const updatedFAQ = mergeFAQItems(listing.faq || [], newFAQItems);
+
+    document.listings[listingIndex] = { ...listing, faq: updatedFAQ };
+    document.updatedAt = new Date().toISOString();
+
+    try {
+      await collection.replace(APARTMENT_CATALOG_DOCUMENT_ID, document, { cas });
+      return;
+    } catch (err: unknown) {
+      if (err instanceof Error && 'code' in err && (err as { code: number }).code === 12) {
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw new Error(`Failed to update FAQ for listing ${listingId} after ${maxRetries} retries`);
 }

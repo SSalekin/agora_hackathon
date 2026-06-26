@@ -1,4 +1,4 @@
-export type NotificationType = 'question-answered' | 'question-skipped' | 'call-failed' | 'call-retry';
+export type NotificationType = 'question-submitted' | 'question-answered' | 'question-skipped' | 'call-failed' | 'call-retry';
 
 export interface Notification {
   id: string;

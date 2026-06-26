@@ -49,7 +49,7 @@ export function ApartmentHome({ isLoading, error, userName, listings, listingCat
           questions,
           landlord: {
             wallet: selectedListing.landlordWallet,
-            isAppUser: true,
+            isAppUser: false,
           },
           listingLocation: selectedListing.neighborhood,
         }),
@@ -125,10 +125,6 @@ export function ApartmentHome({ isLoading, error, userName, listings, listingCat
               ) : (
                 <div className="mt-4">
                   <QuestionForm
-                    listingId={selectedListing.id}
-                    tenantId={user?.id || ''}
-                    landlordWallet={selectedListing.landlordWallet}
-                    listingLocation={selectedListing.neighborhood}
                     onSubmit={handleQuestionSubmit}
                     isLoading={isSubmitting}
                   />
