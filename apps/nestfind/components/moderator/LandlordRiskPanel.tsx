@@ -16,10 +16,10 @@ type Props = {
 export function LandlordRiskPanel({ wallet, profile, totalStakedSol, activeStakeSol, hasMinimumStake }: Props) {
   if (!profile.exists) {
     return (
-      <div className="rounded-2xl border border-dashed border-stone-300 bg-white/60 px-5 py-6">
-        <p className="text-xs font-bold uppercase tracking-[.16em] text-stone-400">Landlord Risk</p>
-        <p className="mt-2 text-sm text-stone-500">No on-chain stake profile for this landlord.</p>
-        <p className="mt-1 text-xs text-stone-400">Wallet: <span className="font-mono">{wallet.slice(0, 8)}...{wallet.slice(-4)}</span></p>
+      <div className="rounded-2xl border border-dashed border-border bg-background/60 px-5 py-6">
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-muted-foreground">Landlord Risk</p>
+        <p className="mt-2 text-sm text-muted-foreground">No on-chain stake profile for this landlord.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Wallet: <span className="font-mono">{wallet.slice(0, 8)}...{wallet.slice(-4)}</span></p>
       </div>
     );
   }
@@ -32,47 +32,47 @@ export function LandlordRiskPanel({ wallet, profile, totalStakedSol, activeStake
         ? 'medium'
         : 'low';
 
-  const riskConfig = {
-    high: { color: 'border-rose-200 bg-rose-50', label: 'High Risk', textColor: 'text-rose-700' },
-    medium: { color: 'border-amber-200 bg-amber-50', label: 'Medium Risk', textColor: 'text-amber-700' },
-    low: { color: 'border-blue-200 bg-blue-50', label: 'Low Risk', textColor: 'text-blue-600' },
-  };
+  const COLOR_SCHEMES = {
+    high: { color: 'border-destructive/30 bg-destructive/10', label: 'High Risk', textColor: 'text-destructive' },
+    medium: { color: 'border-warning/30 bg-warning/10', label: 'Medium Risk', textColor: 'text-warning' },
+    low: { color: 'border-primary/30 bg-primary/10', label: 'Low Risk', textColor: 'text-primary' },
+  } as const;
 
-  const risk = riskConfig[riskLevel];
+  const risk = COLOR_SCHEMES[riskLevel];
 
   return (
     <div className={`rounded-2xl border ${risk.color} p-4`}>
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold uppercase tracking-[.16em] text-stone-500">Landlord Risk Assessment</p>
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-muted-foreground">Landlord Risk Assessment</p>
         <span className={`text-xs font-semibold ${risk.textColor}`}>{risk.label}</span>
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
         <div>
-          <p className="text-[11px] text-stone-500">Active stake</p>
-          <p className="font-semibold text-stone-900">{activeStakeSol.toFixed(2)} SOL</p>
-          {!hasMinimumStake && <p className="text-[11px] text-rose-600">Below 0.0001 SOL minimum</p>}
+          <p className="text-[11px] text-muted-foreground">Active stake</p>
+          <p className="font-semibold text-foreground">{activeStakeSol.toFixed(2)} SOL</p>
+          {!hasMinimumStake && <p className="text-[11px] text-destructive">Below 0.0001 SOL minimum</p>}
         </div>
         <div>
-          <p className="text-[11px] text-stone-500">Completed</p>
-          <p className="font-semibold text-stone-900">{profile.completedRentals}</p>
+          <p className="text-[11px] text-muted-foreground">Completed</p>
+          <p className="font-semibold text-foreground">{profile.completedRentals}</p>
         </div>
         <div>
-          <p className="text-[11px] text-stone-500">Disputes lost</p>
-          <p className="font-semibold text-stone-900">
+          <p className="text-[11px] text-muted-foreground">Disputes lost</p>
+          <p className="font-semibold text-foreground">
             {profile.disputesLost}
-            {profile.disputesLost > 0 && <AlertTriangle className="ml-1 inline h-3 w-3 text-amber-500" />}
+            {profile.disputesLost > 0 && <AlertTriangle className="ml-1 inline h-3 w-3 text-warning" />}
           </p>
         </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-2 text-[11px] text-stone-500">
+      <div className="mt-3 flex items-center gap-2 text-[11px] text-muted-foreground">
         <span className="font-mono">{wallet.slice(0, 8)}...{wallet.slice(-4)}</span>
         <a
           href={`https://explorer.solana.com/address/${wallet}?cluster=${process.env.NEXT_PUBLIC_SOLANA_CLUSTER || 'devnet'}`}
           target="_blank"
           rel="noreferrer"
-          className="text-blue-600 underline underline-offset-2"
+          className="text-primary underline underline-offset-2"
         >
           Explorer <ExternalLink className="inline h-3 w-3" />
         </a>
