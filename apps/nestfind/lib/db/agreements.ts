@@ -24,9 +24,21 @@ export async function listAgreements(
   if (!isEscrowPersistenceEnabled()) return [];
   const collection = await getEscrowCollection();
 
-  const query = `SELECT d.* FROM \`${process.env.COUCHBASE_BUCKET || 'nestfind'}\`.\`${process.env.COUCHBASE_SCOPE || '_default'}\`.\`${process.env.COUCHBASE_ESCROW_COLLECTION || 'listings'}\` d WHERE d.type = 'escrowAgreement'${filter.state ? ` AND d.state = '${filter.state}'` : ''}${filter.wallet ? ` AND (d.tenantWallet = '${filter.wallet}' OR d.landlordWallet = '${filter.wallet}')` : ''} ORDER BY d.createdAt DESC`;
+  const params: Record<string, string> = {};
+  const conditions = ["d.type = 'escrowAgreement'"];
 
-  const result = await collection.cluster.query(query);
+  if (filter.state) {
+    conditions.push('d.state = $state');
+    params.state = filter.state;
+  }
+  if (filter.wallet) {
+    conditions.push('(d.tenantWallet = $wallet OR d.landlordWallet = $wallet)');
+    params.wallet = filter.wallet;
+  }
+
+  const query = `SELECT d.* FROM \`${process.env.COUCHBASE_BUCKET || 'nestfind'}\`.\`${process.env.COUCHBASE_SCOPE || '_default'}\`.\`${process.env.COUCHBASE_ESCROW_COLLECTION || 'listings'}\` d WHERE ${conditions.join(' AND ')} ORDER BY d.createdAt DESC`;
+
+  const result = await collection.cluster.query(query, { parameters: params });
   return result.rows as PersistedAgreement[];
 }
 
