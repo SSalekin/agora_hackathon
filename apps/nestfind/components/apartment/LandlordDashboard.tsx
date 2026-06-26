@@ -539,7 +539,7 @@ export function LandlordDashboard({ listings }: Props) {
               value={evidence[pda] ?? ''}
               onChange={(e) => setEvidence((prev) => ({ ...prev, [pda]: e.target.value }))}
               placeholder="Short description of the dispute"
-              className="mt-1 w-full rounded-xl border border-stone-200 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-xl border border-border px-3 py-2 text-sm"
             />
           </div>
         )}

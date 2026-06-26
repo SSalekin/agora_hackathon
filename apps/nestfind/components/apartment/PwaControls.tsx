@@ -77,7 +77,7 @@ export function PwaControls() {
 
   return (
     <div className="flex items-center gap-2">
-      {!isOnline && <span className="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-800"><WifiOff className="h-3.5 w-3.5" /> Offline</span>}
+      {!isOnline && <span className="flex items-center gap-1 rounded-full bg-warning/10 px-3 py-2 text-xs font-semibold text-warning"><WifiOff className="h-3.5 w-3.5" /> Offline</span>}
       {installPrompt && <button type="button" onClick={install} className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground hover:bg-muted" aria-label="Install NestFind app" title="Install app"><Download className="h-4 w-4" /></button>}
       <button type="button" onClick={enableNotifications} className={`grid h-9 w-9 place-items-center rounded-full border transition ${notificationsEnabled ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border bg-background text-muted-foreground hover:bg-muted'}`} aria-label={notificationsEnabled ? 'Listing alerts enabled' : 'Enable listing alerts'} title={notificationsEnabled ? 'Alerts enabled' : 'Enable alerts'}><Bell className={`h-4 w-4 ${notificationsEnabled ? 'fill-current' : ''}`} /></button>
     </div>

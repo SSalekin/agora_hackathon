@@ -607,7 +607,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             <p className="text-sm text-foreground">{listing.title}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-stone-500">Rent</p>
+            <p className="text-xs text-muted-foreground">Rent</p>
             <p className="font-semibold text-primary">{listing.monthlyRentVnd.toLocaleString()} VND</p>
           </div>
         </div>
