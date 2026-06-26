@@ -55,6 +55,14 @@
   --chart-4: 0 72% 52%;
   --chart-5: 150 50% 40%;
 
+  /* Status colors */
+  --success:            142 76% 36%;
+  --success-foreground: 0 0% 100%;
+  --warning:            38 92% 50%;
+  --warning-foreground: 0 0% 100%;
+  --info:               217 91% 60%;
+  --info-foreground:    0 0% 100%;
+
   /* Sidebar */
   --sidebar-background:         0 0% 100%;
   --sidebar-foreground:         220 25% 12%;
