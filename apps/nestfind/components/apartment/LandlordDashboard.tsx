@@ -474,7 +474,7 @@ export function LandlordDashboard({ listings }: Props) {
               type="button"
               onClick={() => cancelAgreement(pda)}
               disabled={isBusy}
-              className="rounded-xl border border-stone-300 px-4 py-2 text-sm text-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl border border-stone-300 px-4 py-2 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isThisCardBusy && txState.action === 'cancel agreement' ? 'Cancelling...' : 'Cancel'}
             </button>
@@ -654,13 +654,13 @@ export function LandlordDashboard({ listings }: Props) {
 
                 <div className="mt-4 grid gap-3 rounded-2xl bg-muted p-4 text-sm text-muted-foreground sm:grid-cols-3">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                       Tenant
                     </p>
                     <p className="mt-1 break-all">{tenant}</p>
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                       Deposit
                     </p>
                     <p className="mt-1">
@@ -668,7 +668,7 @@ export function LandlordDashboard({ listings }: Props) {
                     </p>
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                       Deadline
                     </p>
                     <p className="mt-1 inline-flex items-center gap-2">

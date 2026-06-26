@@ -78,7 +78,7 @@ function LandlordLookupSection() {
       </p>
       <div className="mt-4 flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             value={lookupWallet}
             onChange={(e) => setLookupWallet(e.target.value)}
@@ -441,19 +441,19 @@ function DisputedCard({
 
       <div className="mt-4 grid gap-3 rounded-2xl bg-muted p-4 text-sm text-muted-foreground sm:grid-cols-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Tenant
           </p>
           <p className="mt-1 break-all">{tenant}</p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Landlord
           </p>
           <p className="mt-1 break-all">{landlord}</p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Deposit
           </p>
           <p className="mt-1">
