@@ -11,9 +11,9 @@ export async function listTransactions(
   if (!isEscrowPersistenceEnabled()) return [];
   const collection = await getEscrowCollection();
 
-  const query = `SELECT d.* FROM \`${process.env.COUCHBASE_BUCKET || 'nestfind'}\`.\`${process.env.COUCHBASE_SCOPE || '_default'}\`.\`${process.env.COUCHBASE_ESCROW_COLLECTION || 'listings'}\` d WHERE d.type = 'escrowTransaction' AND d.agreementPda = '${agreementPda}' ORDER BY d.submittedAt DESC`;
+  const query = `SELECT d.* FROM \`${process.env.COUCHBASE_BUCKET || 'nestfind'}\`.\`${process.env.COUCHBASE_SCOPE || '_default'}\`.\`${process.env.COUCHBASE_ESCROW_COLLECTION || 'listings'}\` d WHERE d.type = 'escrowTransaction' AND d.agreementPda = $agreementPda ORDER BY d.submittedAt DESC`;
 
-  const result = await collection.cluster.query(query);
+  const result = await collection.cluster.query(query, { parameters: { agreementPda } });
   return result.rows as TransactionRecord[];
 }
 
