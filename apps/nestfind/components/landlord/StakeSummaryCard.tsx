@@ -128,14 +128,14 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
 
   if (!profile.exists) {
     return (
-      <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-border bg-background p-5 shadow-sm">
         <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-blue-50">
-            <ShieldCheck className="h-5 w-5 text-blue-600" />
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10">
+            <ShieldCheck className="h-5 w-5 text-primary" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-stone-900">Landlord Stake</p>
-            <p className="text-xs text-stone-500">No on-chain profile yet. Initialize one to start staking.</p>
+            <p className="text-sm font-semibold text-foreground">Landlord Stake</p>
+            <p className="text-xs text-muted-foreground">No on-chain profile yet. Initialize one to start staking.</p>
           </div>
         </div>
         {walletPubkey && (
@@ -143,62 +143,62 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
             type="button"
             onClick={handleStake}
             disabled={isBusy}
-            className="mt-4 w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-4 w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isBusy ? <Loader2 className="inline h-4 w-4 animate-spin" /> : 'Initialize & Stake 0.0001 SOL'}
           </button>
         )}
         {!walletPubkey && (
-          <p className="mt-3 text-xs text-stone-500">Connect a landlord wallet to initialize a stake profile.</p>
+          <p className="mt-3 text-xs text-muted-foreground">Connect a landlord wallet to initialize a stake profile.</p>
         )}
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-border bg-background p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">Your Stake</p>
+        <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Your Stake</p>
         {hasMinimumStake && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-600">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
             <ShieldCheck className="h-3 w-3" /> Verified
           </span>
         )}
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-3">
-        <div className="rounded-xl bg-stone-50 p-3 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Staked</p>
-          <p className="mt-1 text-lg font-bold text-stone-900">{activeStakeSol.toFixed(2)}</p>
-          <p className="text-[11px] text-stone-400">SOL</p>
+        <div className="rounded-xl bg-muted p-3 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Staked</p>
+          <p className="mt-1 text-lg font-bold text-foreground">{activeStakeSol.toFixed(2)}</p>
+          <p className="text-[11px] text-muted-foreground">SOL</p>
         </div>
-        <div className="rounded-xl bg-stone-50 p-3 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Total</p>
-          <p className="mt-1 text-lg font-bold text-stone-900">{totalStakedSol.toFixed(2)}</p>
-          <p className="text-[11px] text-stone-400">SOL</p>
+        <div className="rounded-xl bg-muted p-3 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total</p>
+          <p className="mt-1 text-lg font-bold text-foreground">{totalStakedSol.toFixed(2)}</p>
+          <p className="text-[11px] text-muted-foreground">SOL</p>
         </div>
-        <div className="rounded-xl bg-stone-50 p-3 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">Disputes</p>
-          <p className="mt-1 text-lg font-bold text-stone-900">{profile.disputesLost}</p>
-          <p className="text-[11px] text-stone-400">lost</p>
+        <div className="rounded-xl bg-muted p-3 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Disputes</p>
+          <p className="mt-1 text-lg font-bold text-foreground">{profile.disputesLost}</p>
+          <p className="text-[11px] text-muted-foreground">lost</p>
         </div>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs font-medium text-stone-600">Stake amount (SOL)</label>
+          <label className="text-xs font-medium text-muted-foreground">Stake amount (SOL)</label>
           <div className="mt-1 flex gap-2">
             <input
               value={stakeAmount}
               onChange={(e) => setStakeAmount(e.target.value)}
-              className="flex-1 rounded-xl border border-stone-200 px-3 py-2 text-sm"
+              className="flex-1 rounded-xl border border-border px-3 py-2 text-sm"
               placeholder="0.5"
             />
             <button
               type="button"
               onClick={handleStake}
               disabled={isBusy || !walletPubkey}
-              className="flex items-center gap-1 rounded-xl bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowDownToLine className="h-4 w-4" />}
               Stake
@@ -206,19 +206,19 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
           </div>
         </div>
         <div>
-          <label className="text-xs font-medium text-stone-600">Unstake amount (SOL)</label>
+          <label className="text-xs font-medium text-muted-foreground">Unstake amount (SOL)</label>
           <div className="mt-1 flex gap-2">
             <input
               value={unstakeAmount}
               onChange={(e) => setUnstakeAmount(e.target.value)}
-              className="flex-1 rounded-xl border border-stone-200 px-3 py-2 text-sm"
+              className="flex-1 rounded-xl border border-border px-3 py-2 text-sm"
               placeholder="0.1"
             />
             <button
               type="button"
               onClick={handleUnstake}
               disabled={isBusy || !walletPubkey || profile.activeStakeLamports === 0}
-              className="flex items-center gap-1 rounded-xl border border-stone-300 px-3 py-2 text-sm font-semibold text-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpFromLine className="h-4 w-4" />}
               Unstake
@@ -228,7 +228,7 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
       </div>
 
       {txPhase !== 'idle' && txMessage && (
-        <div className={`mt-4 rounded-xl border px-3 py-2 text-sm ${txPhase === 'failed' ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-stone-200 bg-stone-50 text-stone-700'}`}>
+        <div className={`mt-4 rounded-xl border px-3 py-2 text-sm ${txPhase === 'failed' ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-border bg-muted text-foreground'}`}>
           <div className="flex items-start justify-between gap-3">
             <p>{txMessage}</p>
             {txSignature && (
@@ -240,7 +240,7 @@ export function StakeSummaryCard({ profile, totalStakedSol, activeStakeSol, hasM
         </div>
       )}
 
-      {error && <p className="mt-2 text-sm text-rose-700">{error}</p>}
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
     </div>
   );
 }
