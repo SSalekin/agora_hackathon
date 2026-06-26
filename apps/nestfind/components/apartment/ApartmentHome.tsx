@@ -2,13 +2,15 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Clock3, Heart, Home, Loader2, LogOut, Mic, Search, Shield, Sparkles, UserRound } from 'lucide-react';
+import { ArrowRight, Clock3, Heart, Home, Loader2, LogOut, Mic, Search, Shield, Sparkles, UserRound, X } from 'lucide-react';
 import type { ApartmentListing, ListingSearchFilters, SearchHistoryItem } from '@/types/listing';
 import { useAuth } from '@/lib/auth-context';
+import { FAQSection } from './FAQSection';
 import { LandlordDashboard } from './LandlordDashboard';
 import { ListingGrid } from './ListingGrid';
 import { ModeratorDashboard } from './ModeratorDashboard';
 import { PwaControls } from './PwaControls';
+import { QuestionForm } from './QuestionForm';
 import { SearchFilterChips } from './SearchFilterChips';
 
 type AppTab = 'discover' | 'saved' | 'history' | 'landlord' | 'moderator';
@@ -26,10 +28,42 @@ export function ApartmentHome({ isLoading, error, userName, listings, listingCat
   const { user, logout } = useAuth();
   const [tab, setTab] = useState<AppTab>('discover');
   const [query, setQuery] = useState('');
+  const [selectedListing, setSelectedListing] = useState<ApartmentListing | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showQuestionForm, setShowQuestionForm] = useState(false);
   const savedListings = listingCatalog.filter((listing) => favoriteIds.includes(listing.id));
   const submitSearch = (event: FormEvent) => { event.preventDefault(); if (query.trim() && !isListingSearchLoading) { onTextSearch(query); setTab('discover'); } };
   const openSignIn = () => router.push('/login');
   const resultSummary = hasSearched ? `${listings.length} matched home${listings.length === 1 ? '' : 's'}` : 'Search by voice or text';
+
+  const handleQuestionSubmit = async (questions: string[]) => {
+    if (!selectedListing || !user) return;
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/ask-landlord', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listingId: selectedListing.id,
+          tenantId: user.id,
+          questions,
+          landlord: {
+            wallet: selectedListing.landlordWallet,
+            isAppUser: true,
+          },
+          listingLocation: selectedListing.neighborhood,
+        }),
+      });
+      
+      if (response.ok) {
+        setShowQuestionForm(false);
+      }
+    } catch (error) {
+      console.error('Error submitting questions:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await logout();
@@ -54,14 +88,62 @@ export function ApartmentHome({ isLoading, error, userName, listings, listingCat
           </div>
           <div className="flex items-center"><div className="surface-panel w-full rounded-[2rem] border border-white/80 p-4 sm:p-5"><div className="flex items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-[.18em] text-primary">Try saying</p><span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">1 request</span></div><blockquote className="mt-4 font-serif text-lg leading-8 sm:text-2xl sm:leading-9">"I'm moving to Da Nang in July 2027. Find me a place near Greenwich University for under 5 million."</blockquote><div className="mt-5 grid gap-3 border-t border-border pt-4 sm:grid-cols-2"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-primary text-white"><Mic className="h-4 w-4" /></span><div><p className="text-sm font-semibold">Natural voice search</p><p className="text-xs text-muted-foreground">Budget, distance and dates understood</p></div></div><div className="rounded-2xl bg-muted px-4 py-3 text-xs leading-5 text-muted-foreground">Use follow-up prompts like "closer to campus" or "more furnished options."</div></div></div></div>
         </div></section>
-        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10"><div className="surface-panel rounded-[1.75rem] border border-border p-3 sm:p-4"><form onSubmit={submitSearch} className="flex flex-col gap-3 sm:flex-row sm:items-center"><div className="flex flex-1 items-center gap-3 rounded-2xl bg-muted px-3"><Search className="h-5 w-5 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} className="h-12 w-full bg-transparent text-sm outline-none" placeholder="Type your apartment request…" /></div><button type="submit" disabled={isListingSearchLoading} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-70 sm:px-6">{isListingSearchLoading && <Loader2 className="h-4 w-4 animate-spin" />}{isListingSearchLoading ? 'Searching…' : 'Search'}</button></form><div className="mt-3 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><button type="button" onClick={() => { setQuery(EXAMPLE_QUERY); onTextSearch(EXAMPLE_QUERY); }} className="text-left underline underline-offset-4">Use the Greenwich University example</button><div className="sm:hidden"><PwaControls /></div><span className="hidden sm:inline">Shorter requests work better on mobile.</span></div></div>{hasSearched && <><div className="mb-5 mt-8 flex flex-col gap-3 sm:mb-6 sm:mt-10 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Search results</p><h2 className="mt-1 font-serif text-2xl font-bold sm:text-3xl">{`${listings.length} matched homes`}</h2></div><p className="text-sm text-muted-foreground">Tap a card to review details or start an agreement.</p></div><SearchFilterChips filters={activeFilters} /><div className="mt-5 sm:mt-6 relative"><div className={isListingSearchLoading ? 'pointer-events-none select-none blur-[2px] opacity-70 transition' : ''}><ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} /></div>{isListingSearchLoading && <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[1.75rem] bg-white/35 backdrop-blur-[2px]"><div className="flex items-center gap-2 rounded-full border border-border bg-background/90 px-4 py-2 text-sm font-medium text-foreground shadow-sm"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span>Searching listings…</span></div></div>}</div></>}</section>
+        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10"><div className="surface-panel rounded-[1.75rem] border border-border p-3 sm:p-4"><form onSubmit={submitSearch} className="flex flex-col gap-3 sm:flex-row sm:items-center"><div className="flex flex-1 items-center gap-3 rounded-2xl bg-muted px-3"><Search className="h-5 w-5 text-muted-foreground" /><input value={query} onChange={(event) => setQuery(event.target.value)} className="h-12 w-full bg-transparent text-sm outline-none" placeholder="Type your apartment request…" /></div><button type="submit" disabled={isListingSearchLoading} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-70 sm:px-6">{isListingSearchLoading && <Loader2 className="h-4 w-4 animate-spin" />}{isListingSearchLoading ? 'Searching…' : 'Search'}</button></form><div className="mt-3 flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><button type="button" onClick={() => { setQuery(EXAMPLE_QUERY); onTextSearch(EXAMPLE_QUERY); }} className="text-left underline underline-offset-4">Use the Greenwich University example</button><div className="sm:hidden"><PwaControls /></div><span className="hidden sm:inline">Shorter requests work better on mobile.</span></div></div>{hasSearched && <><div className="mb-5 mt-8 flex flex-col gap-3 sm:mb-6 sm:mt-10 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Search results</p><h2 className="mt-1 font-serif text-2xl font-bold sm:text-3xl">{`${listings.length} matched homes`}</h2></div><p className="text-sm text-muted-foreground">Tap a card to review details or start an agreement.</p></div><SearchFilterChips filters={activeFilters} /><div className="mt-5 sm:mt-6 relative"><div className={isListingSearchLoading ? 'pointer-events-none select-none blur-[2px] opacity-70 transition' : ''}><ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} onSelectListing={setSelectedListing} /></div>{isListingSearchLoading && <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[1.75rem] bg-white/35 backdrop-blur-[2px]"><div className="flex items-center gap-2 rounded-full border border-border bg-background/90 px-4 py-2 text-sm font-medium text-foreground shadow-sm"><Loader2 className="h-4 w-4 animate-spin text-primary" /><span>Searching listings…</span></div></div>}</div></>}</section>
       </main>}
 
-      {tab === 'saved' && <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12"><p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Your shortlist</p><h1 className="mt-2 font-serif text-3xl font-bold sm:text-4xl">Saved apartments</h1><p className="mt-2 max-w-xl text-sm text-muted-foreground">Keep only the homes you would seriously revisit. Everything here stays on this device.</p><div className="mt-6 sm:mt-8"><ListingGrid listings={savedListings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} emptyMessage="Save a listing and it will appear here, even after you close the app." /></div></main>}
+      {tab === 'saved' && <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12"><p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Your shortlist</p><h1 className="mt-2 font-serif text-3xl font-bold sm:text-4xl">Saved apartments</h1><p className="mt-2 max-w-xl text-sm text-muted-foreground">Keep only the homes you would seriously revisit. Everything here stays on this device.</p><div className="mt-6 sm:mt-8"><ListingGrid listings={savedListings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} onSelectListing={setSelectedListing} emptyMessage="Save a listing and it will appear here, even after you close the app." /></div></main>}
       {tab === 'history' && <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12"><p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Recent activity</p><h1 className="mt-2 font-serif text-3xl font-bold sm:text-4xl">Search history</h1><p className="mt-2 max-w-xl text-sm text-muted-foreground">Reuse an old query instead of rebuilding your filters from scratch.</p><div className="mt-6 space-y-3 sm:mt-8">{history.length === 0 ? <p className="rounded-3xl border border-dashed border-stone-300 py-14 text-center text-sm text-muted-foreground">Your voice and typed searches will appear here.</p> : history.map((item) => <button type="button" key={item.id} onClick={() => { onTextSearch(item.query); setTab('discover'); }} className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border bg-background p-4 text-left sm:gap-4 sm:p-5"><div className="min-w-0"><p className="line-clamp-2 font-medium">{item.query}</p><p className="mt-1 text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString()} · {item.resultCount} matches</p></div><ArrowRight className="h-4 w-4 shrink-0" /></button>)}</div></main>}
       {tab === 'landlord' && <LandlordDashboard listings={listingCatalog} />}
       {tab === 'moderator' && <ModeratorDashboard listings={listingCatalog} />}
       <nav className="fixed inset-x-4 bottom-4 z-40 flex items-center justify-around rounded-2xl border border-border bg-background/95 p-2 shadow-xl backdrop-blur sm:hidden" aria-label="Mobile navigation">{([['discover', 'Discover', Search], ['saved', 'Saved', Heart], ['history', 'History', Clock3], ...(user?.role === 'landlord' ? [['landlord', 'Landlord', Home] as const] : []), ...(user?.role === 'moderator' ? [['moderator', 'Moderator', Shield] as const] : [])] as const).map(([value, label, Icon]) => <button type="button" key={value} onClick={() => setTab(value)} className={`flex min-w-20 flex-col items-center gap-1 rounded-xl py-2 text-[11px] font-semibold ${tab === value ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}><Icon className="h-4 w-4" />{label}</button>)}</nav>
+
+      {selectedListing && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+          <div className="mx-auto max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-[1.75rem] bg-background p-5 shadow-xl sm:rounded-2xl sm:p-6">
+            <div className="flex items-start justify-between">
+              <h3 className="text-lg font-semibold">{selectedListing.title}</h3>
+              <button
+                type="button"
+                onClick={() => { setSelectedListing(null); setShowQuestionForm(false); }}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">{selectedListing.address}</p>
+
+            <div className="mt-6">
+              <FAQSection faq={selectedListing.faq || []} />
+
+              {!showQuestionForm ? (
+                <button
+                  onClick={() => setShowQuestionForm(true)}
+                  className="mt-4 bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90"
+                >
+                  Ask a Question
+                </button>
+              ) : (
+                <div className="mt-4">
+                  <QuestionForm
+                    listingId={selectedListing.id}
+                    tenantId={user?.id || ''}
+                    landlordWallet={selectedListing.landlordWallet}
+                    listingLocation={selectedListing.neighborhood}
+                    onSubmit={handleQuestionSubmit}
+                    isLoading={isSubmitting}
+                  />
+                  <button
+                    onClick={() => setShowQuestionForm(false)}
+                    className="mt-2 text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

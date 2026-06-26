@@ -11,14 +11,16 @@ type ListingGridProps = {
   listings: ApartmentListing[];
   favoriteIds: string[];
   onToggleFavorite: (id: string) => void;
+  onSelectListing?: (listing: ApartmentListing) => void;
   emptyMessage?: string;
 };
 
-function ListingCard({ listing, isFavorite, onToggleFavorite, onOpenAgreement }: {
+function ListingCard({ listing, isFavorite, onToggleFavorite, onOpenAgreement, onSelectListing }: {
   listing: ApartmentListing;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
   onOpenAgreement: (id: string) => void;
+  onSelectListing?: (listing: ApartmentListing) => void;
 }) {
   const { profile, activeStakeSol, hasMinimumStake } = useLandlordProfile(listing.landlordWallet);
   return (
@@ -32,7 +34,7 @@ function ListingCard({ listing, isFavorite, onToggleFavorite, onOpenAgreement }:
       </div>
       <div className="flex flex-1 flex-col p-3 pt-2 md:p-5">
         <div className="flex min-h-[5.5rem] items-start justify-between gap-3 md:min-h-[6.5rem]">
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 cursor-pointer" onClick={() => onSelectListing?.(listing)}>
             <h3 className="line-clamp-2 font-serif text-lg font-semibold leading-tight text-foreground md:text-xl">{listing.title}</h3>
             <p className="mt-1 flex min-h-[2.5rem] items-start gap-1 text-xs leading-5 text-muted-foreground md:mt-2 md:min-h-[3rem]">
               <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -62,7 +64,7 @@ function ListingCard({ listing, isFavorite, onToggleFavorite, onOpenAgreement }:
   );
 }
 
-export function ListingGrid({ listings, favoriteIds, onToggleFavorite, emptyMessage = 'No apartments match those filters yet.' }: ListingGridProps) {
+export function ListingGrid({ listings, favoriteIds, onToggleFavorite, onSelectListing, emptyMessage = 'No apartments match those filters yet.' }: ListingGridProps) {
   const [activeListingId, setActiveListingId] = useState<string | null>(null);
   const [TenantPanel, setTenantPanel] = useState<any>(null);
 
@@ -80,6 +82,7 @@ export function ListingGrid({ listings, favoriteIds, onToggleFavorite, emptyMess
             isFavorite={favoriteIds.includes(listing.id)}
             onToggleFavorite={onToggleFavorite}
             onOpenAgreement={(id) => { setActiveListingId(id); import('@/components/apartment/TenantAgreementPanel').then((m) => setTenantPanel(() => m.default)); }}
+            onSelectListing={onSelectListing}
           />
         ))}
       </div>
