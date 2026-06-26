@@ -1,3 +1,5 @@
+import type { FAQItem } from './faq';
+
 export type ApartmentListing = {
   id: string;
   title: string;
@@ -15,6 +17,7 @@ export type ApartmentListing = {
   landlordWallet: string;
   defaultDepositSol: number;
   defaultInspectionDays: number;
+  faq?: FAQItem[];
 };
 
 export type ListingSearchFilters = {
