@@ -6,6 +6,7 @@ import { routeCall } from '@/lib/call-router';
 import { createFAQItemWithId } from '@/lib/faq-updater';
 import { createNotification } from '@/lib/notification-service';
 import { updateApartmentFAQ } from '@/lib/db/apartment-listings';
+import { checkRateLimit } from '@/lib/rate-limiter';
 import type { QuestionQueueItem } from '@/types/faq';
 
 interface AskLandlordRequest {
@@ -56,6 +57,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid questions', details: invalidQuestions },
         { status: 400 }
+      );
+    }
+
+    const rateLimitResult = checkRateLimit(tenantId, listingId, questionQueue);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: rateLimitResult.error, retryAfterMs: rateLimitResult.retryAfterMs },
+        { status: 429 }
       );
     }
 
