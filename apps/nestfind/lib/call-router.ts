@@ -16,6 +16,32 @@ export interface CallRoutingDecision {
   languageName: string;
 }
 
+export interface LandlordValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+export function validateLandlordInfo(
+  landlord: LandlordInfo,
+  callMethod: CallMethod
+): LandlordValidationResult {
+  if (callMethod === 'telephony' && !landlord.phone) {
+    return {
+      valid: false,
+      error: 'External landlord requires a phone number',
+    };
+  }
+
+  if (callMethod === 'agora' && !landlord.wallet) {
+    return {
+      valid: false,
+      error: 'App user landlord requires a wallet address',
+    };
+  }
+
+  return { valid: true };
+}
+
 export function determineLandlordType(landlord: LandlordInfo): LandlordType {
   return landlord.isAppUser ? 'app-user' : 'external';
 }
@@ -38,6 +64,11 @@ export function routeCall(
   const landlordType = determineLandlordType(landlord);
   const callMethod = determineCallMethod(landlordType);
   const { code: language, name: languageName } = getLanguageFromListing(listingLocation);
+
+  const validation = validateLandlordInfo(landlord, callMethod);
+  if (!validation.valid) {
+    throw new Error(validation.error);
+  }
 
   return {
     landlordType,

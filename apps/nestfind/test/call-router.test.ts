@@ -4,7 +4,9 @@ import {
   determineCallMethod,
   getLanguageFromListing,
   routeCall,
+  validateLandlordInfo,
   type LandlordInfo,
+  type CallMethod,
 } from '../lib/call-router.js';
 
 // Test determineLandlordType
@@ -41,12 +43,54 @@ assert.deepStrictEqual(getLanguageFromListing('unknown city'), { code: 'en', nam
 
 console.log('All getLanguageFromListing tests passed!');
 
+// Test validateLandlordInfo
+console.log('Testing validateLandlordInfo...');
+
+// Valid app user
+assert.deepStrictEqual(
+  validateLandlordInfo({ isAppUser: true, wallet: '0x123' }, 'agora'),
+  { valid: true }
+);
+
+// Valid external
+assert.deepStrictEqual(
+  validateLandlordInfo({ isAppUser: false, phone: '+1234567890' }, 'telephony'),
+  { valid: true }
+);
+
+// Invalid: external without phone
+const invalidExternal = validateLandlordInfo({ isAppUser: false }, 'telephony');
+assert.strictEqual(invalidExternal.valid, false);
+assert.ok(invalidExternal.error?.includes('phone number'));
+
+// Invalid: app user without wallet
+const invalidAppUser = validateLandlordInfo({ isAppUser: true }, 'agora');
+assert.strictEqual(invalidAppUser.valid, false);
+assert.ok(invalidAppUser.error?.includes('wallet'));
+
+console.log('All validateLandlordInfo tests passed!');
+
+// Test routeCall throws on invalid
+console.log('Testing routeCall validation...');
+
+assert.throws(
+  () => routeCall({ isAppUser: false }, 'paris'),
+  { message: /phone number/ }
+);
+
+assert.throws(
+  () => routeCall({ isAppUser: true }, 'tokyo'),
+  { message: /wallet address/ }
+);
+
+console.log('All routeCall validation tests passed!');
+
 // Test routeCall
 console.log('Testing routeCall...');
 
 // App user in Tokyo
 assert.deepStrictEqual(
-  routeCall({ isAppUser: true }, 'tokyo'),
+  routeCall({ isAppUser: true, wallet: '0x123' }, 'tokyo'),
   {
     landlordType: 'app-user',
     callMethod: 'agora',
@@ -77,9 +121,9 @@ assert.deepStrictEqual(
   }
 );
 
-// External contact with no extra info in unknown city
+// External contact in unknown city
 assert.deepStrictEqual(
-  routeCall({ isAppUser: false }, 'unknown city'),
+  routeCall({ isAppUser: false, phone: '+1234567890' }, 'unknown city'),
   {
     landlordType: 'external',
     callMethod: 'telephony',
