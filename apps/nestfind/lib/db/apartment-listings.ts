@@ -1,4 +1,6 @@
 import type { ApartmentListing } from '@/types/listing';
+import type { FAQItem } from '@/types/faq';
+import { mergeFAQItems } from '../faq-updater';
 import { getCouchbaseCollection } from './couchbase';
 
 export const APARTMENT_CATALOG_DOCUMENT_ID = 'nestfind::apartment-catalog';
@@ -60,4 +62,21 @@ export async function writeApartmentListingsToCouchbase(
     listings,
   };
   await collection.upsert(APARTMENT_CATALOG_DOCUMENT_ID, document);
+}
+
+export async function updateApartmentFAQ(
+  listingId: string,
+  newFAQItems: FAQItem[]
+): Promise<void> {
+  const collection = await getCouchbaseCollection();
+
+  const result = await collection.get(listingId);
+  const listing = result.content as ApartmentListing;
+
+  const updatedFAQ = mergeFAQItems(listing.faq || [], newFAQItems);
+
+  await collection.upsert(listingId, {
+    ...listing,
+    faq: updatedFAQ,
+  });
 }
