@@ -47,7 +47,7 @@ export function QuickstartTranscriptPanel({
       className="surface-panel flex h-[min(52dvh,34rem)] min-h-[22rem] w-full flex-col overflow-hidden rounded-[1.75rem] border border-white/70 lg:h-full lg:min-h-0"
       aria-label="Transcription panel"
     >
-      <div className="flex h-14 shrink-0 items-center justify-between border-b border-stone-200/80 px-4">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/80 px-4">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Transcript</h2>
           <p className="text-xs text-muted-foreground">Live voice turns</p>
@@ -81,8 +81,8 @@ export function QuickstartTranscriptPanel({
                 <div
                   className={`max-w-[92%] whitespace-pre-wrap rounded-[1.35rem] border px-3.5 py-3 text-sm leading-6 shadow-sm ${
                     isAgent
-                      ? 'border-blue-600 bg-blue-600 text-white'
-                      : 'border-amber-200 bg-[#fff7e8] text-stone-900'
+                      ? 'border-primary bg-primary text-white'
+                      : 'border-warning/30 bg-warning/10 text-foreground'
                   }`}
                 >
                   {text || '...'}

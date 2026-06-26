@@ -671,7 +671,7 @@ export default function ConversationComponent({
           agentUID={agentUID}
         />
       }
-      listingPanel={hasSearched ? <><SearchFilterChips filters={activeFilters} /><div className="mt-4"><ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} emptyMessage="No exact matches yet. Tell the concierge to relax one of the active filters." /></div></> : <div className="rounded-3xl border border-dashed border-stone-300 bg-white/60 px-6 py-14 text-center text-sm text-stone-500">Tell Mai what you need. Matching apartments will appear after your request.</div>}
+      listingPanel={hasSearched ? <><SearchFilterChips filters={activeFilters} /><div className="mt-4"><ListingGrid listings={listings} favoriteIds={favoriteIds} onToggleFavorite={onToggleFavorite} emptyMessage="No exact matches yet. Tell the concierge to relax one of the active filters." /></div></> : <div className="rounded-3xl border border-dashed border-border bg-background/60 px-6 py-14 text-center text-sm text-muted-foreground">Tell Mai what you need. Matching apartments will appear after your request.</div>}
       controls={
         <div className="flex items-center gap-2" role="group" aria-label="Audio controls">
           <button
@@ -679,8 +679,8 @@ export default function ConversationComponent({
             onClick={handleMicToggle}
             className={`grid h-10 w-10 place-items-center rounded-full border shadow-sm transition ${
               isEnabled
-                ? 'border-stone-200 bg-white/90 text-stone-700 hover:bg-stone-50'
-                : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                ? 'border-border bg-white/90 text-stone-700 hover:bg-muted'
+                : 'border-warning/30 bg-warning/10 text-warning hover:bg-warning/20'
             }`}
             aria-label={isEnabled ? 'Mute microphone' : 'Unmute microphone'}
             title={isEnabled ? 'Mute microphone' : 'Unmute microphone'}
