@@ -38,7 +38,7 @@ export function ConnectionStatusPanel({
     <div className="relative flex-shrink-0">
       <button
         type="button"
-        className="flex items-center gap-2 rounded-full border border-border bg-white/85 px-3 py-2 text-left shadow-sm backdrop-blur"
+        className="flex items-center gap-2 rounded-full border border-border bg-background/85 px-3 py-2 text-left shadow-sm backdrop-blur"
         aria-label={label}
         aria-expanded={isOpen}
         aria-controls="connection-details-panel"

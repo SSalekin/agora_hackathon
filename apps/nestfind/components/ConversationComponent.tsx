@@ -679,7 +679,7 @@ export default function ConversationComponent({
             onClick={handleMicToggle}
             className={`grid h-10 w-10 place-items-center rounded-full border shadow-sm transition ${
               isEnabled
-                ? 'border-border bg-white/90 text-stone-700 hover:bg-muted'
+                ? 'border-border bg-background/90 text-foreground hover:bg-muted'
                 : 'border-warning/30 bg-warning/10 text-warning hover:bg-warning/20'
             }`}
             aria-label={isEnabled ? 'Mute microphone' : 'Unmute microphone'}
