@@ -11,6 +11,7 @@ const VALID_AGREEMENT_STATES: readonly AgreementUiState[] = [
   'released',
   'refunded',
   'cancelled',
+  'unknown',
 ] as const;
 
 export async function GET(request: NextRequest) {
