@@ -604,11 +604,11 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold">Listing</p>
-            <p className="text-sm text-stone-700">{listing.title}</p>
+            <p className="text-sm text-foreground">{listing.title}</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-stone-500">Rent</p>
-            <p className="font-semibold text-blue-600">{listing.monthlyRentVnd.toLocaleString()} VND</p>
+            <p className="font-semibold text-primary">{listing.monthlyRentVnd.toLocaleString()} VND</p>
           </div>
         </div>
 
@@ -617,29 +617,29 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
             <label className="text-xs font-medium">Connected wallet</label>
             <div className="mt-1 flex items-center gap-2">
               <input value={walletPubkey ?? ''} readOnly placeholder="Not connected" className="flex-1 rounded-md border px-3 py-2 text-sm" />
-              <button type="button" onClick={connectWallet} disabled={isBusy} className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">Connect</button>
+              <button type="button" onClick={connectWallet} disabled={isBusy} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">Connect</button>
             </div>
-            {connectedRole && <p className="mt-1 text-xs text-stone-500">Role for loaded agreement: <span className="font-semibold capitalize">{connectedRole}</span></p>}
-            {isLoadingAgreement && <p className="mt-1 text-xs text-stone-500">Loading existing agreement for this wallet…</p>}
+            {connectedRole && <p className="mt-1 text-xs text-muted-foreground">Role for loaded agreement: <span className="font-semibold capitalize">{connectedRole}</span></p>}
+            {isLoadingAgreement && <p className="mt-1 text-xs text-muted-foreground">Loading existing agreement for this wallet…</p>}
           </div>
           <div>
             <label className="text-xs font-medium">Landlord wallet (from listing)</label>
             <input
               value={landlordWallet}
               readOnly
-              className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${isLandlordValid ? 'bg-stone-50 text-stone-700' : 'border-rose-300 bg-rose-50 text-rose-700'}`}
+              className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${isLandlordValid ? 'bg-muted text-foreground' : 'border-destructive/30 bg-destructive/10 text-destructive'}`}
             />
             {!isLandlordValid && (
-              <p className="mt-1 text-xs text-rose-600">Invalid landlord wallet address on this listing.</p>
+              <p className="mt-1 text-xs text-destructive">Invalid landlord wallet address on this listing.</p>
             )}
           </div>
         </div>
 
         {pdaPreview && (
-          <div className="rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-xs text-stone-600">
-            <p className="font-semibold text-stone-700">On-chain preview</p>
-            <p className="mt-1 break-all">Listing hash: <span className="font-mono text-stone-500">{pdaPreview.listingHash}</span></p>
-            <p className="mt-1 break-all">Agreement PDA: <span className="font-mono text-stone-500">{pdaPreview.agreementPda}</span></p>
+          <div className="rounded-md border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
+            <p className="font-semibold text-foreground">On-chain preview</p>
+            <p className="mt-1 break-all">Listing hash: <span className="font-mono text-muted-foreground">{pdaPreview.listingHash}</span></p>
+            <p className="mt-1 break-all">Agreement PDA: <span className="font-mono text-muted-foreground">{pdaPreview.agreementPda}</span></p>
           </div>
         )}
 
@@ -653,7 +653,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         )}
 
         {isLandlordValid && !landlordProfile.exists && connectedRole === 'tenant' && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
             This landlord has no on-chain stake profile. They must stake at least 0.0001 SOL before they can approve agreements.
           </div>
         )}
@@ -672,7 +672,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
               type="button"
               onClick={createAgreement}
               disabled={isBusy || !isLandlordValid}
-              className="w-full rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {txState.phase === 'signing' || txState.action === 'create agreement' ? 'Creating…' : 'Create agreement'}
             </button>
@@ -680,7 +680,7 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         </div>
 
         {txState.phase !== 'idle' && (
-          <div className={`rounded-md border px-3 py-2 text-sm ${txState.phase === 'failed' ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-stone-200 bg-stone-50 text-stone-700'}`}>
+          <div className={`rounded-md border px-3 py-2 text-sm ${txState.phase === 'failed' ? 'border-destructive/30 bg-destructive/10 text-destructive' : 'border-border bg-muted text-foreground'}`}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-semibold capitalize">{txState.action ?? 'Transaction'}</p>
@@ -697,14 +697,14 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
 
         {agreement && (
           <div className="rounded-md border p-3">
-            <p className="text-xs text-stone-500">Agreement state: <span className="font-semibold">{formatAgreementStateLabel(agreement.state)}</span></p>
-            {agreement.txSignature && <p className="mt-1 text-xs text-stone-500">Last on-chain signature: <a href={explorerUrl(agreement.txSignature)} target="_blank" rel="noreferrer" className="underline underline-offset-2">{agreement.txSignature}</a></p>}
-            <pre className="mt-2 max-h-40 overflow-auto text-xs text-stone-700">{JSON.stringify(agreement, null, 2)}</pre>
+            <p className="text-xs text-muted-foreground">Agreement state: <span className="font-semibold">{formatAgreementStateLabel(agreement.state)}</span></p>
+            {agreement.txSignature && <p className="mt-1 text-xs text-muted-foreground">Last on-chain signature: <a href={explorerUrl(agreement.txSignature)} target="_blank" rel="noreferrer" className="underline underline-offset-2">{agreement.txSignature}</a></p>}
+            <pre className="mt-2 max-h-40 overflow-auto text-xs text-foreground">{JSON.stringify(agreement, null, 2)}</pre>
             <div className="mt-3 flex gap-2">
-              <button type="button" onClick={approveAgreement} disabled={isBusy || agreement.state !== 'awaitingLandlordApproval' || connectedRole !== 'landlord'} className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="button" onClick={approveAgreement} disabled={isBusy || agreement.state !== 'awaitingLandlordApproval' || connectedRole !== 'landlord'} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
                 {txState.action === 'approve agreement' && isBusy ? 'Approving…' : 'Approve'}
               </button>
-              <button type="button" onClick={fundAgreement} disabled={isBusy || agreement.state !== 'awaitingFunding' || connectedRole !== 'tenant'} className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="button" onClick={fundAgreement} disabled={isBusy || agreement.state !== 'awaitingFunding' || connectedRole !== 'tenant'} className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">
                 {txState.action === 'fund agreement' && isBusy ? 'Funding…' : 'Fund'}
               </button>
               <button type="button" onClick={cancelAgreement} disabled={isBusy || !connectedRole || connectedRole === 'viewer' || !['awaitingLandlordApproval', 'awaitingFunding'].includes(agreement.state)} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Cancel</button>
@@ -715,13 +715,13 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
               <label className="text-xs font-medium">Evidence (optional)</label>
               <input value={evidence} onChange={(e) => setEvidence(e.target.value)} placeholder="Short description or evidence text" className="mt-1 w-full rounded-md border px-3 py-2 text-sm" />
               <div className="mt-2 flex gap-2">
-                <button type="button" onClick={openDispute} disabled={isBusy || agreement.state !== 'funded' || (connectedRole !== 'tenant' && connectedRole !== 'landlord')} className="rounded-md bg-rose-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">{txState.action === 'open dispute' && isBusy ? 'Opening…' : 'Open dispute'}</button>
+                <button type="button" onClick={openDispute} disabled={isBusy || agreement.state !== 'funded' || (connectedRole !== 'tenant' && connectedRole !== 'landlord')} className="rounded-md bg-destructive px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60">{txState.action === 'open dispute' && isBusy ? 'Opening…' : 'Open dispute'}</button>
                 <button type="button" onClick={() => resolveDispute(true)} disabled={isBusy || agreement.state !== 'disputed' || connectedRole !== 'moderator'} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Moderator release</button>
                 <button type="button" onClick={() => resolveDispute(false)} disabled={isBusy || agreement.state !== 'disputed' || connectedRole !== 'moderator'} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Moderator refund</button>
                 <button type="button" onClick={() => { setAgreement(null); clearTxState(); onClose(); }} disabled={isBusy} className="rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60">Close</button>
               </div>
               {(connectedRole === 'moderator' || agreement.state === 'disputed') && (
-                <p className="mt-2 text-xs text-amber-700">
+                <p className="mt-2 text-xs text-warning">
                   Moderator note: The hackathon moderator is a centralized role. Dispute decisions are final and cannot be appealed.
                 </p>
               )}
@@ -730,12 +730,12 @@ export default function TenantAgreementPanel({ listing, onClose }: Props) {
         )}
 
         {networkWarning && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <div className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
             {networkWarning}
           </div>
         )}
 
-        {error && <p className="mt-2 text-sm text-rose-700">{error}</p>}
+        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
       </div>
     </div>
   );

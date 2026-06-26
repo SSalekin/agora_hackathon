@@ -22,5 +22,5 @@ export function SearchFilterChips({ filters }: { filters: ListingSearchFilters |
     ...(filters.amenities ?? []).map((amenity) => amenity),
   ].filter((chip): chip is string => Boolean(chip));
 
-  return <div className="mt-3 flex flex-wrap gap-2" aria-label="Active search filters">{chips.map((chip) => <span key={chip} className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-600">{chip}</span>)}</div>;
+  return <div className="mt-3 flex flex-wrap gap-2" aria-label="Active search filters">{chips.map((chip) => <span key={chip} className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">{chip}</span>)}</div>;
 }
