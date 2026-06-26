@@ -13,6 +13,11 @@ export async function getApartmentCatalog(): Promise<{
     return { listings: APARTMENT_LISTINGS, source: 'local' };
   }
 
-  const listings = await readApartmentListingsFromCouchbase();
-  return { listings, source: 'couchbase' };
+  try {
+    const listings = await readApartmentListingsFromCouchbase();
+    return { listings, source: 'couchbase' };
+  } catch (error) {
+    console.error('Couchbase unavailable, falling back to local listings:', error);
+    return { listings: APARTMENT_LISTINGS, source: 'local' };
+  }
 }
