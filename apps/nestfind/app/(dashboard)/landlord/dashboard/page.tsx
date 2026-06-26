@@ -168,14 +168,14 @@ const DUMMY_AGREEMENTS = [
 ];
 
 const STATUS_CONFIG = {
-  awaiting_approval: { label: 'Pending Approval', color: 'bg-amber-100 text-amber-800', icon: Clock },
-  funded: { label: 'Funded', color: 'bg-blue-100 text-blue-800', icon: CheckCircle },
-  completed: { label: 'Completed', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  disputed: { label: 'Disputed', color: 'bg-red-100 text-red-800', icon: AlertCircle },
-  released: { label: 'Released', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  refunded: { label: 'Refunded', color: 'bg-orange-100 text-orange-800', icon: AlertCircle },
-  active: { label: 'Active', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  rented: { label: 'Rented', color: 'bg-blue-100 text-blue-800', icon: Home },
+  awaiting_approval: { label: 'Pending Approval', color: 'bg-warning/10 text-warning', icon: Clock },
+  funded: { label: 'Funded', color: 'bg-primary/10 text-primary', icon: CheckCircle },
+  completed: { label: 'Completed', color: 'bg-success/10 text-success', icon: CheckCircle },
+  disputed: { label: 'Disputed', color: 'bg-destructive/10 text-destructive', icon: AlertCircle },
+  released: { label: 'Released', color: 'bg-success/10 text-success', icon: CheckCircle },
+  refunded: { label: 'Refunded', color: 'bg-warning/10 text-warning', icon: AlertCircle },
+  active: { label: 'Active', color: 'bg-success/10 text-success', icon: CheckCircle },
+  rented: { label: 'Rented', color: 'bg-primary/10 text-primary', icon: Home },
 };
 
 export default function LandlordDashboard() {
@@ -203,7 +203,7 @@ export default function LandlordDashboard() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            <span className="text-green-600 font-medium">6 active</span> · 2 rented
+            <span className="text-success font-medium">6 active</span> · 2 rented
           </p>
         </div>
 
@@ -213,12 +213,12 @@ export default function LandlordDashboard() {
               <p className="text-sm text-muted-foreground">Monthly Revenue</p>
               <p className="text-2xl font-bold text-foreground">38.2M</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-green-600" />
+            <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
+              <DollarSign className="h-5 w-5 text-success" />
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            <span className="text-green-600 font-medium">+12%</span> vs last month
+            <span className="text-success font-medium">+12%</span> vs last month
           </p>
         </div>
 
@@ -228,12 +228,12 @@ export default function LandlordDashboard() {
               <p className="text-sm text-muted-foreground">Active Agreements</p>
               <p className="text-2xl font-bold text-foreground">4</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <Users className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="h-5 w-5 text-primary" />
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
-            <span className="text-amber-600 font-medium">2 pending</span> approval
+            <span className="text-warning font-medium">2 pending</span> approval
           </p>
         </div>
 
@@ -243,8 +243,8 @@ export default function LandlordDashboard() {
               <p className="text-sm text-muted-foreground">Reputation Score</p>
               <p className="text-2xl font-bold text-foreground">{MOCK_STAKE.reputationScore}</p>
             </div>
-            <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-amber-600" />
+            <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-warning" />
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">
@@ -259,7 +259,7 @@ export default function LandlordDashboard() {
         <div className="surface-panel rounded-xl p-5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Your Stake</p>
-            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-800">
+            <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
               <ShieldCheck className="h-3 w-3" /> Verified
             </span>
           </div>
@@ -289,7 +289,7 @@ export default function LandlordDashboard() {
         <div className="surface-panel rounded-xl p-5">
           <div className="flex items-center justify-between">
             <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">Landlord Reputation</p>
-            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-semibold text-green-800">
+            <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
               <ShieldCheck className="h-3 w-3" />
               Verified
             </span>
@@ -356,11 +356,11 @@ export default function LandlordDashboard() {
                   <td className="px-5 py-3 text-right text-foreground">{landlord.reputationScore}/5.0</td>
                   <td className="px-5 py-3 text-center">
                     {landlord.activeStaked >= 0.0001 ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-semibold text-success">
                         <ShieldCheck className="h-3 w-3" /> Verified
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning">
                         Below Min
                       </span>
                     )}
@@ -457,12 +457,12 @@ export default function LandlordDashboard() {
                   </div>
                 )}
                 {agreement.status === 'disputed' && (
-                  <div className="mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                    <div className="flex items-center gap-2 text-red-800">
+                  <div className="mt-3 p-3 bg-destructive/10 rounded-lg border border-destructive/30">
+                    <div className="flex items-center gap-2 text-destructive">
                       <AlertCircle className="h-4 w-4" />
                       <span className="text-sm font-medium">Dispute Pending Resolution</span>
                     </div>
-                    <p className="text-xs text-red-600 mt-1">
+                    <p className="text-xs text-destructive mt-1">
                       Awaiting moderator decision. You will be notified once resolved.
                     </p>
                   </div>
