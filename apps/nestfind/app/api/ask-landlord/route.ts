@@ -164,6 +164,31 @@ export async function POST(request: NextRequest) {
     };
     questionQueue.push(queueItem);
 
+    try {
+      const callResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/initiate-landlord-call`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questionQueueItemId: queueItem.id,
+          listingId,
+          tenantId,
+          questions: questionsToProcess,
+          landlord,
+          listingLocation,
+        }),
+      });
+
+      if (callResponse.ok) {
+        const callResult = await callResponse.json();
+        queueItem.status = 'in-progress';
+        log.info('Landlord call initiated', { queueItemId: queueItem.id, sessionId: callResult.sessionId });
+      } else {
+        log.warn('Failed to initiate landlord call', { queueItemId: queueItem.id });
+      }
+    } catch (error) {
+      log.warn('Call initiation failed, questions queued for retry', { queueItemId: queueItem.id, error: (error as Error).message });
+    }
+
     createNotification(
       tenantId,
       'question-submitted',
