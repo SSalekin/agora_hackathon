@@ -4,8 +4,12 @@ import { callSessionManager } from '@/lib/call-session-manager';
 import { createLandlordCallAgent } from '@/lib/landlord-call-agent';
 import { routeCall } from '@/lib/call-router';
 import { createLogger } from '@/lib/logger';
+import { callMonitor } from '@/lib/call-monitor';
 
 const log = createLogger({ module: 'initiate-landlord-call' });
+
+// Start monitor if not already running
+callMonitor.start();
 
 interface InitiateCallRequest {
   questionQueueItemId: string;
