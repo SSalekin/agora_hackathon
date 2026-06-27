@@ -31,4 +31,12 @@ export type CallSession = {
   startedAt: string;
   endedAt?: string;
   transcript?: string;
+  // New fields for Phase 2
+  channelId?: string;
+  agentUid?: number;
+  currentQuestionIndex?: number;
+  answers: { questionIndex: number; answer: string; skipped: boolean }[];
+  retryCount: number;
+  lastRetryAt?: string;
+  nextRetryAt?: string;
 };
