@@ -53,12 +53,35 @@ export class CallSessionManager {
     session.status = status;
     if (status === 'completed' || status === 'failed') {
       session.endedAt = new Date().toISOString();
+
+      // Notify webhook (fire and forget)
+      this.notifyWebhook(session).catch((err) => {
+        log.error('Failed to notify webhook', err, { sessionId });
+      });
     }
     if (transcript) {
       session.transcript = transcript;
     }
 
     log.info('Session status updated', { sessionId, status });
+  }
+
+  private async notifyWebhook(session: CallSession): Promise<void> {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      await fetch(`${baseUrl}/api/landlord-call-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: session.id,
+          status: session.status,
+          transcript: session.transcript,
+          answers: session.answers,
+        }),
+      });
+    } catch (error) {
+      log.error('Webhook notification failed', error as Error, { sessionId: session.id });
+    }
   }
 
   recordAnswer(sessionId: string, questionIndex: number, answer: string, skipped: boolean): void {
