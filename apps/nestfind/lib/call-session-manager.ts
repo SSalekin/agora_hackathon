@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import type { CallSession, QuestionQueueItem, FAQItem } from '@/types/faq';
+import type { CallSession, QuestionQueueItem } from '@/types/faq';
+import { LANDLORD_AGENT_UID, LANDLORD_CALL_CHANNEL_PREFIX } from '@/lib/agora';
 import { createLogger } from './logger';
 
 const log = createLogger({ module: 'call-session-manager' });
@@ -26,8 +27,8 @@ export class CallSessionManager {
       language,
       status: 'initiating',
       startedAt: new Date().toISOString(),
-      channelId: `landlord-call-${Date.now()}-${randomUUID().slice(0, 8)}`,
-      agentUid: 789012, // LANDLORD_AGENT_UID
+      channelId: `${LANDLORD_CALL_CHANNEL_PREFIX}${Date.now()}-${randomUUID().slice(0, 8)}`,
+      agentUid: LANDLORD_AGENT_UID,
       currentQuestionIndex: 0,
       answers: [],
       retryCount: 0,
