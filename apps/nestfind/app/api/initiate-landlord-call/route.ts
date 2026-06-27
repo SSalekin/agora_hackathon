@@ -3,6 +3,7 @@ import { ExpiresIn } from 'agora-agents';
 import { callSessionManager } from '@/lib/call-session-manager';
 import { createLandlordCallAgent } from '@/lib/landlord-call-agent';
 import { routeCall } from '@/lib/call-router';
+import { initiateTelephonyCall } from '@/lib/telephony-client';
 import { createLogger } from '@/lib/logger';
 import { callMonitor } from '@/lib/call-monitor';
 
@@ -33,32 +34,62 @@ export async function POST(request: NextRequest) {
     }
 
     const routingDecision = routeCall(landlord, listingLocation);
-    if (routingDecision.callMethod !== 'agora') {
-      return NextResponse.json(
-        {
-          error: 'Only app-user landlords supported in Phase 2',
-          code: 'UNSUPPORTED_CALL_METHOD',
-        },
-        { status: 400 }
-      );
-    }
 
     const session = callSessionManager.createSession(
       { id: questionQueueItemId, listingId, tenantId, questions, status: 'pending', createdAt: new Date().toISOString(), attempts: 0 },
       landlord.wallet,
-      undefined,
+      landlord.phone,
       routingDecision.callMethod,
       routingDecision.language
     );
 
-    const agent = createLandlordCallAgent(routingDecision.language, questions);
-
     log.info('Initiating landlord call', {
       sessionId: session.id,
       channelId: session.channelId,
+      callMethod: routingDecision.callMethod,
       language: routingDecision.language,
       questionCount: questions.length,
     });
+
+    if (routingDecision.callMethod === 'telephony') {
+      const telephonyResult = await initiateTelephonyCall({
+        to: landlord.phone!,
+        listingId,
+        tenantId,
+        questions,
+        language: routingDecision.language,
+        questionQueueItemId,
+      });
+
+      if (!telephonyResult.success) {
+        callSessionManager.updateSessionStatus(session.id, 'failed');
+        return NextResponse.json(
+          { error: telephonyResult.error || 'Failed to initiate telephony call' },
+          { status: 500 }
+        );
+      }
+
+      if (telephonyResult.callSid) {
+        callSessionManager.registerCallSid(session.id, telephonyResult.callSid);
+      }
+
+      callSessionManager.updateSessionStatus(session.id, 'active');
+
+      log.info('Telephony call initiated', {
+        sessionId: session.id,
+        callSid: telephonyResult.callSid,
+      });
+
+      return NextResponse.json({
+        success: true,
+        sessionId: session.id,
+        callMethod: 'telephony',
+        callSid: telephonyResult.callSid,
+      });
+    }
+
+    // Agora call path for app-user landlords
+    const agent = createLandlordCallAgent(routingDecision.language, questions);
 
     try {
       const sessionResult = agent.createSession({
