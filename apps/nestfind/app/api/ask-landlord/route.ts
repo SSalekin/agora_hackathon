@@ -12,6 +12,17 @@ import type { QuestionQueueItem } from '@/types/faq';
 
 const log = createLogger({ module: 'ask-landlord' });
 
+type ErrorCode =
+  | 'AUTH_REQUIRED'
+  | 'AUTH_INVALID'
+  | 'AUTH_MISMATCH'
+  | 'MISSING_FIELDS'
+  | 'INVALID_QUESTIONS'
+  | 'RATE_LIMITED'
+  | 'LISTING_NOT_FOUND'
+  | 'LANDLORD_INVALID'
+  | 'INTERNAL_ERROR';
+
 interface AskLandlordRequest {
   listingId: string;
   tenantId: string;
@@ -31,12 +42,18 @@ export async function POST(request: NextRequest) {
     const token = cookieStore.get('auth-token')?.value;
 
     if (!token) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Authentication required', code: 'AUTH_REQUIRED' satisfies ErrorCode },
+        { status: 401 }
+      );
     }
 
     const tokenUser = getUserFromToken(token);
     if (!tokenUser) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Invalid token', code: 'AUTH_INVALID' satisfies ErrorCode },
+        { status: 401 }
+      );
     }
 
     const body: AskLandlordRequest = await request.json();
@@ -48,14 +65,14 @@ export async function POST(request: NextRequest) {
 
     if (!listingId || !tenantId || !questions.length || !landlord || !listingLocation) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields', code: 'MISSING_FIELDS' satisfies ErrorCode },
         { status: 400 }
       );
     }
 
     if (tokenUser.id !== tenantId) {
       return NextResponse.json(
-        { error: 'Tenant ID does not match authenticated user' },
+        { error: 'Tenant ID does not match authenticated user', code: 'AUTH_MISMATCH' satisfies ErrorCode },
         { status: 403 }
       );
     }
@@ -66,7 +83,7 @@ export async function POST(request: NextRequest) {
     if (invalidQuestions.length > 0) {
       log.warn('Validation failed', { tenantId, listingId, error: invalidQuestions });
       return NextResponse.json(
-        { error: 'Invalid questions', details: invalidQuestions },
+        { error: 'Invalid questions', code: 'INVALID_QUESTIONS' satisfies ErrorCode, details: invalidQuestions },
         { status: 400 }
       );
     }
@@ -75,7 +92,7 @@ export async function POST(request: NextRequest) {
     if (!rateLimitResult.allowed) {
       log.warn('Rate limit exceeded', { tenantId, listingId });
       return NextResponse.json(
-        { error: rateLimitResult.error, retryAfterMs: rateLimitResult.retryAfterMs },
+        { error: rateLimitResult.error, code: 'RATE_LIMITED' satisfies ErrorCode, retryAfterMs: rateLimitResult.retryAfterMs },
         { status: 429 }
       );
     }
@@ -86,7 +103,17 @@ export async function POST(request: NextRequest) {
       createFAQItemWithId(q, '', tenantId, routingDecision.language, 'pending')
     );
 
-    await updateApartmentFAQ(listingId, faqItems);
+    try {
+      await updateApartmentFAQ(listingId, faqItems);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        return NextResponse.json(
+          { error: 'Listing not found', code: 'LISTING_NOT_FOUND' satisfies ErrorCode },
+          { status: 404 }
+        );
+      }
+      throw error;
+    }
 
     const queueItem: QuestionQueueItem = {
       id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
@@ -120,7 +147,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     log.error('Failed to process questions', error as Error, { tenantId, listingId });
     return NextResponse.json(
-      { error: 'Failed to process questions' },
+      { error: 'Failed to process questions', code: 'INTERNAL_ERROR' satisfies ErrorCode },
       { status: 500 }
     );
   }
