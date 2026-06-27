@@ -21,6 +21,10 @@ export class CallSessionManager {
     const session: CallSession = {
       id: randomUUID(),
       questionQueueItemId: queueItem.id,
+      listingId: queueItem.listingId,
+      tenantId: queueItem.tenantId,
+      questions: queueItem.questions,
+      listingLocation: '',
       landlordWallet,
       landlordPhone,
       callMethod,
@@ -50,14 +54,18 @@ export class CallSessionManager {
       return;
     }
 
+    const previousStatus = session.status;
     session.status = status;
     if (status === 'completed' || status === 'failed') {
       session.endedAt = new Date().toISOString();
 
-      // Notify webhook (fire and forget)
-      this.notifyWebhook(session).catch((err) => {
-        log.error('Failed to notify webhook', err, { sessionId });
-      });
+      // Only notify webhook when status is changing to a terminal state
+      // This prevents the circular call when the webhook calls us back
+      if (previousStatus !== status) {
+        this.notifyWebhook(session).catch((err) => {
+          log.error('Failed to notify webhook', err, { sessionId });
+        });
+      }
     }
     if (transcript) {
       session.transcript = transcript;

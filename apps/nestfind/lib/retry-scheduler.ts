@@ -52,11 +52,11 @@ export class RetryScheduler {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           questionQueueItemId: session.questionQueueItemId,
-          listingId: session.questionQueueItemId, // Simplified - in production store listingId
-          tenantId: session.questionQueueItemId, // Simplified - in production store tenantId
-          questions: [], // Will be populated from queue item
+          listingId: session.listingId,
+          tenantId: session.tenantId,
+          questions: session.questions,
           landlord: { wallet: session.landlordWallet, isAppUser: true },
-          listingLocation: '', // Will be determined from listing
+          listingLocation: session.listingLocation,
         }),
       });
 

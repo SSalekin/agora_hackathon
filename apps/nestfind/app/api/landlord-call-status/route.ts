@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callSessionManager } from '@/lib/call-session-manager';
 import { createNotification } from '@/lib/notification-service';
+import { updateApartmentFAQ } from '@/lib/db/apartment-listings';
 import { createLogger } from '@/lib/logger';
 import type { FAQItem } from '@/types/faq';
 
@@ -36,20 +37,21 @@ export async function POST(request: NextRequest) {
     // Update session status
     callSessionManager.updateSessionStatus(sessionId, status, transcript);
 
-    // If completed with answers, log FAQ update
+    // If completed with answers, persist FAQ items
     if (status === 'completed' && answers && answers.length > 0) {
       const faqItems: FAQItem[] = answers.map((answer) => ({
         id: `faq-${sessionId}-${answer.questionIndex}`,
-        question: '',
+        question: session.questions[answer.questionIndex] || '',
         answer: answer.answer,
         status: answer.skipped ? 'skipped' : 'answered',
-        askedBy: session.questionQueueItemId,
+        askedBy: session.tenantId,
         askedAt: session.startedAt,
         answeredAt: new Date().toISOString(),
         language: session.language,
       }));
 
-      log.info('FAQ update ready', { sessionId, faqItemCount: faqItems.length });
+      await updateApartmentFAQ(session.listingId, faqItems);
+      log.info('FAQ answers persisted', { sessionId, listingId: session.listingId, faqItemCount: faqItems.length });
     }
 
     // Notify tenant

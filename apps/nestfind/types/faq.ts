@@ -23,6 +23,10 @@ export type QuestionQueueItem = {
 export type CallSession = {
   id: string;
   questionQueueItemId: string;
+  listingId: string;
+  tenantId: string;
+  questions: string[];
+  listingLocation: string;
   landlordWallet?: string;
   landlordPhone?: string;
   callMethod: 'agora' | 'telephony';
