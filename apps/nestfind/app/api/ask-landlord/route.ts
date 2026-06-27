@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getUserFromToken } from '@/lib/auth';
-import { validateQuestion } from '@/lib/question-collector';
+import { validateQuestion, checkDuplicateQuestions } from '@/lib/question-collector';
 import { routeCall } from '@/lib/call-router';
 import { createFAQItemWithId } from '@/lib/faq-updater';
 import { createNotification } from '@/lib/notification-service';
-import { updateApartmentFAQ } from '@/lib/db/apartment-listings';
+import { updateApartmentFAQ, getListingFAQ } from '@/lib/db/apartment-listings';
 import { checkRateLimit } from '@/lib/rate-limiter';
 import { createLogger } from '@/lib/logger';
 import type { QuestionQueueItem } from '@/types/faq';
@@ -21,6 +21,7 @@ type ErrorCode =
   | 'RATE_LIMITED'
   | 'LISTING_NOT_FOUND'
   | 'LANDLORD_INVALID'
+  | 'DUPLICATE_QUESTIONS'
   | 'INTERNAL_ERROR';
 
 interface AskLandlordRequest {
@@ -97,9 +98,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const routingDecision = routeCall(landlord, listingLocation);
+    let existingFAQ;
+    try {
+      existingFAQ = await getListingFAQ(listingId);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        return NextResponse.json(
+          { error: 'Listing not found', code: 'LISTING_NOT_FOUND' satisfies ErrorCode },
+          { status: 404 }
+        );
+      }
+      throw error;
+    }
 
-    const faqItems = questions.map((q) =>
+    const duplicateCheck = checkDuplicateQuestions(questions, existingFAQ);
+    if (duplicateCheck.duplicates.length > 0) {
+      log.warn('Duplicate questions detected', { tenantId, listingId, duplicates: duplicateCheck.duplicates });
+      if (duplicateCheck.unique.length === 0) {
+        return NextResponse.json(
+          { error: 'All questions are duplicates of existing FAQ items', code: 'DUPLICATE_QUESTIONS' satisfies ErrorCode, duplicates: duplicateCheck.duplicates },
+          { status: 409 }
+        );
+      }
+      log.info('Proceeding with unique questions only', { tenantId, listingId, skipped: duplicateCheck.duplicates.length });
+    }
+
+    const questionsToProcess = duplicateCheck.unique;
+
+    let routingDecision;
+    try {
+      routingDecision = routeCall(landlord, listingLocation);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Invalid landlord configuration';
+      log.warn('Landlord validation failed', { tenantId, listingId, error: message });
+      return NextResponse.json(
+        { error: message, code: 'LANDLORD_INVALID' satisfies ErrorCode },
+        { status: 400 }
+      );
+    }
+
+    const faqItems = questionsToProcess.map((q) =>
       createFAQItemWithId(q, '', tenantId, routingDecision.language, 'pending')
     );
 
@@ -119,7 +157,7 @@ export async function POST(request: NextRequest) {
       id: `q-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       listingId,
       tenantId,
-      questions,
+      questions: questionsToProcess,
       status: 'pending',
       createdAt: new Date().toISOString(),
       attempts: 0,

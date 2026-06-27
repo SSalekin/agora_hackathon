@@ -67,6 +67,19 @@ export async function writeApartmentListingsToCouchbase(
   await collection.upsert(APARTMENT_CATALOG_DOCUMENT_ID, document);
 }
 
+export async function getListingFAQ(listingId: string): Promise<FAQItem[]> {
+  const collection = await getCouchbaseCollection();
+  const result = await collection.get(APARTMENT_CATALOG_DOCUMENT_ID);
+  const document = result.content as ApartmentCatalogDocument;
+
+  const listing = document.listings.find((l) => l.id === listingId);
+  if (!listing) {
+    throw new Error(`Listing ${listingId} not found in apartment catalog`);
+  }
+
+  return listing.faq || [];
+}
+
 export async function updateApartmentFAQ(
   listingId: string,
   newFAQItems: FAQItem[]
