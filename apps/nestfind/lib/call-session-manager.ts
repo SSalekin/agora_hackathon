@@ -10,6 +10,7 @@ const RETRY_DELAYS_MS = [5 * 60 * 1000, 15 * 60 * 1000, 60 * 60 * 1000]; // 5min
 
 export class CallSessionManager {
   private activeSessions: Map<string, CallSession> = new Map();
+  private callSidToSessionId: Map<string, string> = new Map();
 
   createSession(
     queueItem: QuestionQueueItem,
@@ -131,6 +132,16 @@ export class CallSessionManager {
     return Array.from(this.activeSessions.values()).filter(
       (s) => s.status === 'initiating' || s.status === 'active'
     );
+  }
+
+  registerCallSid(sessionId: string, callSid: string): void {
+    this.callSidToSessionId.set(callSid, sessionId);
+    log.info('Call SID registered', { sessionId, callSid });
+  }
+
+  getSessionByCallSid(callSid: string): CallSession | undefined {
+    const sessionId = this.callSidToSessionId.get(callSid);
+    return sessionId ? this.activeSessions.get(sessionId) : undefined;
   }
 
   getSession(sessionId: string): CallSession | undefined {
