@@ -84,7 +84,7 @@ export async function initiateTelephonyCall(
     return { success: true, callSid: call.sid };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    log.error('Failed to initiate telephony call', error instanceof Error ? error : undefined, { to: params.to });
+    log.error('Failed to initiate telephony call', error instanceof Error ? error : undefined, { to: params.to, errorMessage });
     return { success: false, error: errorMessage };
   }
 }
@@ -102,7 +102,7 @@ export async function endTelephonyCall(callSid: string): Promise<boolean> {
     return true;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    log.error('Failed to end telephony call', error instanceof Error ? error : undefined, { callSid });
+    log.error('Failed to end telephony call', error instanceof Error ? error : undefined, { callSid, errorMessage });
     return false;
   }
 }
