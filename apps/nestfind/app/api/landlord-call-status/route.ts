@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
     // Update session status
     callSessionManager.updateSessionStatus(sessionId, status, transcript);
 
-    // If completed with answers, persist FAQ items
-    if (status === 'completed' && answers && answers.length > 0) {
+    // If completed with answers, persist FAQ items (non-telephony only)
+    if (status === 'completed' && answers && answers.length > 0 && session.callMethod !== 'telephony') {
       const faqItems: FAQItem[] = answers.map((answer) => ({
         id: `faq-${sessionId}-${answer.questionIndex}`,
         question: session.questions[answer.questionIndex] || '',
@@ -68,13 +68,12 @@ export async function POST(request: NextRequest) {
         language: session.language,
       }));
 
-      if (faqItems.length > 0) {
-        await updateApartmentFAQ(session.listingId, faqItems);
-        log.info('FAQ updated for telephony call', {
-          sessionId,
-          faqItemCount: faqItems.length,
-        });
-      }
+      await updateApartmentFAQ(session.listingId, faqItems);
+      log.info('FAQ updated for telephony call', {
+        sessionId,
+        listingId: session.listingId,
+        faqItemCount: faqItems.length,
+      });
     }
 
     // Notify tenant
