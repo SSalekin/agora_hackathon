@@ -7,7 +7,10 @@ import { createFAQItemWithId } from '@/lib/faq-updater';
 import { createNotification } from '@/lib/notification-service';
 import { updateApartmentFAQ } from '@/lib/db/apartment-listings';
 import { checkRateLimit } from '@/lib/rate-limiter';
+import { createLogger } from '@/lib/logger';
 import type { QuestionQueueItem } from '@/types/faq';
+
+const log = createLogger({ module: 'ask-landlord' });
 
 interface AskLandlordRequest {
   listingId: string;
@@ -36,6 +39,8 @@ export async function POST(request: NextRequest) {
     const body: AskLandlordRequest = await request.json();
     const { listingId, tenantId, questions, landlord, listingLocation } = body;
 
+    log.info('Processing question submission', { tenantId, listingId, questionCount: questions.length });
+
     if (!listingId || !tenantId || !questions.length || !landlord || !listingLocation) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -54,6 +59,7 @@ export async function POST(request: NextRequest) {
     const invalidQuestions = validationResults.filter((r) => !r.valid);
 
     if (invalidQuestions.length > 0) {
+      log.warn('Validation failed', { tenantId, listingId, error: invalidQuestions });
       return NextResponse.json(
         { error: 'Invalid questions', details: invalidQuestions },
         { status: 400 }
@@ -62,6 +68,7 @@ export async function POST(request: NextRequest) {
 
     const rateLimitResult = checkRateLimit(tenantId, listingId, questionQueue);
     if (!rateLimitResult.allowed) {
+      log.warn('Rate limit exceeded', { tenantId, listingId });
       return NextResponse.json(
         { error: rateLimitResult.error, retryAfterMs: rateLimitResult.retryAfterMs },
         { status: 429 }
@@ -95,6 +102,8 @@ export async function POST(request: NextRequest) {
       listingId
     );
 
+    log.info('Questions submitted successfully', { tenantId, listingId, queueItemId: queueItem.id });
+
     return NextResponse.json({
       success: true,
       routingDecision,
@@ -104,7 +113,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in ask-landlord:', error);
+    log.error('Failed to process questions', error as Error);
     return NextResponse.json(
       { error: 'Failed to process questions' },
       { status: 500 }
