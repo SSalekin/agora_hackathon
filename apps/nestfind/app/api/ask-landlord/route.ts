@@ -23,6 +23,9 @@ interface AskLandlordRequest {
 const questionQueue: QuestionQueueItem[] = [];
 
 export async function POST(request: NextRequest) {
+  let tenantId = '';
+  let listingId = '';
+
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('auth-token')?.value;
@@ -37,7 +40,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body: AskLandlordRequest = await request.json();
-    const { listingId, tenantId, questions, landlord, listingLocation } = body;
+    listingId = body.listingId;
+    tenantId = body.tenantId;
+    const { questions, landlord, listingLocation } = body;
 
     log.info('Processing question submission', { tenantId, listingId, questionCount: questions.length });
 
@@ -113,7 +118,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    log.error('Failed to process questions', error as Error);
+    log.error('Failed to process questions', error as Error, { tenantId, listingId });
     return NextResponse.json(
       { error: 'Failed to process questions' },
       { status: 500 }
