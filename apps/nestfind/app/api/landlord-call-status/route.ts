@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'node:crypto';
 import { callSessionManager } from '@/lib/call-session-manager';
 import { createNotification } from '@/lib/notification-service';
 import { updateApartmentFAQ } from '@/lib/db/apartment-listings';
@@ -52,6 +53,28 @@ export async function POST(request: NextRequest) {
 
       await updateApartmentFAQ(session.listingId, faqItems);
       log.info('FAQ answers persisted', { sessionId, listingId: session.listingId, faqItemCount: faqItems.length });
+    }
+
+    // Handle telephony sessions (callMethod === 'telephony')
+    if (session.callMethod === 'telephony' && session.answers.length > 0) {
+      const faqItems: FAQItem[] = session.answers.map(answer => ({
+        id: randomUUID(),
+        question: session.questions[answer.questionIndex] || '',
+        answer: answer.answer,
+        status: answer.skipped ? 'skipped' : 'answered',
+        askedBy: session.tenantId,
+        askedAt: session.startedAt,
+        answeredAt: new Date().toISOString(),
+        language: session.language,
+      }));
+
+      if (faqItems.length > 0) {
+        await updateApartmentFAQ(session.listingId, faqItems);
+        log.info('FAQ updated for telephony call', {
+          sessionId,
+          faqItemCount: faqItems.length,
+        });
+      }
     }
 
     // Notify tenant
