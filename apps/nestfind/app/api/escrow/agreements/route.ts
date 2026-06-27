@@ -3,14 +3,35 @@ import { listAgreements, upsertAgreement } from '@/lib/db/agreements';
 import { isEscrowPersistenceEnabled } from '@/lib/db/escrow-collection';
 import type { AgreementUiState } from '@/lib/escrow';
 
+const VALID_AGREEMENT_STATES: readonly AgreementUiState[] = [
+  'awaitingLandlordApproval',
+  'awaitingFunding',
+  'funded',
+  'disputed',
+  'released',
+  'refunded',
+  'cancelled',
+  'unknown',
+] as const;
+
 export async function GET(request: NextRequest) {
   if (!isEscrowPersistenceEnabled()) {
     return NextResponse.json({ agreements: [], total: 0, source: 'none' });
   }
   const wallet = request.nextUrl.searchParams.get('wallet')?.trim() ?? undefined;
-  const state = request.nextUrl.searchParams.get('state')?.trim() as AgreementUiState | undefined;
+  const state = request.nextUrl.searchParams.get('state')?.trim() as string | undefined;
 
-  const agreements = await listAgreements({ wallet, state });
+  if (state && !VALID_AGREEMENT_STATES.includes(state as AgreementUiState)) {
+    return NextResponse.json({ error: 'Invalid state parameter' }, { status: 400 });
+  }
+  if (wallet && !/^[a-zA-Z0-9]{32,44}$/.test(wallet)) {
+    return NextResponse.json({ error: 'Invalid wallet address' }, { status: 400 });
+  }
+
+  const agreements = await listAgreements({
+    wallet,
+    state: state as AgreementUiState | undefined,
+  });
   return NextResponse.json({ agreements, total: agreements.length, source: 'couchbase' });
 }
 

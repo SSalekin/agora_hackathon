@@ -10,21 +10,22 @@ export async function GET() {
     const token = cookieStore.get('auth-token')?.value;
 
     if (!token) {
-      return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ success: false, authenticated: false });
     }
 
     const tokenUser = getUserFromToken(token);
     if (!tokenUser) {
-      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
+      return NextResponse.json({ success: false, authenticated: false });
     }
 
     const storedUser = await findUserById(tokenUser.id);
     if (!storedUser) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 401 });
+      return NextResponse.json({ success: false, authenticated: false });
     }
 
     return NextResponse.json({
       success: true,
+      authenticated: true,
       user: {
         id: storedUser.id,
         email: storedUser.email,

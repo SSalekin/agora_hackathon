@@ -125,14 +125,14 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => { setEmail('alice@demo.com'); setPassword('password123'); }}
-            className="px-2 py-1.5 rounded-md bg-accent/10 text-accent-foreground hover:bg-accent/20 transition-colors"
+            className="px-2 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
           >
             Landlord
           </button>
           <button
             type="button"
             onClick={() => { setEmail('moderator@demo.com'); setPassword('password123'); }}
-            className="px-2 py-1.5 rounded-md bg-secondary/50 text-secondary-foreground hover:bg-secondary transition-colors"
+            className="px-2 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
           >
             Moderator
           </button>

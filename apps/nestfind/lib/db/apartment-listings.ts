@@ -1,5 +1,10 @@
 import type { ApartmentListing } from '@/types/listing';
+import type { FAQItem } from '@/types/faq';
+import { mergeFAQItems } from '../faq-updater';
 import { getCouchbaseCollection } from './couchbase';
+import { createLogger } from '../logger';
+
+const log = createLogger({ module: 'apartment-listings' });
 
 export const APARTMENT_CATALOG_DOCUMENT_ID = 'nestfind::apartment-catalog';
 
@@ -60,4 +65,59 @@ export async function writeApartmentListingsToCouchbase(
     listings,
   };
   await collection.upsert(APARTMENT_CATALOG_DOCUMENT_ID, document);
+}
+
+export async function getListingFAQ(listingId: string): Promise<FAQItem[]> {
+  const collection = await getCouchbaseCollection();
+  const result = await collection.get(APARTMENT_CATALOG_DOCUMENT_ID);
+  const document = result.content as ApartmentCatalogDocument;
+
+  const listing = document.listings.find((l) => l.id === listingId);
+  if (!listing) {
+    throw new Error(`Listing ${listingId} not found in apartment catalog`);
+  }
+
+  return listing.faq || [];
+}
+
+export async function updateApartmentFAQ(
+  listingId: string,
+  newFAQItems: FAQItem[]
+): Promise<void> {
+  const collection = await getCouchbaseCollection();
+  const maxRetries = 3;
+
+  log.info('Updating FAQ for listing', { listingId, itemCount: newFAQItems.length });
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const result = await collection.get(APARTMENT_CATALOG_DOCUMENT_ID);
+    const document = result.content as ApartmentCatalogDocument;
+    const cas = result.cas;
+
+    const listingIndex = document.listings.findIndex((l) => l.id === listingId);
+    if (listingIndex === -1) {
+      throw new Error(`Listing ${listingId} not found in apartment catalog`);
+    }
+
+    const listing = document.listings[listingIndex];
+    const updatedFAQ = mergeFAQItems(listing.faq || [], newFAQItems);
+
+    document.listings[listingIndex] = { ...listing, faq: updatedFAQ };
+    document.updatedAt = new Date().toISOString();
+
+    try {
+      await collection.replace(APARTMENT_CATALOG_DOCUMENT_ID, document, { cas });
+      log.info('FAQ updated successfully', { listingId });
+      return;
+    } catch (err: unknown) {
+      if (err instanceof Error && 'code' in err && (err as { code: number }).code === 12) {
+        log.warn('CAS conflict, retrying', { listingId, attempt: attempt + 1, maxRetries });
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  log.error('Failed to update FAQ after retries', undefined, { listingId, maxRetries });
+  throw new Error(`Failed to update FAQ for listing ${listingId} after ${maxRetries} retries`);
 }

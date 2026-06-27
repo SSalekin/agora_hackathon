@@ -38,7 +38,7 @@ export function ConnectionStatusPanel({
     <div className="relative flex-shrink-0">
       <button
         type="button"
-        className="flex items-center gap-2 rounded-full border border-stone-200 bg-white/85 px-3 py-2 text-left shadow-sm backdrop-blur"
+        className="flex items-center gap-2 rounded-full border border-border bg-background/85 px-3 py-2 text-left shadow-sm backdrop-blur"
         aria-label={label}
         aria-expanded={isOpen}
         aria-controls="connection-details-panel"
@@ -49,24 +49,24 @@ export function ConnectionStatusPanel({
             <span
               className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
                 connectionSeverity === 'normal'
-                  ? 'bg-green-500'
+                  ? 'bg-success'
                   : connectionSeverity === 'warning'
-                    ? 'bg-amber-500'
-                    : 'bg-red-500'
+                    ? 'bg-warning'
+                    : 'bg-destructive'
               }`}
             />
           )}
           <span
             className={`relative inline-flex h-2 w-2 rounded-full ${
               connectionSeverity === 'normal'
-                ? 'bg-green-500'
+                ? 'bg-success'
                 : connectionSeverity === 'warning'
-                  ? 'bg-amber-500'
-                  : 'bg-red-500'
+                  ? 'bg-warning'
+                  : 'bg-destructive'
             }`}
           />
         </span>
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-600">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           {connectionSeverity === 'error' ? 'Needs attention' : connectionSeverity === 'warning' ? 'Checking' : 'Connected'}
         </span>
       </button>
@@ -85,14 +85,14 @@ export function ConnectionStatusPanel({
             <div className="text-xs font-semibold tracking-wide text-foreground">
               Connection Details
             </div>
-            <div className="mt-1 text-sm text-stone-600">{label}</div>
+            <div className="mt-1 text-sm text-muted-foreground">{label}</div>
           </div>
           <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             RTC {connectionState.toLowerCase()}
           </div>
         </div>
         {connectionIssues.length === 0 ? (
-          <div className="rounded-2xl bg-stone-50 px-3 py-3 text-xs text-muted-foreground">No RTM or agent errors reported.</div>
+          <div className="rounded-2xl bg-muted px-3 py-3 text-xs text-muted-foreground">No RTM or agent errors reported.</div>
         ) : (
           <div className="space-y-2 max-h-56 overflow-auto pr-1">
             {connectionIssues.map((issue) => (

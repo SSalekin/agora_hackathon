@@ -2,7 +2,6 @@ import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
-    darkMode: ["class"],
     content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -68,6 +67,18 @@ const config: Config = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground) / <alpha-value>)',
   				border: 'hsl(var(--sidebar-border) / <alpha-value>)',
   				ring: 'hsl(var(--sidebar-ring) / <alpha-value>)'
+  			},
+  			success: {
+  				DEFAULT: 'hsl(var(--success) / <alpha-value>)',
+  				foreground: 'hsl(var(--success-foreground) / <alpha-value>)'
+  			},
+  			warning: {
+  				DEFAULT: 'hsl(var(--warning) / <alpha-value>)',
+  				foreground: 'hsl(var(--warning-foreground) / <alpha-value>)'
+  			},
+  			info: {
+  				DEFAULT: 'hsl(var(--info) / <alpha-value>)',
+  				foreground: 'hsl(var(--info-foreground) / <alpha-value>)'
   			}
   		},
   		borderRadius: {

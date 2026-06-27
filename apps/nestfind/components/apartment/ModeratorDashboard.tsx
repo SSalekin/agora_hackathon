@@ -69,28 +69,28 @@ function LandlordLookupSection() {
   };
 
   return (
-    <div className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
-      <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">
+    <div className="rounded-[1.75rem] border border-border bg-background p-5 shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">
         Landlord Lookup
       </p>
-      <p className="mt-2 max-w-2xl text-sm text-stone-500">
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
         Enter a landlord wallet address to view their on-chain stake profile and risk assessment.
       </p>
       <div className="mt-4 flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             value={lookupWallet}
             onChange={(e) => setLookupWallet(e.target.value)}
             placeholder="Paste a Solana wallet address..."
-            className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 pl-9 pr-3 text-sm outline-none focus:border-emerald-700"
+            className="h-11 w-full rounded-xl border border-border bg-muted pl-9 pr-3 text-sm outline-none focus:border-primary"
           />
         </div>
         <button
           type="button"
           onClick={handleLookup}
           disabled={!lookupWallet.trim() || lookupWallet.trim().length < 32}
-          className="h-11 rounded-xl bg-emerald-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-11 rounded-xl bg-primary px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           Lookup
         </button>
@@ -299,31 +299,31 @@ export function ModeratorDashboard({ listings }: Props) {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-800">
+      <p className="text-xs font-bold uppercase tracking-[.16em] text-primary">
         Moderator workspace
       </p>
-      <div className="mt-2 flex flex-col gap-4 rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-2 flex flex-col gap-4 rounded-[1.75rem] border border-border bg-background p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="font-serif text-3xl font-bold sm:text-4xl">
             Dispute resolution
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-stone-500">
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Connect the moderator wallet to review disputed agreements and resolve
             deposit disputes between tenants and landlords.
           </p>
           {walletPubkey && (
-            <p className="mt-3 truncate text-xs text-stone-500">
+            <p className="mt-3 truncate text-xs text-muted-foreground">
               Connected wallet:{' '}
-              <span className="font-semibold text-stone-700">{walletPubkey}</span>
+              <span className="font-semibold text-foreground">{walletPubkey}</span>
             </p>
           )}
-          {error && <p className="mt-2 text-sm text-rose-700">{error}</p>}
+          {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
         </div>
         <button
           type="button"
           onClick={connectWallet}
           disabled={isBusy}
-          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-emerald-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           <KeyRound className="h-4 w-4" />
           {walletPubkey ? 'Refresh disputes' : 'Connect moderator wallet'}
@@ -334,8 +334,8 @@ export function ModeratorDashboard({ listings }: Props) {
         <LandlordLookupSection />
       </div>
 
-      <div className="mt-6 flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-600">
-        <Shield className="h-4 w-4 text-emerald-800" />
+      <div className="mt-6 flex items-center gap-3 rounded-2xl border border-border bg-muted px-4 py-3 text-sm text-muted-foreground">
+        <Shield className="h-4 w-4 text-primary" />
         <span>
           {walletPubkey
             ? isLoading
@@ -347,7 +347,7 @@ export function ModeratorDashboard({ listings }: Props) {
 
       <div className="mt-6 space-y-4">
         {disputed.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-stone-300 bg-white/60 px-6 py-14 text-center text-sm text-stone-500">
+          <div className="rounded-3xl border border-dashed border-stone-300 bg-background/60 px-6 py-14 text-center text-sm text-muted-foreground">
             {walletPubkey
               ? 'No disputed agreements found. All clear.'
               : 'Connect a moderator wallet to view disputed agreements.'}
@@ -380,7 +380,7 @@ export function ModeratorDashboard({ listings }: Props) {
       </div>
 
       {networkWarning && (
-        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mt-6 rounded-2xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
           {networkWarning}
         </div>
       )}
@@ -415,16 +415,16 @@ function DisputedCard({
   const cardFeedback = txState.activePda === pda ? txState : null;
 
   return (
-    <article className="rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm">
+    <article className="rounded-[1.75rem] border border-border bg-background p-5 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[.16em] text-rose-700">
+          <p className="text-xs font-bold uppercase tracking-[.16em] text-destructive">
             {formatAgreementStateLabel(agreement.state)}
           </p>
-          <h2 className="mt-2 font-serif text-2xl font-bold text-stone-900">
+          <h2 className="mt-2 font-serif text-2xl font-bold text-foreground">
             {listing?.title ?? 'Unknown listing'}
           </h2>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             {listing?.address ?? 'No matching local listing metadata found.'}
           </p>
         </div>
@@ -432,28 +432,28 @@ function DisputedCard({
           href={addressExplorerUrl(agreement.pda)}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-2 rounded-full border border-stone-200 px-3 py-2 text-xs font-semibold text-stone-600"
+          className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-2 text-xs font-semibold text-muted-foreground"
         >
           View PDA
           <ExternalLink className="h-3.5 w-3.5" />
         </a>
       </div>
 
-      <div className="mt-4 grid gap-3 rounded-2xl bg-stone-50 p-4 text-sm text-stone-600 sm:grid-cols-3">
+      <div className="mt-4 grid gap-3 rounded-2xl bg-muted p-4 text-sm text-muted-foreground sm:grid-cols-3">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Tenant
           </p>
           <p className="mt-1 break-all">{tenant}</p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Landlord
           </p>
           <p className="mt-1 break-all">{landlord}</p>
         </div>
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-500">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Deposit
           </p>
           <p className="mt-1">
@@ -476,8 +476,8 @@ function DisputedCard({
         <div
           className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${
             cardFeedback.phase === 'failed'
-              ? 'border-rose-200 bg-rose-50 text-rose-800'
-              : 'border-stone-200 bg-stone-50 text-stone-700'
+              ? 'border-destructive/30 bg-destructive/10 text-destructive'
+              : 'border-border bg-muted text-foreground'
           }`}
         >
           <div className="flex items-start justify-between gap-3">
@@ -510,7 +510,7 @@ function DisputedCard({
           type="button"
           onClick={() => onResolve(pda, true)}
           disabled={isBusy}
-          className="rounded-xl bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isThisCardBusy && txState.action === 'resolve: release' ? 'Releasing...' : 'Release to landlord'}
         </button>
@@ -518,12 +518,12 @@ function DisputedCard({
           type="button"
           onClick={() => onResolve(pda, false)}
           disabled={isBusy}
-          className="rounded-xl border border-stone-300 px-4 py-2 text-sm text-stone-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl border border-stone-300 px-4 py-2 text-sm text-foreground disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isThisCardBusy && txState.action === 'resolve: refund' ? 'Refunding...' : 'Refund tenant'}
         </button>
       </div>
-      <p className="mt-2 text-xs text-amber-700">
+      <p className="mt-2 text-xs text-warning">
         Moderator note: The hackathon moderator is a centralized role. Dispute decisions are final and cannot be appealed.
       </p>
     </article>
