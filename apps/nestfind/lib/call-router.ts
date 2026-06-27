@@ -46,8 +46,18 @@ export function determineLandlordType(landlord: LandlordInfo): LandlordType {
   return landlord.isAppUser ? 'app-user' : 'external';
 }
 
-export function determineCallMethod(landlordType: LandlordType): CallMethod {
-  return landlordType === 'app-user' ? 'agora' : 'telephony';
+export function determineCallMethod(landlordType: LandlordType, landlord: LandlordInfo): CallMethod {
+  if (landlordType === 'app-user') {
+    return 'agora';
+  }
+  
+  // External landlord - must have phone number
+  if (landlord.phone) {
+    return 'telephony';
+  }
+  
+  // Fallback - cannot call without phone or app access
+  throw new Error('External landlord must have a phone number');
 }
 
 export function getLanguageFromListing(location: string): { code: string; name: string } {
@@ -62,7 +72,7 @@ export function routeCall(
   listingLocation: string
 ): CallRoutingDecision {
   const landlordType = determineLandlordType(landlord);
-  const callMethod = determineCallMethod(landlordType);
+  const callMethod = determineCallMethod(landlordType, landlord);
   const { code: language, name: languageName } = getLanguageFromListing(listingLocation);
 
   const validation = validateLandlordInfo(landlord, callMethod);

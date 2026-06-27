@@ -22,8 +22,14 @@ console.log('All determineLandlordType tests passed!');
 // Test determineCallMethod
 console.log('Testing determineCallMethod...');
 
-assert.strictEqual(determineCallMethod('app-user'), 'agora');
-assert.strictEqual(determineCallMethod('external'), 'telephony');
+assert.strictEqual(determineCallMethod('app-user', { isAppUser: true, wallet: '0x123' }), 'agora');
+assert.strictEqual(determineCallMethod('external', { isAppUser: false, phone: '+1234567890' }), 'telephony');
+
+// Test determineCallMethod throws for external without phone
+assert.throws(
+  () => determineCallMethod('external', { isAppUser: false }),
+  { message: /External landlord must have a phone number/ }
+);
 
 console.log('All determineCallMethod tests passed!');
 
