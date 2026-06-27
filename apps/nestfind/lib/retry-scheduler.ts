@@ -7,6 +7,8 @@ export class RetryScheduler {
   private retryTimers: Map<string, NodeJS.Timeout> = new Map();
 
   scheduleRetry(sessionId: string): void {
+    this.cancelRetry(sessionId);
+
     const session = callSessionManager.getSession(sessionId);
     if (!session) {
       log.warn('Cannot schedule retry: session not found', { sessionId });
@@ -22,7 +24,9 @@ export class RetryScheduler {
     log.info('Scheduling retry', { sessionId, delayMs: delay, retryCount: session.retryCount + 1 });
 
     const timer = setTimeout(() => {
-      this.processRetry(sessionId);
+      this.processRetry(sessionId).catch((err) => {
+        log.error('Unhandled error in processRetry', err, { sessionId });
+      });
       this.retryTimers.delete(sessionId);
     }, delay);
 

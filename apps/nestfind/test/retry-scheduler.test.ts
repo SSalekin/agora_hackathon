@@ -1,11 +1,10 @@
 import assert from 'node:assert';
 import { RetryScheduler } from '../lib/retry-scheduler.js';
-import { CallSessionManager } from '../lib/call-session-manager.js';
+import { callSessionManager } from '../lib/call-session-manager.js';
 import type { QuestionQueueItem } from '../types/faq.js';
 
 console.log('Testing RetryScheduler...');
 
-const manager = new CallSessionManager();
 const scheduler = new RetryScheduler();
 
 const mockQueueItem: QuestionQueueItem = {
@@ -18,13 +17,13 @@ const mockQueueItem: QuestionQueueItem = {
   attempts: 0,
 };
 
-// Create and fail a session
-const session = manager.createSession(mockQueueItem, '0x123', undefined, 'agora', 'en');
-manager.updateSessionStatus(session.id, 'failed');
+// Create and fail a session using the singleton
+const session = callSessionManager.createSession(mockQueueItem, '0x123', undefined, 'agora', 'en');
+callSessionManager.updateSessionStatus(session.id, 'failed');
 
 // Schedule retry
 scheduler.scheduleRetry(session.id);
-assert.strictEqual(manager.shouldRetry(session), true);
+assert.strictEqual(callSessionManager.shouldRetry(session), true);
 
 // Cancel retry
 scheduler.cancelRetry(session.id);
