@@ -50,3 +50,32 @@ export function extractQuestionsFromChat(messages: string[]): string[] {
   // Simple heuristic: messages that end with ? are questions
   return messages.filter(msg => msg.trim().endsWith('?'));
 }
+
+export interface DuplicateCheckResult {
+  duplicates: string[];
+  unique: string[];
+}
+
+export function checkDuplicateQuestions(
+  newQuestions: string[],
+  existingFAQ: FAQItem[]
+): DuplicateCheckResult {
+  const existingQuestions = new Set(
+    existingFAQ.map((item) => item.question.toLowerCase().trim())
+  );
+
+  const duplicates: string[] = [];
+  const unique: string[] = [];
+
+  for (const question of newQuestions) {
+    const normalized = question.toLowerCase().trim();
+    if (existingQuestions.has(normalized)) {
+      duplicates.push(question);
+    } else {
+      unique.push(question);
+      existingQuestions.add(normalized);
+    }
+  }
+
+  return { duplicates, unique };
+}

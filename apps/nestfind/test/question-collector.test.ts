@@ -1,5 +1,6 @@
 import assert from 'node:assert';
-import { validateQuestion, createFAQItem, extractQuestionsFromChat } from '../lib/question-collector.js';
+import { validateQuestion, createFAQItem, extractQuestionsFromChat, checkDuplicateQuestions } from '../lib/question-collector.js';
+import type { FAQItem } from '../types/faq.js';
 
 // Test validateQuestion
 console.log('Testing validateQuestion...');
@@ -85,4 +86,49 @@ assert.deepStrictEqual(
 );
 
 console.log('All extractQuestionsFromChat tests passed!');
+
+// Test checkDuplicateQuestions
+console.log('Testing checkDuplicateQuestions...');
+
+const existingFAQ: FAQItem[] = [
+  {
+    id: '1',
+    question: 'Is parking available?',
+    answer: 'Yes',
+    status: 'answered',
+    askedBy: 't1',
+    askedAt: '2025-01-01T00:00:00.000Z',
+    language: 'en',
+  },
+];
+
+// No duplicates
+const noDupes = checkDuplicateQuestions(
+  ['What is the rent?', 'Is pets allowed?'],
+  existingFAQ
+);
+assert.strictEqual(noDupes.duplicates.length, 0);
+assert.strictEqual(noDupes.unique.length, 2);
+
+// With duplicates
+const withDupes = checkDuplicateQuestions(
+  ['Is parking available?', 'What is the rent?'],
+  existingFAQ
+);
+assert.strictEqual(withDupes.duplicates.length, 1);
+assert.strictEqual(withDupes.duplicates[0], 'Is parking available?');
+assert.strictEqual(withDupes.unique.length, 1);
+
+// Case insensitive
+const caseInsensitive = checkDuplicateQuestions(
+  ['is parking available?'],
+  existingFAQ
+);
+assert.strictEqual(caseInsensitive.duplicates.length, 1);
+
+// Empty existing
+const emptyExisting = checkDuplicateQuestions(['New question?'], []);
+assert.strictEqual(emptyExisting.unique.length, 1);
+
+console.log('All checkDuplicateQuestions tests passed!');
 console.log('All tests passed!');
